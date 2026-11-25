@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Catweb Studio</title>
+  <link rel="stylesheet" href="studio/script-app.css">
+</head>
+<body>
+  <header class="titlebar">
+    <a class="brand" href="./"><span class="brand-mark">C</span><span>Catweb</span></a>
+    <span id="windowTitle" class="window-title">Script Lab — my_site.cat</span>
+    <div class="top-actions"><button id="openProject" class="tool-button">Import JSON</button><input id="fileInput" type="file" accept=".json,application/json" hidden><button id="saveSource" class="tool-button">Save .cat</button><button id="download" class="tool-button">Export project</button><button id="compile" class="compile-button"><span>▶</span> Compile script</button></div>
+  </header>
+  <main class="workbench">
+    <aside class="explorer file-explorer">
+      <div class="explorer-title"><span>EXPLORER</span><a href="README.md" title="Documentation">⋯</a></div>
+      <div class="project-heading"><span class="tree-chevron">⌄</span><span id="projectName">MY PROJECT</span><button id="newScript" class="project-action" title="Create script">＋ Script</button></div>
+      <div id="projectTree" class="project-tree" role="tree" aria-label="Project items"></div>
+      <label class="watermark-label" for="folderAlias">Folder name / brand</label>
+      <input id="folderAlias" class="watermark-input" value="Catweb Script Lab" maxlength="80" aria-label="Exported folder name">
+      <section id="objectInspector" class="object-inspector" aria-live="polite"></section>
+      <div class="explorer-footer"><a href="CATWEB_SCRIPT_LANGUAGE.md">CSL syntax</a><span>v0.2</span></div>
+    </aside>
+    <section class="editor-column">
+      <div class="tabbar"><div class="active-tab"><span class="tab-icon">⌘</span> <span id="scriptTitle">my_site</span>.cat <span class="language-pill">CSL</span></div><div class="tab-tools"><button class="snippet" data-insert="log">＋ console.log</button><button class="snippet" data-insert="set">＋ assignment</button><a href="CATWEB_SCRIPT_LANGUAGE.md" target="_blank" rel="noreferrer">Syntax ↗</a></div></div>
+      <div class="edit-area"><div id="lineNumbers" class="line-numbers" aria-hidden="true"></div><div class="code-stack"><pre id="highlight" aria-hidden="true"></pre><textarea id="source" aria-label="Catweb code" autocomplete="off" autocapitalize="off" spellcheck="false" wrap="off"></textarea></div></div>
+      <div id="diagnostics" class="diagnostics" aria-live="polite"></div>
+      <section id="outputPanel" class="output-panel"><button id="toggleOutput" class="output-bar"><span>⌄</span> PROJECT JSON <small id="outputStatus">Project ready</small></button><div class="output-content"><pre id="output" class="output"><span class="output-placeholder">Compact project JSON will appear here.</span></pre><div class="output-buttons"><button id="copy" class="tool-button" disabled>Copy</button><button id="clearOutput" class="tool-button">Clear view</button></div></div></section>
+      <footer class="statusbar"><span id="sourceStatus"><i></i> Syntax recognized</span><span id="lineStatus">Line 1, column 1</span><span>CSL · Ctrl+Enter to compile</span></footer>
+    </section>
+    <aside class="right-sidebar" aria-label="Catweb events and blocks">
+      <section class="right-section event-section">
+        <div class="right-section-heading">ACTIVE SCRIPT EVENTS</div>
+        <div id="eventTree" class="event-tree"></div>
+      </section>
+      <section class="right-section block-section">
+        <div class="right-section-heading">ALL BLOCKS</div>
+        <div id="catalogSummary" class="catalog-summary">Loading Catweb blocks…</div>
+        <input id="catalogSearch" type="search" placeholder="Search categories or blocks" aria-label="Search blocks">
+        <div id="catalogEntries" class="catalog-entries"></div>
+      </section>
+    </aside>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="studio/catweb-csl.js"></script>
+  <script src="studio/script-app.js"></script>
+</body>
+</html>

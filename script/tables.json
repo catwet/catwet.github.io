@@ -1,0 +1,215 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4838",
+                "x": "4544",
+                "globalid": "!F",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "54",
+                        "text": [
+                            "Create table",
+                            {
+                                "t": "string",
+                                "l": "table"
+                            }
+                        ],
+                        "globalid": ".,"
+                    },
+                    {
+                        "text": [
+                            "Set entry",
+                            {
+                                "t": "string",
+                                "l": "entry"
+                            },
+                            "of",
+                            {
+                                "t": "string",
+                                "l": "table"
+                            },
+                            "to",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            }
+                        ],
+                        "globalid": "%_",
+                        "id": "55"
+                    },
+                    {
+                        "id": "124",
+                        "text": [
+                            {
+                                "value": "La entrada puede ser un numero o un texto ya que es un array key-valor ejemplo \"Nombre\":\"John\"",
+                                "t": "string",
+                                "l": "comment"
+                            }
+                        ],
+                        "globalid": "i."
+                    },
+                    {
+                        "id": "89",
+                        "text": [
+                            "Insert",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            },
+                            "at position",
+                            {
+                                "t": "number",
+                                "l": "number?"
+                            },
+                            "of",
+                            {
+                                "t": "string",
+                                "l": "array"
+                            }
+                        ],
+                        "globalid": "ep"
+                    },
+                    {
+                        "id": "56",
+                        "text": [
+                            "Get entry",
+                            {
+                                "t": "string",
+                                "l": "entry"
+                            },
+                            "of",
+                            {
+                                "t": "string",
+                                "l": "table"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "VI"
+                    },
+                    {
+                        "id": "90",
+                        "text": [
+                            "Delete entry",
+                            {
+                                "t": "string",
+                                "l": "entry"
+                            },
+                            "of",
+                            {
+                                "t": "string",
+                                "l": "table"
+                            }
+                        ],
+                        "globalid": "gK"
+                    },
+                    {
+                        "id": "91",
+                        "text": [
+                            "Remove entry at position",
+                            {
+                                "t": "number",
+                                "l": "number?"
+                            },
+                            "of",
+                            {
+                                "t": "string",
+                                "l": "array"
+                            }
+                        ],
+                        "globalid": "!1"
+                    },
+                    {
+                        "id": "59",
+                        "text": [
+                            "Get length of",
+                            {
+                                "t": "string",
+                                "l": "array"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "=g"
+                    },
+                    {
+                        "id": "113",
+                        "text": [
+                            "Iterate through",
+                            {
+                                "t": "string",
+                                "l": "table"
+                            },
+                            "({l!index},{l!value})"
+                        ],
+                        "globalid": "$K"
+                    },
+                    {
+                        "id": "0",
+                        "text": [
+                            "Log",
+                            {
+                                "value": "accion que se repite dentro, uso variables {l!index} y {l!value} !!!",
+                                "t": "any"
+                            }
+                        ],
+                        "globalid": "kK"
+                    },
+                    {
+                        "id": "124",
+                        "text": [
+                            {
+                                "value": "rompible con un break",
+                                "t": "string",
+                                "l": "comment"
+                            }
+                        ],
+                        "globalid": "om"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "UF"
+                    },
+                    {
+                        "id": "110",
+                        "text": [
+                            "Join",
+                            {
+                                "t": "string",
+                                "l": "array"
+                            },
+                            "using",
+                            {
+                                "t": "string",
+                                "l": "string"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "mc"
+                    }
+                ],
+                "width": "693"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

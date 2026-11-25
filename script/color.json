@@ -1,0 +1,110 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4794",
+                "x": "4589.05419921875",
+                "globalid": "<Y",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "text": [
+                            "Convert",
+                            {
+                                "t": "string",
+                                "l": "hex"
+                            },
+                            "to RGB →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "Gd",
+                        "id": "119"
+                    },
+                    {
+                        "text": [
+                            "Convert",
+                            {
+                                "t": "string",
+                                "l": "hex"
+                            },
+                            "to HSV →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": ">c",
+                        "id": "120"
+                    },
+                    {
+                        "text": [
+                            "Convert",
+                            {
+                                "t": "string",
+                                "l": "RGB"
+                            },
+                            "to hex →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "Mp",
+                        "id": "121"
+                    },
+                    {
+                        "text": [
+                            "Convert",
+                            {
+                                "t": "string",
+                                "l": "HSV"
+                            },
+                            "to hex →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": ":x",
+                        "id": "122"
+                    },
+                    {
+                        "id": "123",
+                        "text": [
+                            "Lerp",
+                            {
+                                "t": "string",
+                                "l": "hex"
+                            },
+                            "to",
+                            {
+                                "t": "string",
+                                "l": "hex"
+                            },
+                            "by",
+                            {
+                                "t": "number",
+                                "l": "alpha"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "k\""
+                    }
+                ],
+                "width": "350"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

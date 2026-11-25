@@ -1,0 +1,165 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4524",
+                "x": "4740.720703125",
+                "globalid": "g_",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "5",
+                        "text": [
+                            "Play audio",
+                            {
+                                "t": "string",
+                                "assetbrowser": "audio",
+                                "l": "id"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable?"
+                            }
+                        ],
+                        "globalid": "+5"
+                    },
+                    {
+                        "id": "26",
+                        "text": [
+                            "Play looped audio",
+                            {
+                                "t": "string",
+                                "assetbrowser": "audio",
+                                "l": "id"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable?"
+                            }
+                        ],
+                        "globalid": "Es"
+                    },
+                    {
+                        "id": "73",
+                        "text": [
+                            "Set volume of",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "to",
+                            {
+                                "t": "number"
+                            }
+                        ],
+                        "globalid": "J^"
+                    },
+                    {
+                        "id": "77",
+                        "text": [
+                            "Set speed of",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "to",
+                            {
+                                "t": "number"
+                            }
+                        ],
+                        "globalid": "~("
+                    },
+                    {
+                        "id": "94",
+                        "text": [
+                            "Set",
+                            {
+                                "l": "property",
+                                "t": "string"
+                            },
+                            "of",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "to",
+                            {
+                                "t": "any"
+                            }
+                        ],
+                        "globalid": "|k"
+                    },
+                    {
+                        "id": "95",
+                        "text": [
+                            "Get",
+                            {
+                                "l": "property",
+                                "t": "string"
+                            },
+                            "of",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "c\\"
+                    },
+                    {
+                        "text": [
+                            "Stop audio",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "^9",
+                        "id": "74"
+                    },
+                    {
+                        "text": [
+                            "Pause audio",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "kS",
+                        "id": "75"
+                    },
+                    {
+                        "text": [
+                            "Resume audio",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "Co",
+                        "id": "76"
+                    },
+                    {
+                        "text": [
+                            "Stop all audio"
+                        ],
+                        "globalid": "N1",
+                        "id": "7"
+                    }
+                ],
+                "width": "350"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

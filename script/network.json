@@ -1,0 +1,149 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4645",
+                "x": "4622",
+                "globalid": ">/",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "32",
+                        "text": [
+                            "Broadcast",
+                            {
+                                "t": "string",
+                                "l": "message"
+                            },
+                            "across page"
+                        ],
+                        "globalid": "'7"
+                    },
+                    {
+                        "id": "124",
+                        "text": [
+                            {
+                                "value": "a todos los jugadores que esten en la misma pagina",
+                                "t": "string",
+                                "l": "comment"
+                            }
+                        ],
+                        "globalid": "wD"
+                    },
+                    {
+                        "id": "33",
+                        "text": [
+                            "Broadcast",
+                            {
+                                "t": "string",
+                                "l": "message"
+                            },
+                            "across site"
+                        ],
+                        "globalid": "B:"
+                    },
+                    {
+                        "id": "124",
+                        "text": [
+                            {
+                                "value": "a todo mi sitio web, gente que este en mi dominio",
+                                "t": "string",
+                                "l": "comment"
+                            }
+                        ],
+                        "globalid": "L~"
+                    },
+                    {
+                        "id": "130",
+                        "text": [
+                            "Broadcast",
+                            {
+                                "t": "string",
+                                "l": "message"
+                            },
+                            "cross-site to",
+                            {
+                                "l": "page",
+                                "href": "true",
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": ":2"
+                    },
+                    {
+                        "id": "124",
+                        "text": [
+                            {
+                                "value": "enviar mensaje a otro sitio rbx",
+                                "l": "comment",
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "pS"
+                    },
+                    {
+                        "text": [
+                            "Get local username →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "hw",
+                        "id": "51"
+                    },
+                    {
+                        "id": "124",
+                        "text": [
+                            {
+                                "value": "nombre de usuario de roblox",
+                                "t": "string",
+                                "l": "comment"
+                            }
+                        ],
+                        "globalid": "h^"
+                    },
+                    {
+                        "text": [
+                            "Get local display name →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "qH",
+                        "id": "53"
+                    },
+                    {
+                        "id": "124",
+                        "text": [
+                            {
+                                "value": "apodo que se puso la persona visual",
+                                "l": "comment",
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "Ow"
+                    },
+                    {
+                        "text": [
+                            "Get local user ID →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "b0",
+                        "id": "52"
+                    }
+                ],
+                "width": "469"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

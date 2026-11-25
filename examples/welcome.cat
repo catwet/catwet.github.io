@@ -1,0 +1,7 @@
+# Catweb Script Language (CSL)
+on load:
+log "Welcome to my Catweb site!"
+set visitor_count = "1"
+
+on load:
+warn "This is a developer console message."

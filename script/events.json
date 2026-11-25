@@ -1,0 +1,177 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4714",
+                "x": "4874",
+                "globalid": "G[",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [],
+                "width": "448"
+            },
+            {
+                "y": "4859",
+                "x": "4898",
+                "globalid": "gc",
+                "id": "1",
+                "text": [
+                    "When",
+                    {
+                        "l": "button",
+                        "t": "object"
+                    },
+                    "pressed..."
+                ],
+                "actions": [],
+                "width": "350"
+            },
+            {
+                "y": "4983",
+                "x": "4864",
+                "globalid": "L4",
+                "id": "3",
+                "text": [
+                    "When mouse enters",
+                    {
+                        "t": "object"
+                    },
+                    "..."
+                ],
+                "actions": [],
+                "width": "350"
+            },
+            {
+                "y": "4902",
+                "x": "5290",
+                "globalid": "R^",
+                "id": "11",
+                "text": [
+                    "When mouse down on",
+                    {
+                        "l": "button",
+                        "t": "object"
+                    },
+                    "..."
+                ],
+                "actions": [],
+                "width": "350"
+            },
+            {
+                "y": "5028",
+                "x": "5263.0224609375",
+                "globalid": "d[",
+                "id": "11",
+                "text": [
+                    "When mouse down on",
+                    {
+                        "l": "button",
+                        "t": "object"
+                    },
+                    "..."
+                ],
+                "actions": [],
+                "width": "350"
+            },
+            {
+                "y": "5174",
+                "x": "5143.69970703125",
+                "globalid": "uM",
+                "id": "2",
+                "text": [
+                    "When",
+                    {
+                        "t": "key"
+                    },
+                    "pressed..."
+                ],
+                "actions": [],
+                "width": "350"
+            },
+            {
+                "y": "5132",
+                "x": "4677.6826171875",
+                "globalid": "dL",
+                "id": "10",
+                "text": [
+                    "When",
+                    {
+                        "t": "object"
+                    },
+                    "changed..."
+                ],
+                "actions": [],
+                "width": "350"
+            },
+            {
+                "y": "5021",
+                "x": "4405",
+                "globalid": "v#",
+                "id": "7",
+                "text": [
+                    "When",
+                    {
+                        "l": "avataritem",
+                        "t": "object"
+                    },
+                    "bought..."
+                ],
+                "actions": [],
+                "width": "350"
+            },
+            {
+                "y": "4672",
+                "x": "4306",
+                "globalid": "K5",
+                "id": "15",
+                "text": [
+                    "When donation completed..."
+                ],
+                "actions": [],
+                "width": "350"
+            },
+            {
+                "y": "4490",
+                "x": "4442.2822265625",
+                "globalid": ".M",
+                "id": "8",
+                "text": [
+                    "When",
+                    {
+                        "l": "input",
+                        "t": "object"
+                    },
+                    "submitted..."
+                ],
+                "actions": [],
+                "width": "350"
+            },
+            {
+                "y": "4349",
+                "x": "4643.22314453125",
+                "globalid": "T[",
+                "id": "9",
+                "text": [
+                    "When message received..."
+                ],
+                "actions": [],
+                "width": "350"
+            },
+            {
+                "y": "4557",
+                "x": "4710.7900390625",
+                "globalid": "A8",
+                "id": "14",
+                "text": [
+                    "When cross-site message received..."
+                ],
+                "actions": [],
+                "width": "350"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

@@ -1,0 +1,99 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4744",
+                "x": "4591.01611328125",
+                "globalid": "[]",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "text": [
+                            "Get unix timestamp →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "L1",
+                        "id": "68"
+                    },
+                    {
+                        "text": [
+                            "Get server unix timestamp →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "m+",
+                        "id": "116"
+                    },
+                    {
+                        "id": "83",
+                        "text": [
+                            "Get tick →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "C("
+                    },
+                    {
+                        "id": "118",
+                        "text": [
+                            "Get timezone →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "b)"
+                    },
+                    {
+                        "text": [
+                            "Format current date/time",
+                            {
+                                "t": "string",
+                                "l": "format"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "Cw",
+                        "id": "71"
+                    },
+                    {
+                        "text": [
+                            "Format from unix",
+                            {
+                                "t": "number"
+                            },
+                            {
+                                "t": "string",
+                                "l": "format"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "+G",
+                        "id": "72"
+                    }
+                ],
+                "width": "350"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

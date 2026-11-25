@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Catweb Studio — Visual Editor</title>
+  <link rel="stylesheet" href="studio.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">C</span><span>Catweb <b>Visual</b></span></a>
+    <div class="toolbar">
+      <button id="newProject" class="quiet">New</button>
+      <a class="quiet" href="../">Write scripts</a>
+      <button id="openProject" class="quiet">Open JSON</button>
+      <input id="fileInput" type="file" accept=".json,application/json" hidden>
+      <button id="exportProject" class="primary">Export JSON</button>
+    </div>
+  </header>
+  <main class="workspace">
+    <aside class="panel structure">
+      <div class="panel-heading"><div><span class="eyebrow">PROJECT</span><h1 id="projectName">Untitled site</h1></div><span class="status"><i></i> Local</span></div>
+      <div class="section-heading"><h2>Structure</h2><span id="objectCount">1 object</span></div>
+      <div id="tree" class="tree" role="tree"></div>
+      <div class="add-section">
+        <div class="section-heading"><h2>Add object</h2></div>
+        <div class="add-grid">
+          <button data-add="Frame"><span>▧</span> Container</button>
+          <button data-add="TextLabel"><span>T</span> Text</button>
+          <button data-add="TextButton"><span>▰</span> Button</button>
+          <button data-add="ImageLabel"><span>▧</span> Image</button>
+          <button data-add="ImageButton"><span>▣</span> Image button</button>
+          <button data-add="TextBox"><span>▤</span> Text input</button>
+          <button data-add="ScrollingFrame"><span>▤</span> Scroll area</button>
+          <button data-add="TextButton?link"><span>↗</span> Link</button>
+          <button data-add="TextButton?transfer"><span>↗</span> Donation</button>
+          <button data-add="TextButton?avataritem"><span>↗</span> Avatar item</button>
+          <button data-add="script"><span>⌘</span> Empty script</button>
+        </div>
+        <p class="hint">Edit advanced fields as JSON to preserve the exact format.</p>
+      </div>
+      <div class="bottom-note"><span class="sparkle">✦</span> Ask an AI for a .cat script, compile it with Python, then open the JSON here.</div>
+    </aside>
+
+    <section class="center-column">
+      <div class="canvas-bar"><div><span class="eyebrow">PREVIEW</span><strong> Home page</strong></div><div class="viewport-label"><span>▱</span> Desktop</div></div>
+      <div class="canvas-wrap"><div id="preview" class="preview"><div class="empty-state"><div class="empty-icon">✦</div><h2>Your site starts here</h2><p>Add a container or open a JSON file to see a preview.</p></div></div></div>
+      <div class="canvas-footer"><span>The preview is approximate; Catweb determines the final appearance.</span><span id="previewCount">0 elements</span></div>
+    </section>
+
+    <aside class="panel inspector">
+      <div class="panel-heading"><div><span class="eyebrow">PROPERTIES</span><h2 id="selectedTitle">Select an object</h2></div></div>
+      <div id="inspectorBody" class="inspector-body">
+        <div class="inspector-empty"><div class="empty-icon">↖</div><p>Select an object in the structure to edit its properties.</p></div>
+      </div>
+      <div class="inspector-actions"><button id="applyProperties" class="primary" disabled>Apply changes</button><button id="deleteObject" class="danger" disabled>Delete object</button></div>
+    </aside>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="catweb-csl.js"></script>
+  <script src="studio.js"></script>
+</body>
+</html>

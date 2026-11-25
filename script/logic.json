@@ -1,0 +1,362 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4709.7646484375",
+                "x": "4751.87548828125",
+                "globalid": "Bg",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "3",
+                        "text": [
+                            "Wait",
+                            {
+                                "value": "2",
+                                "t": "number"
+                            },
+                            "seconds"
+                        ],
+                        "globalid": "&1"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "value": "{x}",
+                                "l": "any",
+                                "t": "string"
+                            },
+                            "is equal to",
+                            {
+                                "value": "5",
+                                "l": "any",
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "3U",
+                        "id": "18"
+                    },
+                    {
+                        "id": "0",
+                        "text": [
+                            "Log",
+                            {
+                                "value": "Asi se ve un script dentro de otro!",
+                                "t": "any"
+                            }
+                        ],
+                        "globalid": "&B"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "0("
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            },
+                            "is not equal to",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            }
+                        ],
+                        "globalid": "P!",
+                        "id": "19"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "||"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            },
+                            "is greater than",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            }
+                        ],
+                        "globalid": "6)",
+                        "id": "20"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "ft"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            },
+                            "is greater or equal to",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            }
+                        ],
+                        "globalid": "J{",
+                        "id": "125"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "ow"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            },
+                            "is lower than",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            }
+                        ],
+                        "globalid": "|o",
+                        "id": "21"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "l+"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            },
+                            "is lower or equal to",
+                            {
+                                "t": "string",
+                                "l": "any"
+                            }
+                        ],
+                        "globalid": "A7",
+                        "id": "126"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": ".B"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string"
+                            },
+                            "contains",
+                            {
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": ":(",
+                        "id": "37"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "7j"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string"
+                            },
+                            "doesn't contain",
+                            {
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "+D",
+                        "id": "38"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "8 "
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "exists"
+                        ],
+                        "globalid": "An",
+                        "id": "92"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "yG"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "doesn't exist"
+                        ],
+                        "globalid": "Ph",
+                        "id": "93"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "^,"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "AND",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "{?",
+                        "id": "44"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "B5"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "OR",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "'\"",
+                        "id": "45"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "D6"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "NOR",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "]`",
+                        "id": "46"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "Oq"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "XOR",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "ev",
+                        "id": "47"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "^H"
+                    },
+                    {
+                        "id": "112",
+                        "text": [
+                            "else"
+                        ],
+                        "globalid": "27"
+                    }
+                ],
+                "width": "350"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

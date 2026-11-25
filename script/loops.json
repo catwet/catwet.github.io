@@ -1,0 +1,93 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4799",
+                "x": "4777.611328125",
+                "globalid": "DF",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "22",
+                        "text": [
+                            "Repeat",
+                            {
+                                "value": "3",
+                                "t": "number"
+                            },
+                            "times"
+                        ],
+                        "globalid": "vs"
+                    },
+                    {
+                        "id": "0",
+                        "text": [
+                            "Log",
+                            {
+                                "value": "hola",
+                                "t": "any"
+                            }
+                        ],
+                        "globalid": "eL"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "l<"
+                    },
+                    {
+                        "id": "23",
+                        "text": [
+                            "Repeat forever"
+                        ],
+                        "globalid": "`["
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "AQ"
+                    },
+                    {
+                        "id": "24",
+                        "text": [
+                            "Break"
+                        ],
+                        "globalid": "k4"
+                    },
+                    {
+                        "id": "124",
+                        "text": [
+                            {
+                                "value": "el break puede usarse a lo igual que otros lenguajes (comentario)",
+                                "t": "string",
+                                "l": "comment"
+                            }
+                        ],
+                        "globalid": "4_"
+                    },
+                    {
+                        "id": "124",
+                        "text": [
+                            {
+                                "value": "asi se ve un comentario!",
+                                "t": "string",
+                                "l": "comment"
+                            }
+                        ],
+                        "globalid": "@`"
+                    }
+                ],
+                "width": "350"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

@@ -1,0 +1,310 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4769",
+                "x": "4706",
+                "globalid": "=p",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "8",
+                        "text": [
+                            "Make",
+                            {
+                                "value": "_,",
+                                "t": "object"
+                            },
+                            "invisible"
+                        ],
+                        "globalid": "_\""
+                    },
+                    {
+                        "id": "9",
+                        "text": [
+                            "Make",
+                            {
+                                "t": "object"
+                            },
+                            "visible"
+                        ],
+                        "globalid": "+n"
+                    },
+                    {
+                        "id": "10",
+                        "text": [
+                            "Set",
+                            {
+                                "t": "object"
+                            },
+                            "text to",
+                            {
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "O("
+                    },
+                    {
+                        "text": [
+                            "Set",
+                            {
+                                "t": "object"
+                            },
+                            "image to",
+                            {
+                                "t": "id",
+                                "assetbrowser": "image"
+                            }
+                        ],
+                        "globalid": "S8",
+                        "id": "106"
+                    },
+                    {
+                        "id": "31",
+                        "text": [
+                            "Set",
+                            {
+                                "l": "property",
+                                "t": "string"
+                            },
+                            "of",
+                            {
+                                "t": "object"
+                            },
+                            "to",
+                            {
+                                "t": "any"
+                            }
+                        ],
+                        "globalid": "%W"
+                    },
+                    {
+                        "id": "88",
+                        "text": [
+                            "Tween",
+                            {
+                                "value": "",
+                                "l": "property",
+                                "t": "string"
+                            },
+                            "of",
+                            {
+                                "t": "object"
+                            },
+                            "to",
+                            {
+                                "value": "",
+                                "t": "any"
+                            },
+                            "-",
+                            {
+                                "value": "",
+                                "t": "number",
+                                "l": "time"
+                            },
+                            {
+                                "t": "string",
+                                "l": "style"
+                            },
+                            {
+                                "t": "string",
+                                "l": "direction"
+                            }
+                        ],
+                        "globalid": "WV"
+                    },
+                    {
+                        "id": "39",
+                        "text": [
+                            "Get",
+                            {
+                                "l": "property",
+                                "t": "string"
+                            },
+                            "of",
+                            {
+                                "t": "object"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "U)"
+                    },
+                    {
+                        "id": "138",
+                        "text": [
+                            "Set",
+                            {
+                                "t": "string",
+                                "l": "attribute"
+                            },
+                            "of",
+                            {
+                                "t": "object"
+                            },
+                            "to",
+                            {
+                                "t": "any",
+                                "l": "any?"
+                            }
+                        ],
+                        "globalid": "u%"
+                    },
+                    {
+                        "id": "139",
+                        "text": [
+                            "Get",
+                            {
+                                "t": "string",
+                                "l": "attribute"
+                            },
+                            "of",
+                            {
+                                "t": "object"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "^A"
+                    },
+                    {
+                        "id": "140",
+                        "text": [
+                            "Get all attributes of",
+                            {
+                                "t": "object"
+                            },
+                            "→",
+                            {
+                                "value": "",
+                                "l": "table",
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "[0"
+                    },
+                    {
+                        "id": "30",
+                        "text": [
+                            "Get text from",
+                            {
+                                "t": "object",
+                                "l": "input"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "6s"
+                    },
+                    {
+                        "id": "49",
+                        "text": [
+                            "Duplicate",
+                            {
+                                "t": "object"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable?"
+                            }
+                        ],
+                        "globalid": "&7"
+                    },
+                    {
+                        "id": "50",
+                        "text": [
+                            "Delete",
+                            {
+                                "t": "object"
+                            }
+                        ],
+                        "globalid": "i&"
+                    },
+                    {
+                        "id": "108",
+                        "text": [
+                            "If dark theme enabled"
+                        ],
+                        "globalid": "1g"
+                    },
+                    {
+                        "id": "0",
+                        "text": [
+                            "Log",
+                            {
+                                "value": "Esta el modo oscuro!",
+                                "t": "any"
+                            }
+                        ],
+                        "globalid": "L0"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "KF"
+                    },
+                    {
+                        "id": "127",
+                        "text": [
+                            "Get objects at position",
+                            {
+                                "t": "string",
+                                "l": "x​"
+                            },
+                            {
+                                "t": "string",
+                                "l": "y​"
+                            },
+                            "→",
+                            {
+                                "value": "",
+                                "l": "array",
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "^&"
+                    },
+                    {
+                        "id": "129",
+                        "text": [
+                            "Get",
+                            {
+                                "l": "info",
+                                "t": "string"
+                            },
+                            "of asset",
+                            {
+                                "t": "string",
+                                "l": "id"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "KW"
+                    }
+                ],
+                "width": "644"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

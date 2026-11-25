@@ -1,0 +1,77 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4776",
+                "x": "4570.60400390625",
+                "globalid": "'L",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "34",
+                        "text": [
+                            "Set",
+                            {
+                                "t": "string",
+                                "l": "cookie"
+                            },
+                            "to",
+                            {
+                                "t": "any"
+                            }
+                        ],
+                        "globalid": "YA"
+                    },
+                    {
+                        "id": "35",
+                        "text": [
+                            "Increase",
+                            {
+                                "t": "string",
+                                "l": "cookie"
+                            },
+                            "by",
+                            {
+                                "t": "number"
+                            }
+                        ],
+                        "globalid": "+A"
+                    },
+                    {
+                        "id": "62",
+                        "text": [
+                            "Delete cookie",
+                            {
+                                "t": "string",
+                                "l": "cookie"
+                            }
+                        ],
+                        "globalid": "i<"
+                    },
+                    {
+                        "id": "36",
+                        "text": [
+                            "Get cookie",
+                            {
+                                "t": "string",
+                                "l": "cookie"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "%g"
+                    }
+                ],
+                "width": "350"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

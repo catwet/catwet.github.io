@@ -1,0 +1,140 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4886",
+                "x": "4496.1494140625",
+                "globalid": "WN",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "133",
+                        "text": [
+                            "Run function in background",
+                            {
+                                "value": "",
+                                "l": "function",
+                                "t": "string"
+                            },
+                            {
+                                "value": [
+                                    {
+                                        "value": "añado argumentos",
+                                        "l": "any",
+                                        "t": "string"
+                                    }
+                                ],
+                                "t": "tuple"
+                            }
+                        ],
+                        "globalid": "PP"
+                    },
+                    {
+                        "id": "124",
+                        "text": [
+                            {
+                                "value": "background viene que no es por cascada, sigue de fondo",
+                                "t": "string",
+                                "l": "comment"
+                            }
+                        ],
+                        "globalid": "hC"
+                    },
+                    {
+                        "id": "132",
+                        "text": [
+                            "Run function",
+                            {
+                                "t": "string",
+                                "l": "function"
+                            },
+                            {
+                                "t": "tuple"
+                            },
+                            "→",
+                            {
+                                "value": "variable de salida",
+                                "l": "variable?",
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "bq"
+                    },
+                    {
+                        "id": "134",
+                        "text": [
+                            "Run function protected",
+                            {
+                                "t": "string",
+                                "l": "function"
+                            },
+                            {
+                                "t": "tuple"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "success_variable?"
+                            },
+                            {
+                                "t": "string",
+                                "l": "variable?"
+                            }
+                        ],
+                        "globalid": "Rv"
+                    },
+                    {
+                        "id": "124",
+                        "text": [
+                            {
+                                "value": "lo corre pero como un 'try' diagnostica el problema pero no se rompe",
+                                "t": "string",
+                                "l": "comment"
+                            }
+                        ],
+                        "globalid": "&B"
+                    }
+                ],
+                "width": "595"
+            },
+            {
+                "y": "4896",
+                "variable_overrides": [
+                    {
+                        "value": "argumento que puedo añadir"
+                    }
+                ],
+                "x": "4093",
+                "globalid": "}O",
+                "id": "6",
+                "text": [
+                    "Define function",
+                    {
+                        "l": "function",
+                        "t": "string"
+                    }
+                ],
+                "actions": [
+                    {
+                        "id": "115",
+                        "text": [
+                            "Return",
+                            {
+                                "value": "puedo devolver algo, o no",
+                                "l": "any",
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "Q<"
+                    }
+                ],
+                "width": "350"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

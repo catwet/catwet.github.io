@@ -1,0 +1,108 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4649",
+                "x": "4677",
+                "globalid": "l-",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "text": [
+                            "If left mouse button down"
+                        ],
+                        "globalid": "zF",
+                        "id": "79"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "+~"
+                    },
+                    {
+                        "id": "82",
+                        "text": [
+                            "If",
+                            {
+                                "t": "key"
+                            },
+                            "down"
+                        ],
+                        "globalid": "}-"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "j}"
+                    },
+                    {
+                        "id": "84",
+                        "text": [
+                            "Get viewport size →",
+                            {
+                                "t": "string",
+                                "l": "x"
+                            },
+                            {
+                                "t": "string",
+                                "l": "y"
+                            }
+                        ],
+                        "globalid": "&E"
+                    },
+                    {
+                        "id": "85",
+                        "text": [
+                            "Get cursor position →",
+                            {
+                                "t": "string",
+                                "l": "x"
+                            },
+                            {
+                                "t": "string",
+                                "l": "y"
+                            }
+                        ],
+                        "globalid": "!6"
+                    },
+                    {
+                        "id": "135",
+                        "text": [
+                            "Set mouse icon to",
+                            {
+                                "t": "id",
+                                "assetbrowser": "image",
+                                "l": "id?"
+                            }
+                        ],
+                        "globalid": "$X"
+                    },
+                    {
+                        "text": [
+                            "Hide mouse cursor"
+                        ],
+                        "globalid": "  ",
+                        "id": "136"
+                    },
+                    {
+                        "text": [
+                            "Show mouse cursor"
+                        ],
+                        "globalid": "n/",
+                        "id": "137"
+                    }
+                ],
+                "width": "512"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

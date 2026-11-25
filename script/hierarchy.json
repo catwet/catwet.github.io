@@ -1,0 +1,210 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4704",
+                "x": "4770.21875",
+                "globalid": "DJ",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "58",
+                        "text": [
+                            "Parent",
+                            {
+                                "t": "object"
+                            },
+                            "under",
+                            {
+                                "t": "object"
+                            }
+                        ],
+                        "globalid": ">!"
+                    },
+                    {
+                        "id": "97",
+                        "text": [
+                            "Get parent of",
+                            {
+                                "t": "object"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "UW"
+                    },
+                    {
+                        "text": [
+                            "Find child named",
+                            {
+                                "t": "string"
+                            },
+                            "in",
+                            {
+                                "t": "object"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "am",
+                        "id": "99"
+                    },
+                    {
+                        "text": [
+                            "Find ancestor named",
+                            {
+                                "t": "string"
+                            },
+                            "in",
+                            {
+                                "t": "object"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "^6",
+                        "id": "98"
+                    },
+                    {
+                        "text": [
+                            "Find descendant named",
+                            {
+                                "t": "string"
+                            },
+                            "in",
+                            {
+                                "t": "object"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "t6",
+                        "id": "100"
+                    },
+                    {
+                        "text": [
+                            "Get children of",
+                            {
+                                "t": "object"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "table"
+                            }
+                        ],
+                        "globalid": "og",
+                        "id": "101"
+                    },
+                    {
+                        "text": [
+                            "Get descendants of",
+                            {
+                                "t": "object"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "table"
+                            }
+                        ],
+                        "globalid": "Mz",
+                        "id": "102"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "object"
+                            },
+                            "is child of",
+                            {
+                                "t": "object"
+                            }
+                        ],
+                        "globalid": "Vt",
+                        "id": "104"
+                    },
+                    {
+                        "id": "0",
+                        "text": [
+                            "Log",
+                            {
+                                "value": "sigue abajo",
+                                "t": "any"
+                            }
+                        ],
+                        "globalid": "vP"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "8)"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "object"
+                            },
+                            "is ancestor of",
+                            {
+                                "t": "object"
+                            }
+                        ],
+                        "globalid": "*m",
+                        "id": "103"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "`3"
+                    },
+                    {
+                        "text": [
+                            "If",
+                            {
+                                "t": "object"
+                            },
+                            "is descendant of",
+                            {
+                                "t": "object"
+                            }
+                        ],
+                        "globalid": "ur",
+                        "id": "105"
+                    },
+                    {
+                        "id": "25",
+                        "text": [
+                            "end"
+                        ],
+                        "globalid": "#d"
+                    }
+                ],
+                "width": "350"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

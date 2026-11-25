@@ -1,0 +1,57 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4592",
+                "x": "4727.376953125",
+                "globalid": "#%",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "117",
+                        "text": [
+                            "Get URL →",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "&/"
+                    },
+                    {
+                        "id": "4",
+                        "text": [
+                            "Redirect to",
+                            {
+                                "href": "true",
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "QN"
+                    },
+                    {
+                        "id": "67",
+                        "text": [
+                            "Get query string parameter",
+                            {
+                                "t": "string"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "to"
+                    }
+                ],
+                "width": "551"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

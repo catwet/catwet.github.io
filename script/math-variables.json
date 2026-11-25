@@ -1,0 +1,230 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4592",
+                "x": "4727.376953125",
+                "globalid": "#%",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "11",
+                        "text": [
+                            "Set",
+                            {
+                                "value": "hola",
+                                "l": "variable",
+                                "t": "string"
+                            },
+                            "to",
+                            {
+                                "value": "5",
+                                "l": "any",
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "(+"
+                    },
+                    {
+                        "id": "12",
+                        "text": [
+                            "Increase",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "by",
+                            {
+                                "t": "number"
+                            }
+                        ],
+                        "globalid": "[S"
+                    },
+                    {
+                        "id": "13",
+                        "text": [
+                            "Decrease",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "by",
+                            {
+                                "t": "number"
+                            }
+                        ],
+                        "globalid": "Z'"
+                    },
+                    {
+                        "id": "14",
+                        "text": [
+                            "Multiply",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "by",
+                            {
+                                "t": "number"
+                            }
+                        ],
+                        "globalid": "/}"
+                    },
+                    {
+                        "id": "40",
+                        "text": [
+                            "Raise",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "to the power of",
+                            {
+                                "t": "number"
+                            }
+                        ],
+                        "globalid": "Zp"
+                    },
+                    {
+                        "id": "15",
+                        "text": [
+                            "Divide",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "by",
+                            {
+                                "t": "number"
+                            }
+                        ],
+                        "globalid": "=l"
+                    },
+                    {
+                        "id": "41",
+                        "text": [
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "modulo",
+                            {
+                                "t": "number"
+                            }
+                        ],
+                        "globalid": "sa"
+                    },
+                    {
+                        "text": [
+                            "Round",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "/t",
+                        "id": "16"
+                    },
+                    {
+                        "text": [
+                            "Floor",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "q^",
+                        "id": "17"
+                    },
+                    {
+                        "text": [
+                            "Ceil",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "qL",
+                        "id": "78"
+                    },
+                    {
+                        "id": "114",
+                        "text": [
+                            "Run math function",
+                            {
+                                "value": "",
+                                "t": "string",
+                                "l": "function​"
+                            },
+                            {
+                                "value": [
+                                    {
+                                        "value": "arg1",
+                                        "l": "any",
+                                        "t": "string"
+                                    },
+                                    {
+                                        "value": "Arg2",
+                                        "t": "string",
+                                        "l": "any"
+                                    },
+                                    {
+                                        "value": "ejemplos se pueden agregar muchos",
+                                        "l": "any",
+                                        "t": "string"
+                                    }
+                                ],
+                                "t": "tuple"
+                            },
+                            "→",
+                            {
+                                "value": "Variable de salida (si no hay crea)",
+                                "l": "variable",
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "B_"
+                    },
+                    {
+                        "id": "27",
+                        "text": [
+                            "Set",
+                            {
+                                "t": "string",
+                                "l": "var"
+                            },
+                            "to random",
+                            {
+                                "t": "number",
+                                "l": "n"
+                            },
+                            "-",
+                            {
+                                "t": "number",
+                                "l": "n"
+                            }
+                        ],
+                        "globalid": "fm"
+                    },
+                    {
+                        "id": "96",
+                        "text": [
+                            "Delete",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "G["
+                    }
+                ],
+                "width": "774"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

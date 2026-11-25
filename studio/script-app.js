@@ -1,0 +1,701 @@
+(() => {
+  const $ = (selector) => document.querySelector(selector);
+  const source = $('#source');
+  const lineNumbers = $('#lineNumbers');
+  const highlight = $('#highlight');
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const uid = () => crypto.getRandomValues(new Uint32Array(2)).join('').slice(0, 12);
+  const sample = `# Welcome script\non load:\nconsole.log("Welcome to my site")\nvisits = 1`;
+  let documentData = [{ class: 'Folder', globalid: uid(), alias: 'Catweb Script Lab', children: [] }];
+  const firstScript = { class: 'script', globalid: uid(), content: [] };
+  documentData[0].children.push(firstScript);
+  let selectedNodeId = firstScript.globalid;
+  let activeScriptId = firstScript.globalid;
+  let sourceDirty = true;
+  let lastJson = '';
+  let projectLabelFallback = 'MY PROJECT';
+  let toastTimer;
+  const drafts = new Map([[firstScript.globalid, sample]]);
+  const dirtyUserScripts = new Set();
+  const collapsed = new Set();
+  const appScriptUrl = document.currentScript && document.currentScript.src;
+  const catalogBase = appScriptUrl
+    ? new URL('../script/', appScriptUrl).toString()
+    : new URL('./script/', document.baseURI).toString();
+  const catalogPromise = CatwebCSL.loadCatalog(catalogBase);
+  source.value = sample;
+
+  const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[character]));
+  const iconFor = (type) => ({
+    Folder: '▰', Frame: '▧', TextLabel: 'T', TextButton: '▰',
+    'TextButton?link': '↗', 'TextButton?transfer': '↗', 'TextButton?avataritem': '↗',
+    ImageLabel: '▣', ImageButton: '▣', TextBox: '▤', ScrollingFrame: '▤', script: '⌘'
+  }[type] || '◇');
+  const labelFor = (key) => key.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+  function showToast(message) {
+    const toast = $('#toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+  }
+
+  function nodeById(id, node = documentData[0]) {
+    if (node.globalid === id) return node;
+    for (const child of node.children || []) {
+      const found = nodeById(id, child);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function parentOf(id, node = documentData[0]) {
+    for (const child of node.children || []) {
+      if (child.globalid === id) return node;
+      const found = parentOf(id, child);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function scriptsInProject(node = documentData[0]) {
+    const found = node.class === 'script' ? [node] : [];
+    for (const child of node.children || []) found.push(...scriptsInProject(child));
+    return found;
+  }
+
+  function validateProject(project) {
+    if (!Array.isArray(project) || project.length !== 1 || !project[0] || project[0].class !== 'Folder') {
+      throw new Error('The project must contain a root Folder.');
+    }
+    if (!Array.isArray(project[0].children)) throw new Error('The root folder must have children as an array.');
+    const ids = new Set();
+    const visitBlock = (block, path) => {
+      if (!block || Array.isArray(block) || typeof block !== 'object') throw new Error(`${path} must be a JSON block.`);
+      if (block.actions !== undefined && !Array.isArray(block.actions)) throw new Error(`${path}.actions must be an array.`);
+      (block.actions || []).forEach((action, index) => visitBlock(action, `${path}.actions[${index}]`));
+    };
+    const visitNode = (node, path) => {
+      if (!node || Array.isArray(node) || typeof node !== 'object' || typeof node.class !== 'string' || !node.class) {
+        throw new Error(`${path} must be an object with a class.`);
+      }
+      if (typeof node.globalid !== 'string' || !node.globalid) throw new Error(`${path} must have a string globalid.`);
+      if (ids.has(node.globalid)) throw new Error(`The globalid ${node.globalid} is duplicated.`);
+      ids.add(node.globalid);
+      if (node.children !== undefined && !Array.isArray(node.children)) throw new Error(`${path}.children must be an array.`);
+      if (node.class === 'script') {
+        if (!Array.isArray(node.content)) throw new Error(`${path}.content must be an array.`);
+        node.content.forEach((block, index) => visitBlock(block, `${path}.content[${index}]`));
+      }
+      (node.children || []).forEach((child, index) => visitNode(child, `${path}.children[${index}]`));
+    };
+    visitNode(project[0], 'root');
+  }
+
+  function normalizeImport(parsed) {
+    const entries = Array.isArray(parsed) ? parsed : [parsed];
+    if (entries.length === 1 && entries[0] && entries[0].class === 'Folder') {
+      validateProject(entries);
+      return entries;
+    }
+    if (!entries.length || entries.some((entry) => !entry || entry.class === 'Folder')) {
+      throw new Error('Import a complete Catweb folder or a script object/array.');
+    }
+    const project = [{ class: 'Folder', globalid: uid(), alias: 'Catweb Script Lab', children: entries }];
+    validateProject(project);
+    return project;
+  }
+
+  function inspectSource(text = source.value) {
+    if (!text.trim()) return [];
+    const errors = [];
+    let topCount = 0;
+    let previousLineBlank = false;
+    for (const [index, original] of text.split('\n').entries()) {
+      const line = index + 1;
+      const trimmed = original.trim();
+      if (!trimmed) { previousLineBlank = true; continue; }
+      if (trimmed.startsWith('#')) continue;
+      const indent = original.match(/^[ \t]*/)[0].replace(/\t/g, '    ').length;
+      const isTop = !indent && (/^on\s+[A-Za-z_]\w*\s*(?:\(.*\))?\s*:/.test(trimmed)
+        || /^def\s+[A-Za-z_]\w*\s*(?:\(\s*\))?\s*:/.test(trimmed)
+        || /^top\s+\S+/.test(trimmed) || /^topraw\s+\{/.test(trimmed));
+      if (isTop) {
+        if (topCount && !previousLineBlank) errors.push({ line, message: 'Leave a blank line before the next top-level block.' });
+        topCount += 1;
+        previousLineBlank = false;
+        continue;
+      }
+      if (!topCount) errors.push({ line, message: "Start with an event, for example 'on load:'." });
+      else if (!/^(?:(?:if|for)\s+.+\)\s*:|else:|(?:raw|block|scope|topraw|top)\s+|(?:log|warn|error)\s+|[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*\(|[A-Za-z_]\w*\s*(?:\+=|-=|\*=|\/=|=(?!=)))/i.test(trimmed)) {
+        errors.push({ line, message: 'Unrecognized statement. Use named calls, assignments, or a raw JSON block.' });
+      }
+      previousLineBlank = false;
+    }
+    if (!topCount && errors.length === 0) errors.push({ line: 1, message: "An event is required, for example 'on load:'." });
+    return errors;
+  }
+
+  function highlightSource() {
+    const tokenPattern = /(#.*$|"(?:[^"\\]|\\.)*"|\b(?:on|load|def|topraw|top|raw|block|if|for|else|None|True|False)\b|\b[A-Za-z_][A-Za-z0-9_]*\b|[:=@])/gm;
+    let output = '';
+    let lastIndex = 0;
+    let match;
+    while ((match = tokenPattern.exec(source.value)) !== null) {
+      output += escapeHtml(source.value.slice(lastIndex, match.index));
+      const token = match[0];
+      const kind = token.startsWith('#') ? 'comment'
+        : token.startsWith('"') ? 'string'
+          : /^(on|load|def|topraw|top|raw|block|if|for|else|None|True|False|:|=|@)$/.test(token) ? 'keyword' : 'variable';
+      output += `<span class="tok-${kind}">${escapeHtml(token)}</span>`;
+      lastIndex = tokenPattern.lastIndex;
+    }
+    output += escapeHtml(source.value.slice(lastIndex));
+    highlight.innerHTML = output + (source.value.endsWith('\n') ? ' ' : '\n');
+    lineNumbers.textContent = Array.from({ length: Math.max(1, source.value.split('\n').length) }, (_, index) => index + 1).join('\n');
+    syncScroll();
+  }
+
+  function syncScroll() {
+    highlight.scrollTop = source.scrollTop;
+    highlight.scrollLeft = source.scrollLeft;
+    lineNumbers.scrollTop = source.scrollTop;
+    const beforeCaret = source.value.slice(0, source.selectionStart).split('\n');
+    $('#lineStatus').textContent = `Line ${beforeCaret.length}, column ${beforeCaret[beforeCaret.length - 1].length + 1}`;
+  }
+
+  function renderStructure() {
+    const headers = source.value.split('\n')
+      .map((text, index) => ({ text, line: index + 1 }))
+      .filter(({ text }) => /^(?:on\s+[A-Za-z_]\w*\s*(?:\(.*\))?\s*:|def\s+[A-Za-z_]\w*\s*(?:\(\s*\))?\s*:|top\s+\S+|topraw\s+\{)/i.test(text));
+    $('#eventTree').innerHTML = headers.map(({ text, line }, index) => {
+      const label = /^on\s+/i.test(text) ? text.slice(0, text.lastIndexOf(':')).trim()
+        : /^def\s+/i.test(text) ? text.slice(0, text.lastIndexOf(':')).trim()
+          : text.replace(/^top\s+/, '').replace(/^topraw\s+/, 'raw ').split(/\s/)[0];
+      return `<button class="event-node" type="button" data-line="${line}"><span class="event-icon">⚡</span><span>${escapeHtml(label)}</span><span class="action-count">${index + 1}</span></button>`;
+    }).join('');
+  }
+
+  function renderDiagnostics(errors) {
+    const container = $('#diagnostics');
+    container.innerHTML = errors.map((error) =>
+      `<div class="diagnostic"><span class="mark">●</span><span>Line ${error.line}: ${escapeHtml(error.message)}</span><button data-line="${error.line}">Go</button></div>`
+    ).join('');
+    container.classList.toggle('has-items', errors.length > 0);
+    container.querySelectorAll('[data-line]').forEach((button) => button.addEventListener('click', () => {
+      const line = Number(button.dataset.line);
+      const offset = source.value.split('\n').slice(0, line - 1).join('\n').length + (line > 1 ? 1 : 0);
+      source.focus();
+      source.setSelectionRange(offset, offset);
+    }));
+    $('.statusbar').classList.toggle('has-error', errors.length > 0);
+    $('#sourceStatus').innerHTML = errors.length
+      ? `<i></i> ${errors.length} ${errors.length === 1 ? 'warning' : 'warnings'} to fix`
+      : '<i></i> Syntax recognized';
+    return errors;
+  }
+
+  function renderProjectTree() {
+    const tree = $('#projectTree');
+    const addRows = (node, depth = 0) => {
+      const children = node.children || [];
+      const hasChildren = children.length > 0;
+      const isCollapsed = collapsed.has(node.globalid);
+      const row = document.createElement('div');
+      row.className = `project-tree-row${node.globalid === selectedNodeId ? ' selected' : ''}`;
+      row.setAttribute('role', 'treeitem');
+      row.setAttribute('aria-selected', node.globalid === selectedNodeId ? 'true' : 'false');
+      row.style.paddingLeft = `${8 + depth * 14}px`;
+      row.innerHTML = `${hasChildren
+        ? `<button class="tree-toggle" type="button" data-toggle-id="${escapeHtml(node.globalid)}" aria-label="${isCollapsed ? 'Expand' : 'Collapse'}" aria-expanded="${!isCollapsed}">${isCollapsed ? '▸' : '▾'}</button>`
+        : '<span class="tree-spacer"></span>'}<span class="tree-object-icon">${iconFor(node.class)}</span><span class="tree-object-name">${escapeHtml(node.text || node.alias || node.class)}</span><span class="tree-object-type">${escapeHtml(node.class)}</span>`;
+      row.dataset.nodeId = node.globalid;
+      tree.append(row);
+      if (!isCollapsed) children.forEach((child) => addRows(child, depth + 1));
+    };
+    tree.replaceChildren();
+    addRows(documentData[0]);
+  }
+
+  function renderObjectProperties(node) {
+    const fields = Object.entries(node).filter(([key]) => key !== 'children' && key !== 'content');
+    const controls = fields.map(([key, value], index) => {
+      const type = value === null ? 'null' : Array.isArray(value) || typeof value === 'object' ? 'json' : typeof value;
+      const control = type === 'boolean'
+        ? `<select id="object-property-${index}" class="property-input" data-property="${escapeHtml(key)}" data-type="boolean"><option value="true"${value ? ' selected' : ''}>Yes</option><option value="false"${value ? '' : ' selected'}>No</option></select>`
+        : type === 'json' || type === 'null'
+          ? `<textarea id="object-property-${index}" class="property-input property-json" data-property="${escapeHtml(key)}" data-type="json" rows="2">${escapeHtml(JSON.stringify(value))}</textarea>`
+          : `<input id="object-property-${index}" class="property-input" data-property="${escapeHtml(key)}" data-type="${type}" value="${escapeHtml(value)}">`;
+      return `<div class="property-field"><label for="object-property-${index}">${escapeHtml(labelFor(key))}<small>${escapeHtml(key)}</small></label>${control}</div>`;
+    }).join('');
+    return `<div class="inspector-heading">PROPERTIES <span>${escapeHtml(node.class)}</span></div><div class="property-grid">${controls}</div><details class="advanced-properties"><summary>Advanced JSON</summary><textarea id="objectPropertiesRaw" class="json-input" spellcheck="false"></textarea></details><button id="applyObjectProperties" class="tool-button apply-properties">Apply properties</button>`;
+  }
+
+  function renderInspector() {
+    const selected = nodeById(selectedNodeId);
+    const inspector = $('#objectInspector');
+    if (!selected) {
+      inspector.innerHTML = '<div class="inspector-placeholder">Select a project object.</div>';
+      return;
+    }
+    if (selected.class === 'script') {
+      inspector.replaceChildren();
+      return;
+    }
+    inspector.innerHTML = renderObjectProperties(selected);
+    $('#objectPropertiesRaw').value = JSON.stringify(selected, null, 2);
+  }
+
+  function renderProject() {
+    renderProjectTree();
+    renderInspector();
+    $('#folderAlias').value = documentData[0].alias || '';
+    $('#projectName').textContent = documentData[0].alias || projectLabelFallback;
+  }
+
+  function countObjects(node) {
+    return 1 + (node.children || []).reduce((sum, child) => sum + countObjects(child), 0);
+  }
+
+  function formatLiteral(value) {
+    if (value === undefined) return '...';
+    if (value === null) return 'None';
+    if (value === true) return 'True';
+    if (value === false) return 'False';
+    if (typeof value === 'string') return JSON.stringify(value);
+    if (Array.isArray(value)) return `[${value.map(formatLiteral).join(', ')}]`;
+    if (value && typeof value === 'object') {
+      return `{${Object.entries(value).map(([key, item]) => `${formatLiteral(key)}: ${formatLiteral(item)}`).join(', ')}}`;
+    }
+    return String(value);
+  }
+
+  function callForTemplate(item) {
+    const fields = item.node.text.filter((part) => part && typeof part === 'object' && !Array.isArray(part));
+    const args = fields.map((field) => Object.prototype.hasOwnProperty.call(field, 'value') ? field.value : undefined);
+    const callArgs = `(${args.map(formatLiteral).join(', ')})`;
+    if (item.scope === 'top' && item.category === 'events') {
+      return item.callName === 'load' && args.length === 0 ? 'on load:' : `on ${item.callName}${callArgs}:`;
+    }
+    if (item.scope === 'top' && item.category === 'functions' && item.id === '6') {
+      return `def ${formatLiteral(args[0])}():`;
+    }
+    if (item.scope === 'block' && item.category === 'math-variables') {
+      const operator = { '11':'=', '12':'+=', '13':'-=', '14':'*=', '15':'/=' }[item.id];
+      if (operator && args.length === 2 && /^[A-Za-z_]\w*$/.test(String(args[0]))) {
+        return `${args[0]} ${operator} ${formatLiteral(args[1])}`;
+      }
+    }
+    if (item.scope === 'block' && item.opensScope) {
+      const kind = item.node.text.filter((part) => typeof part === 'string').join('').trim().toLowerCase().startsWith('if') ? 'if' : 'for';
+      return `${kind} ${item.callName}${callArgs}:`;
+    }
+    return `${item.callName}${callArgs}`;
+  }
+
+  function renderCatalog(catalog, query = '') {
+    const filter = query.trim().toLowerCase();
+    const templates = [...catalog.byKey.values()].filter((item) => {
+      if (!item.callName) return false;
+      const label = (item.node.text || []).filter((part) => typeof part === 'string').join(' ');
+      return `${item.category} ${item.key} ${label}`.toLowerCase().includes(filter);
+    });
+    $('#catalogEntries').innerHTML = templates.map((item) => {
+      const label = (item.node.text || []).filter((part) => typeof part === 'string').join('').trim() || '(unnamed block)';
+      const call = callForTemplate(item);
+      return `<button class="catalog-entry" type="button" data-call="${escapeHtml(call)}" data-scope="${item.scope}"><span>${escapeHtml(label)}</span><small>${escapeHtml(item.callName)} · ${item.scope === 'top' ? 'event/top-level block' : 'action'}</small></button>`;
+    }).join('') || '<p class="catalog-empty">No blocks found.</p>';
+  }
+
+  function refreshProjectJson(status = 'Project ready · compact') {
+    lastJson = JSON.stringify(documentData);
+    $('#output').textContent = lastJson;
+    $('#outputStatus').textContent = sourceDirty ? 'Uncompiled code · saved JSON available' : status;
+    $('#download').disabled = false;
+    $('#copy').disabled = sourceDirty;
+  }
+
+  function markSourceDirty() {
+    if (activeScriptId) {
+      drafts.set(activeScriptId, source.value);
+      dirtyUserScripts.add(activeScriptId);
+    }
+    sourceDirty = true;
+    $('#outputStatus').textContent = 'Uncompiled code · export to compile';
+    $('#copy').disabled = true;
+  }
+
+  function updateEditor(markDirty = false) {
+    highlightSource();
+    renderStructure();
+    renderDiagnostics(inspectSource());
+    if (markDirty && activeScriptId) markSourceDirty();
+  }
+
+  function loadScriptIntoEditor(scriptNode) {
+    activeScriptId = scriptNode.globalid;
+    source.disabled = true;
+    source.value = 'Loading the block catalog…';
+    $('#scriptTitle').textContent = scriptNode.alias || scriptNode.name || 'script';
+    $('#windowTitle').textContent = `Script Lab — ${$('#scriptTitle').textContent}.cat`;
+    catalogPromise.then((catalog) => {
+      if (activeScriptId !== scriptNode.globalid) return;
+      source.value = drafts.has(scriptNode.globalid)
+        ? drafts.get(scriptNode.globalid)
+        : CatwebCSL.decompileScript(scriptNode.content, catalog);
+      sourceDirty = drafts.has(scriptNode.globalid);
+      source.disabled = false;
+      updateEditor(false);
+      refreshProjectJson();
+    }).catch((error) => {
+      if (activeScriptId !== scriptNode.globalid) return;
+      source.value = `Could not load script: ${error.message}`;
+      source.disabled = true;
+      updateEditor(false);
+      showToast(error.message);
+    });
+  }
+
+  function selectNode(id) {
+    const selected = nodeById(id);
+    if (!selected) return;
+    if (sourceDirty && activeScriptId) drafts.set(activeScriptId, source.value);
+    selectedNodeId = id;
+    renderProject();
+    if (selected.class === 'script') loadScriptIntoEditor(selected);
+  }
+
+  function findFirstScript(node = documentData[0]) {
+    if (node.class === 'script') return node;
+    for (const child of node.children || []) {
+      const found = findFirstScript(child);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  function setProject(project, filename = 'Catweb') {
+    validateProject(project);
+    documentData = project;
+    projectLabelFallback = filename || 'MY PROJECT';
+    collapsed.clear();
+    drafts.clear();
+    dirtyUserScripts.clear();
+    selectedNodeId = documentData[0].globalid;
+    const first = findFirstScript();
+    activeScriptId = first ? first.globalid : null;
+    sourceDirty = false;
+    $('#folderAlias').value = documentData[0].alias || '';
+    $('#projectName').textContent = documentData[0].alias || projectLabelFallback;
+    if (first) {
+      selectedNodeId = first.globalid;
+      renderProject();
+      loadScriptIntoEditor(first);
+      $('#saveSource').disabled = false;
+    } else {
+      source.value = '';
+      source.disabled = true;
+      $('#scriptTitle').textContent = 'no_script';
+      $('#windowTitle').textContent = 'Script Lab — no script';
+      $('#saveSource').disabled = true;
+      updateEditor(false);
+      renderProject();
+    }
+    refreshProjectJson('Project imported · compact');
+    showToast(first ? 'Project imported. Select a script to edit it.' : 'Project imported; create a script to get started.');
+  }
+
+  function insertCatalogCall(button) {
+    const call = button.dataset.call;
+    const top = button.dataset.scope === 'top';
+    const start = source.selectionStart;
+    const end = source.selectionEnd;
+    const before = source.value.slice(0, start);
+    const after = source.value.slice(end);
+    if (top) {
+      const prefix = !before ? '' : before.endsWith('\n\n') ? '' : before.endsWith('\n') ? '\n' : '\n\n';
+      const suffix = !after ? '\n\n' : after.startsWith('\n\n') ? '' : after.startsWith('\n') ? '\n' : '\n\n';
+      source.setRangeText(`${prefix}${call}${suffix}`, start, end, 'end');
+    } else {
+      const lineStart = before.lastIndexOf('\n') + 1;
+      const linePrefix = before.slice(lineStart);
+      const indent = (linePrefix.match(/^\s*/) || [''])[0];
+      const prefix = linePrefix.trim() ? `\n${indent}` : '';
+      source.setRangeText(`${prefix}${call}\n${call.endsWith(':') ? `${indent}    ` : indent}`, start, end, 'end');
+    }
+    source.focus();
+    updateEditor(true);
+  }
+
+  async function compile() {
+    if (!activeScriptId) {
+      showToast('Create or select a script before compiling.');
+      return false;
+    }
+    const errors = renderDiagnostics(inspectSource());
+    if (errors.length) {
+      showToast('Fix the warnings before compiling.');
+      return false;
+    }
+    try {
+      const catalog = await catalogPromise;
+      const result = CatwebCSL.compileScript(source.value, {
+        catalog,
+        folderAlias: $('#folderAlias').value.trim() || 'Catweb Script Lab'
+      });
+      const scriptData = result[0].children[0];
+      const target = nodeById(activeScriptId);
+      if (!target || target.class !== 'script') throw new Error('The active script no longer exists in the project.');
+      target.content = scriptData.content;
+      sourceDirty = false;
+      drafts.delete(activeScriptId);
+      dirtyUserScripts.delete(activeScriptId);
+      const mainCount = scriptData.content.length;
+      const actionCount = scriptData.content.reduce((sum, item) => sum + (item.actions || []).length, 0);
+      renderProject();
+      updateEditor(false);
+      refreshProjectJson(`${mainCount} top-level blocks · ${actionCount} actions · compact`);
+      showToast('Script compiled and updated in the project.');
+      return true;
+    } catch (error) {
+      const match = error.message.match(/Line (\d+):/);
+      const compileErrors = match
+        ? [{ line: Number(match[1]), message: error.message.replace(/^Line \d+:\s*/, '') }]
+        : [{ line: 1, message: error.message }];
+      renderDiagnostics(compileErrors);
+      showToast(error.message);
+      return false;
+    }
+  }
+
+  function replaceSelectedObject(edited) {
+    const oldId = selectedNodeId;
+    const candidate = clone(documentData);
+    const replace = (node) => {
+      if (node.globalid === oldId) return edited;
+      if (Array.isArray(node.children)) node.children = node.children.map(replace);
+      return node;
+    };
+    candidate[0] = replace(candidate[0]);
+    validateProject(candidate);
+    documentData = candidate;
+    selectedNodeId = edited.globalid;
+    if (activeScriptId === oldId && edited.class === 'script') activeScriptId = edited.globalid;
+    renderProject();
+    refreshProjectJson('Properties updated · compact');
+    showToast('Properties applied.');
+  }
+
+  function applyObjectProperties() {
+    const current = nodeById(selectedNodeId);
+    if (!current || current.class === 'script') return;
+    let edited;
+    const details = $('#objectPropertiesRaw').closest('details');
+    if (details.open) {
+      edited = JSON.parse($('#objectPropertiesRaw').value);
+    } else {
+      edited = clone(current);
+      document.querySelectorAll('#objectInspector [data-property]').forEach((control) => {
+        const key = control.dataset.property;
+        if (control.dataset.type === 'boolean') edited[key] = control.value === 'true';
+        else if (control.dataset.type === 'number') {
+          const number = Number(control.value);
+          if (!Number.isFinite(number)) throw new Error(`${key} must be numeric.`);
+          edited[key] = number;
+        } else if (control.dataset.type === 'json') {
+          try { edited[key] = JSON.parse(control.value); }
+          catch { throw new Error(`${key} must contain valid JSON.`); }
+        } else edited[key] = control.value;
+      });
+    }
+    if (!edited || Array.isArray(edited) || typeof edited !== 'object'
+        || typeof edited.class !== 'string' || typeof edited.globalid !== 'string') {
+      throw new Error('Each object must have string class and globalid values.');
+    }
+    replaceSelectedObject(edited);
+    if (edited.class === 'Folder') $('#folderAlias').value = edited.alias || '';
+  }
+
+  function createScript() {
+    const scriptNode = { class: 'script', globalid: uid(), content: [] };
+    documentData[0].children ||= [];
+    documentData[0].children.push(scriptNode);
+    selectedNodeId = scriptNode.globalid;
+    activeScriptId = scriptNode.globalid;
+    sourceDirty = false;
+    drafts.delete(scriptNode.globalid);
+    source.disabled = false;
+    source.value = '';
+    $('#saveSource').disabled = false;
+    renderProject();
+    updateEditor(false);
+    refreshProjectJson('New script · compact project');
+    showToast('New script created; start with on load:.');
+  }
+
+  function downloadProject() {
+    const blob = new Blob([lastJson || JSON.stringify(documentData)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const name = ($('#folderAlias').value || 'catweb').replace(/[^\w-]+/g, '_') || 'catweb';
+    link.href = url;
+    link.download = `${name}.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Project exported as compact JSON.');
+  }
+
+  function saveSource() {
+    const blob = new Blob([source.value + '\n'], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const name = ($('#scriptTitle').textContent || 'my_site').replace(/[^\w-]+/g, '_');
+    link.href = url;
+    link.download = `${name || 'my_site'}.cat`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function clearOutput() {
+    $('#output').innerHTML = '<span class="output-placeholder">Compact project JSON will appear here.</span>';
+    $('#outputStatus').textContent = 'Output hidden';
+    $('#copy').disabled = true;
+  }
+
+  source.addEventListener('input', () => updateEditor(true));
+  source.addEventListener('click', syncScroll);
+  source.addEventListener('keyup', syncScroll);
+  source.addEventListener('scroll', syncScroll);
+  source.addEventListener('keydown', (event) => {
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      source.setRangeText('    ', source.selectionStart, source.selectionEnd, 'end');
+      updateEditor(true);
+    }
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+      event.preventDefault();
+      compile();
+      return;
+    }
+    if (event.key === 'Enter') {
+      const lineStart = source.value.lastIndexOf('\n', source.selectionStart - 1) + 1;
+      let indent = source.value.slice(lineStart, source.selectionStart).match(/^\s*/)?.[0] || '';
+      const currentLine = source.value.slice(lineStart, source.selectionStart).trimEnd();
+      if (/^(?:if|for|else)\b.*:\s*$/.test(currentLine.trim())) indent += '    ';
+      event.preventDefault();
+      source.setRangeText(`\n${indent}`, source.selectionStart, source.selectionEnd, 'end');
+      updateEditor(true);
+    }
+  });
+  document.querySelectorAll('[data-insert]').forEach((button) =>
+    button.addEventListener('click', () => {
+      const snippet = button.dataset.insert === 'set' ? 'new_variable = "value"' : 'console.log("Hello")';
+      source.setRangeText(snippet, source.selectionStart, source.selectionEnd, 'end');
+      source.focus();
+      updateEditor(true);
+    }));
+  $('#compile').addEventListener('click', compile);
+  $('#saveSource').addEventListener('click', saveSource);
+  $('#download').addEventListener('click', async () => {
+    if (sourceDirty && source.value.trim()) {
+      const saved = await compile();
+      if (!saved) return;
+    } else if (sourceDirty && activeScriptId) {
+      const scriptNode = nodeById(activeScriptId);
+      if (scriptNode) scriptNode.content = [];
+      sourceDirty = false;
+      drafts.delete(activeScriptId);
+      dirtyUserScripts.delete(activeScriptId);
+      refreshProjectJson('Project ready · compact');
+    }
+    if (!lastJson) refreshProjectJson();
+    downloadProject();
+  });
+  $('#openProject').addEventListener('click', () => $('#fileInput').click());
+  $('#fileInput').addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (dirtyUserScripts.size && !window.confirm('There are unsaved code changes. Do you want to replace the current project?')) {
+      event.target.value = '';
+      return;
+    }
+    try {
+      const imported = normalizeImport(JSON.parse(await file.text()));
+      setProject(imported, file.name.replace(/\.json$/i, ''));
+    } catch (error) {
+      showToast(`Could not import project: ${error.message}`);
+    }
+    event.target.value = '';
+  });
+  $('#projectTree').addEventListener('click', (event) => {
+    const toggle = event.target.closest('[data-toggle-id]');
+    if (toggle) {
+      const id = toggle.dataset.toggleId;
+      if (collapsed.has(id)) collapsed.delete(id);
+      else collapsed.add(id);
+      renderProjectTree();
+      return;
+    }
+    const row = event.target.closest('[data-node-id]');
+    if (row) selectNode(row.dataset.nodeId);
+  });
+  $('#eventTree').addEventListener('click', (event) => {
+    const item = event.target.closest('[data-line]');
+    if (!item) return;
+    const line = Number(item.dataset.line);
+    const offset = source.value.split('\n').slice(0, line - 1).join('\n').length + (line > 1 ? 1 : 0);
+    source.focus();
+    source.setSelectionRange(offset, offset);
+  });
+  $('#newScript').addEventListener('click', createScript);
+  $('#objectInspector').addEventListener('click', (event) => {
+    if (event.target.closest('#applyObjectProperties')) {
+      try { applyObjectProperties(); }
+      catch (error) { showToast(`Could not apply properties: ${error.message}`); }
+    }
+  });
+  $('#folderAlias').addEventListener('input', () => {
+    documentData[0].alias = $('#folderAlias').value;
+    $('#projectName').textContent = documentData[0].alias || projectLabelFallback;
+    renderProjectTree();
+    refreshProjectJson('Project updated · compact');
+  });
+  $('#copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(lastJson);
+      showToast('Project JSON copied.');
+    } catch {
+      showToast('The browser did not allow automatic copying.');
+    }
+  });
+  $('#clearOutput').addEventListener('click', clearOutput);
+  $('#toggleOutput').addEventListener('click', () => $('#outputPanel').classList.toggle('open'));
+  $('#catalogSearch').addEventListener('input', (event) =>
+    catalogPromise.then((catalog) => renderCatalog(catalog, event.target.value)));
+  $('#catalogEntries').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-call]');
+    if (button && !source.disabled) insertCatalogCall(button);
+  });
+
+  catalogPromise.then((catalog) => {
+    const categories = [...new Set([...catalog.byKey.values()].map((item) => item.category))].sort();
+    $('#catalogSummary').textContent = `${categories.length} categories · ${catalog.byKey.size} catalog forms`;
+    renderCatalog(catalog);
+    source.disabled = false;
+    updateEditor(false);
+    refreshProjectJson('Project ready · compact');
+  }).catch((error) => {
+    $('#catalogSummary').textContent = error.message;
+    $('.statusbar').classList.add('has-error');
+    $('#sourceStatus').textContent = 'Could not load catalog';
+    showToast(error.message);
+  });
+
+  renderProject();
+  updateEditor(false);
+  refreshProjectJson();
+})();

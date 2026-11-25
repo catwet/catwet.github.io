@@ -1,0 +1,53 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4791",
+                "x": "4719",
+                "globalid": "4-",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "0",
+                        "text": [
+                            "Log",
+                            {
+                                "t": "any",
+                                "value": "solo me veo en el debug del desarrollador!"
+                            }
+                        ],
+                        "globalid": "v["
+                    },
+                    {
+                        "id": "1",
+                        "text": [
+                            "Warn",
+                            {
+                                "value": "Advierto en amarillo {error}!",
+                                "t": "any"
+                            }
+                        ],
+                        "globalid": "\\-"
+                    },
+                    {
+                        "id": "2",
+                        "text": [
+                            "Error",
+                            {
+                                "value": "ups, sucedio esto...",
+                                "t": "any"
+                            }
+                        ],
+                        "globalid": "1#"
+                    }
+                ],
+                "width": "350"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

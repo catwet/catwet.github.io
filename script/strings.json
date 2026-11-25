@@ -1,0 +1,142 @@
+[
+    {
+        "class": "script",
+        "content": [
+            {
+                "y": "4777",
+                "x": "4611.3369140625",
+                "globalid": "W:",
+                "id": "0",
+                "text": [
+                    "When website loaded..."
+                ],
+                "actions": [
+                    {
+                        "id": "42",
+                        "text": [
+                            "Sub",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            {
+                                "t": "number",
+                                "l": "start"
+                            },
+                            "-",
+                            {
+                                "t": "number",
+                                "l": "end"
+                            }
+                        ],
+                        "globalid": "[X"
+                    },
+                    {
+                        "id": "43",
+                        "text": [
+                            "Replace",
+                            {
+                                "t": "string"
+                            },
+                            "in",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            },
+                            "by",
+                            {
+                                "t": "string"
+                            }
+                        ],
+                        "globalid": "~D"
+                    },
+                    {
+                        "id": "48",
+                        "text": [
+                            "Get length of",
+                            {
+                                "t": "string"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "i-"
+                    },
+                    {
+                        "id": "57",
+                        "text": [
+                            "Split",
+                            {
+                                "t": "string"
+                            },
+                            {
+                                "t": "string",
+                                "l": "separator"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "table"
+                            }
+                        ],
+                        "globalid": "CM"
+                    },
+                    {
+                        "id": "69",
+                        "text": [
+                            "Lower",
+                            {
+                                "t": "string"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "8;"
+                    },
+                    {
+                        "id": "70",
+                        "text": [
+                            "Upper",
+                            {
+                                "t": "string"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "(z"
+                    },
+                    {
+                        "id": "109",
+                        "text": [
+                            "Concatenate",
+                            {
+                                "t": "string"
+                            },
+                            "with",
+                            {
+                                "t": "string"
+                            },
+                            "→",
+                            {
+                                "t": "string",
+                                "l": "variable"
+                            }
+                        ],
+                        "globalid": "d;"
+                    }
+                ],
+                "width": "350"
+            }
+        ],
+        "globalid": "QE"
+    }
+]

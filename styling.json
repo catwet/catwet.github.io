@@ -1,0 +1,62 @@
+[
+    {
+        "alias": "Styling",
+        "background_color": "#c8c8c8",
+        "class": "Frame",
+        "globalid": "W1",
+        "children": [
+            {
+                "globalid": "x_",
+                "class": "UIStroke"
+            },
+            {
+                "radius": "0.1, 0",
+                "radius_top_left": "0.1, 0",
+                "radius_bottom_left": "0.1, 0",
+                "radius_bottom_right": "0.1, 0",
+                "class": "UICorner",
+                "globalid": "kW",
+                "radius_top_right": "0.1, 0"
+            },
+            {
+                "globalid": "Tv",
+                "class": "UIShadow"
+            },
+            {
+                "class": "UIListLayout",
+                "padding": "0, 0",
+                "globalid": "G]",
+                "sort": "LayoutOrder"
+            },
+            {
+                "sort": "LayoutOrder",
+                "class": "UIGridLayout",
+                "padding": "0, 0",
+                "globalid": "DQ",
+                "size": "{0.2, 0},{0.2, 0}"
+            },
+            {
+                "globalid": "K ",
+                "class": "UIAspectRatioConstraint"
+            },
+            {
+                "globalid": "-\"",
+                "class": "UISizeConstraint"
+            },
+            {
+                "class": "UIGradient",
+                "globalid": "H_",
+                "gradient_color": "[[0,\"ff0000\"],[0.498,\"00ff39\"],[1,\"000cff\"]]"
+            },
+            {
+                "globalid": " H",
+                "class": "UIPadding"
+            },
+            {
+                "globalid": "_%",
+                "class": "UIFlexItem"
+            }
+        ],
+        "size": "{0.1, 0},{0.1, 0}"
+    }
+]
