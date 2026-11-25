@@ -1,4 +1,4 @@
-# Catweb: JSON Format Reference
+# CatWet Studio: Catweb JSON Format Reference
 
 ## Project Goals
 
@@ -9,9 +9,10 @@ scripts and translating them into the game's JSON blocks. Python provides an
 equivalent compiler for command-line use.
 
 The format is based on references and examples; no exhaustive official
-specification is available. The Visual Editor lets you manage the project tree
-and preview it approximately, while the AI guide helps request content backed
-by the catalog. **Format validity and execution must be verified in Catweb.**
+specification is available. CatWet Studio's Visual Editor lets you manage the
+project tree and preview it approximately, while the AI guide helps request
+content backed by the catalog. **Format validity and execution must be verified
+in Catweb.**
 
 ## Repository Contents
 
@@ -92,8 +93,8 @@ confirm permissions or acceptance/execution by Catweb.
 
 ## Web Studio
 
-The main entry point is [`index.html`](index.html), which opens Script Lab.
-To work with an object preview, open the secondary Visual Editor at
+The main entry point is [`index.html`](index.html), which opens CatWet Script
+Lab. To work with an object preview, open the secondary CatWet Visual Editor at
 [`studio/index.html`](studio/index.html). Both editors import JSON projects; the
 Visual Editor lets you add objects, navigate the tree, and edit properties.
 The preview is approximate and does not execute scripts.

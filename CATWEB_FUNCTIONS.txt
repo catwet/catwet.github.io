@@ -1,0 +1,1771 @@
+CATWEB - INVENTARIO DE FUNCIONES EJECUTABLES
+Auditoría estática de los catálogos de este repositorio; no es una especificación oficial de runtime.
+
+ALCANCE Y MÉTODO
+- Fuente primaria: 17 categorías JSON enumeradas en script/catalog-index.json, procesadas con BlockCatalog de catweb_script.py.
+- Inventario: 138 entradas con nombre CSL único, contando eventos, acciones, condiciones, ciclos y declaración/retorno de funciones.
+- Los nombres exactos son los nombres canónicos que expone el compilador CSL del proyecto. Los ejemplos se validan sintácticamente contra ese catálogo; no se ejecutaron dentro del juego Catweb.
+- El repositorio contiene plantillas de referencia, no el runtime de Catweb. Donde no hay especificación adicional, el comportamiento se limita a la etiqueta visible y se indica expresamente.
+- Las entradas l= y t= reproducen la etiqueta y el tipo de campo del JSON. t= es el tipo de control/campo observado, no necesariamente un tipo semántico documentado. Los valores de muestra no son restricciones ni garantizan ejecución.
+- Las sintaxis abstractas usan cadenas entre <> como marcadores; los ejemplos son llamadas CSL con literales. Sustituye IDs, objetos, teclas y propiedades por referencias válidas del proyecto.
+- Módulos derivados de los nombres CSL: hierarchy.json -> objects; looks.json -> ui; strings.json -> text; math-variables.json -> variables y math. No existe un archivo math.json independiente.
+- No se listan como funciones: bloques repetidos "When website loaded..." de archivos de ejemplo no-events, comentarios, marcadores end/else, objetos visuales ni palabras reservadas. if/for/def/on son sintaxis CSL; no funciones de Catweb.
+- No hay sobrecargas con el mismo nombre CSL en el catálogo compilable. Alias del compilador: log, warn y error equivalen a console.log, console.warn y console.error. Asignaciones x = v, x += v, x -= v, x *= v y x /= v son azúcar CSL de variables.set/increase_by/decrease_by/multiply_by/divide_by.
+
+ENTRADAS DEL CATÁLOGO EXCLUIDAS POR NO SER FUNCIONES
+- 16 plantillas top-level repetidas "When website loaded..." en JSON de módulos distintos de events; son andamiaje de los ejemplos, no eventos propios de esos módulos.
+- 6 marcadores "end": hierarchy/25, input/25, logic/25, looks/25, loops/25 y tables/25. Son cierres estructurales.
+- 1 marcador "else": logic/112. Es sintaxis de control, no una llamada.
+- 4 bloques de comentario sin nombre ejecutable: functions/124, loops/124, network/124 y tables/124.
+- En total, BlockCatalog contiene 27 variantes de plantilla sin nombre CSL; no se publican como funciones. Los bloques log de los módulos sí se incluyen porque tienen nombre CSL y campo ejecutable.
+
+EJEMPLO REAL BASADO EN EL JSON ADJUNTO
+El adjunto contiene un evento load, una variable, un split y una iteración de tabla. Esta representación CSL se compiló con el catálogo del repositorio:
+on load:
+    x = "hola como estan"
+    text.split("{x}", " ", "textos")
+    for tables.iterate_through_l_index_l_value("textos"):
+        console.log("{l!value}")
+El compilador genera también el cierre del ciclo; la prueba de compilación produjo un evento y cinco acciones. Esto no sustituye una ejecución dentro de Catweb.
+
+NOTAS DE MÓDULOS
+- cookies: info.md advierte que estas funciones son de pago y requieren que estén desbloqueadas.
+- network: info.md advierte que Roblox puede filtrar datos no numéricos entre sitios; el repositorio no implementa ni garantiza codificación o entrega.
+- events: info.md documenta las variables locales indicadas en las entradas de eventos correspondientes.
+
+MODULE: audio  [origen: script/audio.json; 10 entradas]
+===============
+
+FUNCTION: audio.get_of
+SYNTAX: audio.get_of("<property>", "<variable>", "<variable>")
+PARAMETERS:
+- Posición 1: l="property"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+- Posición 3: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Getof→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    audio.get_of("Visible", "resultado", "resultado")
+SOURCE: script/audio.json; scope=block; id=95; label="Getof→"
+
+FUNCTION: audio.pause_audio
+SYNTAX: audio.pause_audio("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Pausa la reproducción indicada. Etiqueta del catálogo: «Pause audio».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    audio.pause_audio("resultado")
+SOURCE: script/audio.json; scope=block; id=75; label="Pause audio"
+
+FUNCTION: audio.play_audio
+SYNTAX: audio.play_audio("<id>", "<variable>")
+PARAMETERS:
+- Posición 1: l="id"; t="string"; sin value de muestra.
+- Posición 2: l="variable?"; t="string"; sin value de muestra.
+DESCRIPTION: Inicia la reproducción indicada. Etiqueta del catálogo: «Play audio→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable?", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    audio.play_audio("ID_EXISTENTE", "resultado")
+SOURCE: script/audio.json; scope=block; id=5; label="Play audio→"
+
+FUNCTION: audio.play_looped_audio
+SYNTAX: audio.play_looped_audio("<id>", "<variable>")
+PARAMETERS:
+- Posición 1: l="id"; t="string"; sin value de muestra.
+- Posición 2: l="variable?"; t="string"; sin value de muestra.
+DESCRIPTION: Inicia la reproducción indicada. Etiqueta del catálogo: «Play looped audio→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable?", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    audio.play_looped_audio("ID_EXISTENTE", "resultado")
+SOURCE: script/audio.json; scope=block; id=26; label="Play looped audio→"
+
+FUNCTION: audio.resume_audio
+SYNTAX: audio.resume_audio("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Reanuda la reproducción indicada. Etiqueta del catálogo: «Resume audio».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    audio.resume_audio("resultado")
+SOURCE: script/audio.json; scope=block; id=76; label="Resume audio"
+
+FUNCTION: audio.set_of_to
+SYNTAX: audio.set_of_to("<property>", "<variable>", "<arg3>")
+PARAMETERS:
+- Posición 1: l="property"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+- Posición 3: l=<l ausente>; t="any"; sin value de muestra.
+DESCRIPTION: Establece el valor o propiedad indicados. Etiqueta del catálogo: «Setofto».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    audio.set_of_to("Visible", "resultado", "valor")
+SOURCE: script/audio.json; scope=block; id=94; label="Setofto"
+
+FUNCTION: audio.set_speed_of_to
+SYNTAX: audio.set_speed_of_to("<variable>", 1)
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="number"; sin value de muestra.
+DESCRIPTION: Establece el valor o propiedad indicados. Etiqueta del catálogo: «Set speed ofto».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    audio.set_speed_of_to("resultado", 1)
+SOURCE: script/audio.json; scope=block; id=77; label="Set speed ofto"
+
+FUNCTION: audio.set_volume_of_to
+SYNTAX: audio.set_volume_of_to("<variable>", 1)
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="number"; sin value de muestra.
+DESCRIPTION: Establece el valor o propiedad indicados. Etiqueta del catálogo: «Set volume ofto».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    audio.set_volume_of_to("resultado", 1)
+SOURCE: script/audio.json; scope=block; id=73; label="Set volume ofto"
+
+FUNCTION: audio.stop_all_audio
+SYNTAX: audio.stop_all_audio()
+PARAMETERS:
+- Ninguno en la plantilla.
+DESCRIPTION: Detiene la reproducción indicada. Etiqueta del catálogo: «Stop all audio».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    audio.stop_all_audio()
+SOURCE: script/audio.json; scope=block; id=7; label="Stop all audio"
+
+FUNCTION: audio.stop_audio
+SYNTAX: audio.stop_audio("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Detiene la reproducción indicada. Etiqueta del catálogo: «Stop audio».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    audio.stop_audio("resultado")
+SOURCE: script/audio.json; scope=block; id=74; label="Stop audio"
+
+
+MODULE: color  [origen: script/color.json; 5 entradas]
+===============
+
+FUNCTION: color.convert_to_hsv
+SYNTAX: color.convert_to_hsv("<hex>", "<variable>")
+PARAMETERS:
+- Posición 1: l="hex"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Convierte el valor de entrada al formato indicado por la etiqueta. Etiqueta del catálogo: «Convertto HSV →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    color.convert_to_hsv("valor", "resultado")
+SOURCE: script/color.json; scope=block; id=120; label="Convertto HSV →"
+
+FUNCTION: color.convert_to_rgb
+SYNTAX: color.convert_to_rgb("<hex>", "<variable>")
+PARAMETERS:
+- Posición 1: l="hex"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Convierte el valor de entrada al formato indicado por la etiqueta. Etiqueta del catálogo: «Convertto RGB →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    color.convert_to_rgb("valor", "resultado")
+SOURCE: script/color.json; scope=block; id=119; label="Convertto RGB →"
+
+FUNCTION: color.hex_from_hsv
+SYNTAX: color.hex_from_hsv("<HSV>", "<variable>")
+PARAMETERS:
+- Posición 1: l="HSV"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Convierte el valor de entrada al formato indicado por la etiqueta. Etiqueta del catálogo: «Convertto hex →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    color.hex_from_hsv("valor", "resultado")
+SOURCE: script/color.json; scope=block; id=122; label="Convertto hex →"
+
+FUNCTION: color.hex_from_rgb
+SYNTAX: color.hex_from_rgb("<RGB>", "<variable>")
+PARAMETERS:
+- Posición 1: l="RGB"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Convierte el valor de entrada al formato indicado por la etiqueta. Etiqueta del catálogo: «Convertto hex →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    color.hex_from_rgb("valor", "resultado")
+SOURCE: script/color.json; scope=block; id=121; label="Convertto hex →"
+
+FUNCTION: color.lerp_to_by
+SYNTAX: color.lerp_to_by("<hex>", "<hex>", 1, "<variable>")
+PARAMETERS:
+- Posición 1: l="hex"; t="string"; sin value de muestra.
+- Posición 2: l="hex"; t="string"; sin value de muestra.
+- Posición 3: l="alpha"; t="number"; sin value de muestra.
+- Posición 4: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Interpola entre los valores indicados usando el factor suministrado. Etiqueta del catálogo: «Lerptoby→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    color.lerp_to_by("valor", "valor", 1, "resultado")
+SOURCE: script/color.json; scope=block; id=123; label="Lerptoby→"
+
+
+MODULE: console  [origen: script/console.json; 3 entradas]
+=================
+
+FUNCTION: console.error
+SYNTAX: console.error("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="any"; value de muestra="ups, sucedio esto...".
+DESCRIPTION: Emite el error indicado. Etiqueta del catálogo: «Error».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    console.error("valor")
+SOURCE: script/console.json; scope=block; id=2; label="Error"
+
+FUNCTION: console.log
+SYNTAX: console.log("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="any"; value de muestra="solo me veo en el debug del desarrollador!".
+DESCRIPTION: Registra el valor indicado; el destino exacto depende de la categoría. Etiqueta del catálogo: «Log».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    console.log("valor")
+SOURCE: script/console.json; scope=block; id=0; label="Log"
+
+FUNCTION: console.warn
+SYNTAX: console.warn("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="any"; value de muestra="Advierto en amarillo {error}!".
+DESCRIPTION: Emite el aviso indicado. Etiqueta del catálogo: «Warn».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    console.warn("valor")
+SOURCE: script/console.json; scope=block; id=1; label="Warn"
+
+
+MODULE: cookies  [origen: script/cookies.json; 4 entradas]
+=================
+Aviso: el repositorio indica que estas funciones pueden ser de pago.
+
+FUNCTION: cookies.delete_cookie
+SYNTAX: cookies.delete_cookie("<cookie>")
+PARAMETERS:
+- Posición 1: l="cookie"; t="string"; sin value de muestra.
+DESCRIPTION: Elimina el elemento indicado. Etiqueta del catálogo: «Delete cookie».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    cookies.delete_cookie("mi_cookie")
+SOURCE: script/cookies.json; scope=block; id=62; label="Delete cookie"
+
+FUNCTION: cookies.get_cookie
+SYNTAX: cookies.get_cookie("<cookie>", "<variable>")
+PARAMETERS:
+- Posición 1: l="cookie"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get cookie→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    cookies.get_cookie("mi_cookie", "resultado")
+SOURCE: script/cookies.json; scope=block; id=36; label="Get cookie→"
+
+FUNCTION: cookies.increase_by
+SYNTAX: cookies.increase_by("<cookie>", 1)
+PARAMETERS:
+- Posición 1: l="cookie"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="number"; sin value de muestra.
+DESCRIPTION: Incrementa el valor indicado. Etiqueta del catálogo: «Increaseby».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    cookies.increase_by("mi_cookie", 1)
+SOURCE: script/cookies.json; scope=block; id=35; label="Increaseby"
+
+FUNCTION: cookies.set_to
+SYNTAX: cookies.set_to("<cookie>", "<arg2>")
+PARAMETERS:
+- Posición 1: l="cookie"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="any"; sin value de muestra.
+DESCRIPTION: Establece el valor o propiedad indicados. Etiqueta del catálogo: «Setto».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    cookies.set_to("mi_cookie", "valor")
+SOURCE: script/cookies.json; scope=block; id=34; label="Setto"
+
+
+MODULE: events  [origen: script/events.json; 11 entradas]
+================
+Las entradas siguientes son cabeceras de eventos; no se invocan como acciones dentro del cuerpo.
+
+FUNCTION: avatar_item_bought
+SYNTAX: on avatar_item_bought("<avataritem>"):
+PARAMETERS:
+- Posición 1: l="avataritem"; t="object"; sin value de muestra.
+DESCRIPTION: Se activa cuando se compra el avatar item seleccionado.
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on avatar_item_bought("ID_OBJETO_EXISTENTE"):
+    console.log("evento")
+SOURCE: script/events.json; scope=top; id=7; label="Whenbought..."
+
+FUNCTION: button_pressed
+SYNTAX: on button_pressed("<button>"):
+PARAMETERS:
+- Posición 1: l="button"; t="object"; sin value de muestra.
+DESCRIPTION: Se activa cuando se presiona el botón seleccionado.
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on button_pressed("ID_OBJETO_EXISTENTE"):
+    console.log("evento")
+SOURCE: script/events.json; scope=top; id=1; label="Whenpressed..."
+
+FUNCTION: cross_site_message_received
+SYNTAX: on cross_site_message_received():
+PARAMETERS:
+- Ninguno en la plantilla.
+DESCRIPTION: Se activa al recibir un mensaje entre sitios. Variables locales documentadas: l.sourceDomain, l.messageContent, l.messageSenderId y l.messageSenderName (según info.md).
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on cross_site_message_received():
+    console.log("evento")
+SOURCE: script/events.json; scope=top; id=14; label="When cross-site message received..."
+
+FUNCTION: donation_completed
+SYNTAX: on donation_completed():
+PARAMETERS:
+- Ninguno en la plantilla.
+DESCRIPTION: Se activa al completarse una donación. Variables locales documentadas: l.identifier, l.robuxAmount y l.purchasedNow (según info.md).
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on donation_completed():
+    console.log("evento")
+SOURCE: script/events.json; scope=top; id=15; label="When donation completed..."
+
+FUNCTION: input_submitted
+SYNTAX: on input_submitted("<input>"):
+PARAMETERS:
+- Posición 1: l="input"; t="object"; sin value de muestra.
+DESCRIPTION: Se activa al enviar el input seleccionado.
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on input_submitted("ID_OBJETO_EXISTENTE"):
+    console.log("evento")
+SOURCE: script/events.json; scope=top; id=8; label="Whensubmitted..."
+
+FUNCTION: key_pressed
+SYNTAX: on key_pressed("<arg1>"):
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="key"; sin value de muestra.
+DESCRIPTION: Se activa al presionar la tecla seleccionada.
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on key_pressed("Space"):
+    console.log("evento")
+SOURCE: script/events.json; scope=top; id=2; label="Whenpressed..."
+
+FUNCTION: load
+SYNTAX: on load:
+PARAMETERS:
+- Ninguno en la plantilla.
+DESCRIPTION: Se activa cuando carga el sitio.
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    console.log("evento")
+SOURCE: script/events.json; scope=top; id=0; label="When website loaded..."
+
+FUNCTION: message_received
+SYNTAX: on message_received():
+PARAMETERS:
+- Ninguno en la plantilla.
+DESCRIPTION: Se activa al recibir un mensaje. Variables locales documentadas: l.messageContent, l.messageSenderId y l.messageSenderName (según info.md).
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on message_received():
+    console.log("evento")
+SOURCE: script/events.json; scope=top; id=9; label="When message received..."
+
+FUNCTION: mouse_down_on
+SYNTAX: on mouse_down_on("<button>"):
+PARAMETERS:
+- Posición 1: l="button"; t="object"; sin value de muestra.
+DESCRIPTION: Se activa cuando se presiona el botón del mouse sobre el objeto seleccionado.
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on mouse_down_on("ID_OBJETO_EXISTENTE"):
+    console.log("evento")
+SOURCE: script/events.json; scope=top; id=11; label="When mouse down on..."
+
+FUNCTION: mouse_enters
+SYNTAX: on mouse_enters("<arg1>"):
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+DESCRIPTION: Se activa cuando el cursor entra en el objeto seleccionado.
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on mouse_enters("ID_OBJETO_EXISTENTE"):
+    console.log("evento")
+SOURCE: script/events.json; scope=top; id=3; label="When mouse enters..."
+
+FUNCTION: object_changed
+SYNTAX: on object_changed("<arg1>"):
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+DESCRIPTION: Se activa al cambiar el objeto seleccionado. Variables locales documentadas: l.changedProperty (según info.md).
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on object_changed("ID_OBJETO_EXISTENTE"):
+    console.log("evento")
+SOURCE: script/events.json; scope=top; id=10; label="Whenchanged..."
+
+
+MODULE: functions  [origen: script/functions.json; 5 entradas]
+===================
+
+FUNCTION: functions.define_function
+SYNTAX: def <nombre_de_funcion>():
+PARAMETERS:
+- Posición 1: l="function"; t="string"; sin value de muestra.
+DESCRIPTION: Declara una función Catweb con el nombre indicado; su cuerpo se compone de las acciones anidadas en el bloque.
+RETURNS: No aplica: es una cabecera de evento/definición, no una llamada con retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+def ejemplo_catweb():
+    functions.return(10)
+SOURCE: script/functions.json; scope=top; id=6; label="Define function"
+
+FUNCTION: functions.return
+SYNTAX: functions.return("<any>")
+PARAMETERS:
+- Posición 1: l="any"; t="string"; value de muestra="puedo devolver algo, o no".
+DESCRIPTION: Devuelve el valor del parámetro desde la función en ejecución. La categoría no especifica un tipo de retorno fijo.
+RETURNS: Devuelve el valor indicado a la función llamadora; el campo no fija un tipo semántico.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+def ejemplo_catweb():
+    functions.return("valor")
+SOURCE: script/functions.json; scope=block; id=115; label="Return"
+
+FUNCTION: functions.run_function
+SYNTAX: functions.run_function("<function>", [], "<variable>")
+PARAMETERS:
+- Posición 1: l="function"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="tuple"; sin value de muestra.
+- Posición 3: l="variable?"; t="string"; value de muestra="variable de salida".
+DESCRIPTION: Invoca la función nombrada y, si se configura, guarda el resultado en la variable de salida. La implementación interna no está disponible en este repositorio.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable?", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+def ejemplo_catweb():
+    functions.return(10)
+
+on load:
+    functions.run_function("ejemplo_catweb", [], "resultado")
+SOURCE: script/functions.json; scope=block; id=132; label="Run function→"
+
+FUNCTION: functions.run_function_in_background
+SYNTAX: functions.run_function_in_background("<function>", [])
+PARAMETERS:
+- Posición 1: l="function"; t="string"; value de muestra="".
+- Posición 2: l=<l ausente>; t="tuple"; value de muestra=[{"value":"añado argumentos","l":"any","t":"string"}].
+DESCRIPTION: Invoca la función nombrada en segundo plano, según la etiqueta del catálogo. La implementación interna no está disponible en este repositorio.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+def ejemplo_catweb():
+    functions.return(10)
+
+on load:
+    functions.run_function_in_background("ejemplo_catweb", [])
+SOURCE: script/functions.json; scope=block; id=133; label="Run function in background"
+
+FUNCTION: functions.run_function_protected
+SYNTAX: functions.run_function_protected("<function>", [], "<success_variable>", "<variable>")
+PARAMETERS:
+- Posición 1: l="function"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="tuple"; sin value de muestra.
+- Posición 3: l="success_variable?"; t="string"; sin value de muestra.
+- Posición 4: l="variable?"; t="string"; sin value de muestra.
+DESCRIPTION: Invoca la función en modo protegido; los campos de salida se etiquetan como éxito y variable de retorno. La implementación interna no está disponible en este repositorio.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="success_variable?", t="string", l="variable?", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+def ejemplo_catweb():
+    functions.return(10)
+
+on load:
+    functions.run_function_protected("ejemplo_catweb", [], "correcto", "resultado")
+SOURCE: script/functions.json; scope=block; id=134; label="Run function protected→"
+
+
+MODULE: objects  [origen: script/hierarchy.json; 11 entradas]
+=================
+
+FUNCTION: objects.find_ancestor_named_in
+SYNTAX: objects.find_ancestor_named_in("<arg1>", "<arg2>", "<variable>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 3: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Consulta o modifica la jerarquía de objetos según la etiqueta «Find ancestor namedin→». La referencia no detalla los criterios de búsqueda.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    objects.find_ancestor_named_in("valor", "ID_OBJETO_EXISTENTE", "resultado")
+SOURCE: script/hierarchy.json; scope=block; id=98; label="Find ancestor namedin→"
+
+FUNCTION: objects.find_child_named_in
+SYNTAX: objects.find_child_named_in("<arg1>", "<arg2>", "<variable>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 3: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Consulta o modifica la jerarquía de objetos según la etiqueta «Find child namedin→». La referencia no detalla los criterios de búsqueda.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    objects.find_child_named_in("valor", "ID_OBJETO_EXISTENTE", "resultado")
+SOURCE: script/hierarchy.json; scope=block; id=99; label="Find child namedin→"
+
+FUNCTION: objects.find_descendant_named_in
+SYNTAX: objects.find_descendant_named_in("<arg1>", "<arg2>", "<variable>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 3: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Consulta o modifica la jerarquía de objetos según la etiqueta «Find descendant namedin→». La referencia no detalla los criterios de búsqueda.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    objects.find_descendant_named_in("valor", "ID_OBJETO_EXISTENTE", "resultado")
+SOURCE: script/hierarchy.json; scope=block; id=100; label="Find descendant namedin→"
+
+FUNCTION: objects.get_children_of
+SYNTAX: objects.get_children_of("<arg1>", "<table>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 2: l="table"; t="string"; sin value de muestra.
+DESCRIPTION: Consulta o modifica la jerarquía de objetos según la etiqueta «Get children of→». La referencia no detalla los criterios de búsqueda.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="table", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    objects.get_children_of("ID_OBJETO_EXISTENTE", "mi_tabla")
+SOURCE: script/hierarchy.json; scope=block; id=101; label="Get children of→"
+
+FUNCTION: objects.get_descendants_of
+SYNTAX: objects.get_descendants_of("<arg1>", "<table>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 2: l="table"; t="string"; sin value de muestra.
+DESCRIPTION: Consulta o modifica la jerarquía de objetos según la etiqueta «Get descendants of→». La referencia no detalla los criterios de búsqueda.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="table", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    objects.get_descendants_of("ID_OBJETO_EXISTENTE", "mi_tabla")
+SOURCE: script/hierarchy.json; scope=block; id=102; label="Get descendants of→"
+
+FUNCTION: objects.get_parent_of
+SYNTAX: objects.get_parent_of("<arg1>", "<variable>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Consulta o modifica la jerarquía de objetos según la etiqueta «Get parent of→». La referencia no detalla los criterios de búsqueda.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    objects.get_parent_of("ID_OBJETO_EXISTENTE", "resultado")
+SOURCE: script/hierarchy.json; scope=block; id=97; label="Get parent of→"
+
+FUNCTION: objects.is_ancestor_of
+SYNTAX: if objects.is_ancestor_of("<arg1>", "<arg2>"):
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifis ancestor of»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if objects.is_ancestor_of("ID_OBJETO_EXISTENTE", "ID_OBJETO_EXISTENTE"):
+        console.log("cuerpo del bloque")
+SOURCE: script/hierarchy.json; scope=block; id=103; label="Ifis ancestor of"
+
+FUNCTION: objects.is_child_of
+SYNTAX: if objects.is_child_of("<arg1>", "<arg2>"):
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifis child of»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if objects.is_child_of("ID_OBJETO_EXISTENTE", "ID_OBJETO_EXISTENTE"):
+        console.log("cuerpo del bloque")
+SOURCE: script/hierarchy.json; scope=block; id=104; label="Ifis child of"
+
+FUNCTION: objects.is_descendant_of
+SYNTAX: if objects.is_descendant_of("<arg1>", "<arg2>"):
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifis descendant of»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if objects.is_descendant_of("ID_OBJETO_EXISTENTE", "ID_OBJETO_EXISTENTE"):
+        console.log("cuerpo del bloque")
+SOURCE: script/hierarchy.json; scope=block; id=105; label="Ifis descendant of"
+
+FUNCTION: objects.log
+SYNTAX: objects.log("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="any"; value de muestra="sigue abajo".
+DESCRIPTION: Consulta o modifica la jerarquía de objetos según la etiqueta «Log». La referencia no detalla los criterios de búsqueda.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    objects.log("valor")
+SOURCE: script/hierarchy.json; scope=block; id=0; label="Log"
+
+FUNCTION: objects.parent_under
+SYNTAX: objects.parent_under("<arg1>", "<arg2>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+DESCRIPTION: Consulta o modifica la jerarquía de objetos según la etiqueta «Parentunder». La referencia no detalla los criterios de búsqueda.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    objects.parent_under("ID_OBJETO_EXISTENTE", "ID_OBJETO_EXISTENTE")
+SOURCE: script/hierarchy.json; scope=block; id=58; label="Parentunder"
+
+
+MODULE: input  [origen: script/input.json; 7 entradas]
+===============
+
+FUNCTION: input.down
+SYNTAX: if input.down("<arg1>"):
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="key"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifdown»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if input.down("Space"):
+        console.log("cuerpo del bloque")
+SOURCE: script/input.json; scope=block; id=82; label="Ifdown"
+
+FUNCTION: input.get_cursor_position
+SYNTAX: input.get_cursor_position("<x>", "<y>")
+PARAMETERS:
+- Posición 1: l="x"; t="string"; sin value de muestra.
+- Posición 2: l="y"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get cursor position →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    input.get_cursor_position("valor", "valor")
+SOURCE: script/input.json; scope=block; id=85; label="Get cursor position →"
+
+FUNCTION: input.get_viewport_size
+SYNTAX: input.get_viewport_size("<x>", "<y>")
+PARAMETERS:
+- Posición 1: l="x"; t="string"; sin value de muestra.
+- Posición 2: l="y"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get viewport size →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    input.get_viewport_size("valor", "valor")
+SOURCE: script/input.json; scope=block; id=84; label="Get viewport size →"
+
+FUNCTION: input.hide_mouse_cursor
+SYNTAX: input.hide_mouse_cursor()
+PARAMETERS:
+- Ninguno en la plantilla.
+DESCRIPTION: Oculta el cursor según la etiqueta. Etiqueta del catálogo: «Hide mouse cursor».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    input.hide_mouse_cursor()
+SOURCE: script/input.json; scope=block; id=136; label="Hide mouse cursor"
+
+FUNCTION: input.left_mouse_button_down
+SYNTAX: if input.left_mouse_button_down():
+PARAMETERS:
+- Ninguno en la plantilla.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «If left mouse button down»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if input.left_mouse_button_down():
+        console.log("cuerpo del bloque")
+SOURCE: script/input.json; scope=block; id=79; label="If left mouse button down"
+
+FUNCTION: input.set_mouse_icon_to
+SYNTAX: input.set_mouse_icon_to("<id>")
+PARAMETERS:
+- Posición 1: l="id?"; t="id"; sin value de muestra.
+DESCRIPTION: Establece el valor o propiedad indicados. Etiqueta del catálogo: «Set mouse icon to».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    input.set_mouse_icon_to("ID_EXISTENTE")
+SOURCE: script/input.json; scope=block; id=135; label="Set mouse icon to"
+
+FUNCTION: input.show_mouse_cursor
+SYNTAX: input.show_mouse_cursor()
+PARAMETERS:
+- Ninguno en la plantilla.
+DESCRIPTION: Muestra el cursor según la etiqueta. Etiqueta del catálogo: «Show mouse cursor».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    input.show_mouse_cursor()
+SOURCE: script/input.json; scope=block; id=137; label="Show mouse cursor"
+
+
+MODULE: logic  [origen: script/logic.json; 16 entradas]
+===============
+
+FUNCTION: logic.and
+SYNTAX: if logic.and("<variable>", "<variable>"):
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «IfAND»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.and("resultado", "resultado"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=44; label="IfAND"
+
+FUNCTION: logic.contains
+SYNTAX: if logic.contains("<arg1>", "<arg2>"):
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifcontains»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.contains("valor", "valor"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=37; label="Ifcontains"
+
+FUNCTION: logic.doesn_t_contain
+SYNTAX: if logic.doesn_t_contain("<arg1>", "<arg2>"):
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifdoesn't contain»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.doesn_t_contain("valor", "valor"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=38; label="Ifdoesn't contain"
+
+FUNCTION: logic.doesn_t_exist
+SYNTAX: if logic.doesn_t_exist("<variable>"):
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifdoesn't exist»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.doesn_t_exist("resultado"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=93; label="Ifdoesn't exist"
+
+FUNCTION: logic.exists
+SYNTAX: if logic.exists("<variable>"):
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifexists»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.exists("resultado"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=92; label="Ifexists"
+
+FUNCTION: logic.is_equal_to
+SYNTAX: if logic.is_equal_to("<any>", "<any>"):
+PARAMETERS:
+- Posición 1: l="any"; t="string"; value de muestra="{x}".
+- Posición 2: l="any"; t="string"; value de muestra="5".
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifis equal to»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.is_equal_to("valor", "valor"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=18; label="Ifis equal to"
+
+FUNCTION: logic.is_greater_or_equal_to
+SYNTAX: if logic.is_greater_or_equal_to("<any>", "<any>"):
+PARAMETERS:
+- Posición 1: l="any"; t="string"; sin value de muestra.
+- Posición 2: l="any"; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifis greater or equal to»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.is_greater_or_equal_to("valor", "valor"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=125; label="Ifis greater or equal to"
+
+FUNCTION: logic.is_greater_than
+SYNTAX: if logic.is_greater_than("<any>", "<any>"):
+PARAMETERS:
+- Posición 1: l="any"; t="string"; sin value de muestra.
+- Posición 2: l="any"; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifis greater than»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.is_greater_than("valor", "valor"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=20; label="Ifis greater than"
+
+FUNCTION: logic.is_lower_or_equal_to
+SYNTAX: if logic.is_lower_or_equal_to("<any>", "<any>"):
+PARAMETERS:
+- Posición 1: l="any"; t="string"; sin value de muestra.
+- Posición 2: l="any"; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifis lower or equal to»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.is_lower_or_equal_to("valor", "valor"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=126; label="Ifis lower or equal to"
+
+FUNCTION: logic.is_lower_than
+SYNTAX: if logic.is_lower_than("<any>", "<any>"):
+PARAMETERS:
+- Posición 1: l="any"; t="string"; sin value de muestra.
+- Posición 2: l="any"; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifis lower than»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.is_lower_than("valor", "valor"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=21; label="Ifis lower than"
+
+FUNCTION: logic.is_not_equal_to
+SYNTAX: if logic.is_not_equal_to("<any>", "<any>"):
+PARAMETERS:
+- Posición 1: l="any"; t="string"; sin value de muestra.
+- Posición 2: l="any"; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Ifis not equal to»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.is_not_equal_to("valor", "valor"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=19; label="Ifis not equal to"
+
+FUNCTION: logic.log
+SYNTAX: logic.log("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="any"; value de muestra="Asi se ve un script dentro de otro!".
+DESCRIPTION: Registra el valor indicado por el bloque de la categoría logic. El catálogo no especifica dónde se muestra este registro.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    logic.log("valor")
+SOURCE: script/logic.json; scope=block; id=0; label="Log"
+
+FUNCTION: logic.nor
+SYNTAX: if logic.nor("<variable>", "<variable>"):
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «IfNOR»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.nor("resultado", "resultado"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=46; label="IfNOR"
+
+FUNCTION: logic.or
+SYNTAX: if logic.or("<variable>", "<variable>"):
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «IfOR»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.or("resultado", "resultado"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=45; label="IfOR"
+
+FUNCTION: logic.wait_seconds
+SYNTAX: logic.wait_seconds(1)
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="number"; value de muestra="2".
+DESCRIPTION: Espera la cantidad de segundos indicada; la plantilla no documenta límites ni precisión.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    logic.wait_seconds(1)
+SOURCE: script/logic.json; scope=block; id=3; label="Waitseconds"
+
+FUNCTION: logic.xor
+SYNTAX: if logic.xor("<variable>", "<variable>"):
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «IfXOR»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if logic.xor("resultado", "resultado"):
+        console.log("cuerpo del bloque")
+SOURCE: script/logic.json; scope=block; id=47; label="IfXOR"
+
+
+MODULE: ui  [origen: script/looks.json; 17 entradas]
+============
+
+FUNCTION: ui.dark_theme_enabled
+SYNTAX: if ui.dark_theme_enabled():
+PARAMETERS:
+- Ninguno en la plantilla.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «If dark theme enabled»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    if ui.dark_theme_enabled():
+        console.log("cuerpo del bloque")
+SOURCE: script/looks.json; scope=block; id=108; label="If dark theme enabled"
+
+FUNCTION: ui.delete
+SYNTAX: ui.delete("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Delete». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.delete("ID_OBJETO_EXISTENTE")
+SOURCE: script/looks.json; scope=block; id=50; label="Delete"
+
+FUNCTION: ui.duplicate
+SYNTAX: ui.duplicate("<arg1>", "<variable>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 2: l="variable?"; t="string"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Duplicate→». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable?", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.duplicate("ID_OBJETO_EXISTENTE", "resultado")
+SOURCE: script/looks.json; scope=block; id=49; label="Duplicate→"
+
+FUNCTION: ui.get_all_attributes_of
+SYNTAX: ui.get_all_attributes_of("<arg1>", "<table>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 2: l="table"; t="string"; value de muestra="".
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Get all attributes of→». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="table", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.get_all_attributes_of("ID_OBJETO_EXISTENTE", "mi_tabla")
+SOURCE: script/looks.json; scope=block; id=140; label="Get all attributes of→"
+
+FUNCTION: ui.get_attribute
+SYNTAX: ui.get_attribute("<attribute>", "<arg2>", "<variable>")
+PARAMETERS:
+- Posición 1: l="attribute"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 3: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Getof→». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.get_attribute("mi_atributo", "ID_OBJETO_EXISTENTE", "resultado")
+SOURCE: script/looks.json; scope=block; id=139; label="Getof→"
+
+FUNCTION: ui.get_objects_at_position
+SYNTAX: ui.get_objects_at_position("<x>", "<y>", "<array>")
+PARAMETERS:
+- Posición 1: l="x​"; t="string"; sin value de muestra.
+- Posición 2: l="y​"; t="string"; sin value de muestra.
+- Posición 3: l="array"; t="string"; value de muestra="".
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Get objects at position→». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="array", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.get_objects_at_position("valor", "valor", "mi_arreglo")
+SOURCE: script/looks.json; scope=block; id=127; label="Get objects at position→"
+
+FUNCTION: ui.get_of_asset
+SYNTAX: ui.get_of_asset("<info>", "<id>", "<variable>")
+PARAMETERS:
+- Posición 1: l="info"; t="string"; sin value de muestra.
+- Posición 2: l="id"; t="string"; sin value de muestra.
+- Posición 3: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Getof asset→». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.get_of_asset("valor", "ID_EXISTENTE", "resultado")
+SOURCE: script/looks.json; scope=block; id=129; label="Getof asset→"
+
+FUNCTION: ui.get_property
+SYNTAX: ui.get_property("<property>", "<arg2>", "<variable>")
+PARAMETERS:
+- Posición 1: l="property"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 3: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Getof→». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.get_property("Visible", "ID_OBJETO_EXISTENTE", "resultado")
+SOURCE: script/looks.json; scope=block; id=39; label="Getof→"
+
+FUNCTION: ui.get_text_from
+SYNTAX: ui.get_text_from("<input>", "<variable>")
+PARAMETERS:
+- Posición 1: l="input"; t="object"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Get text from→». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.get_text_from("ID_OBJETO_EXISTENTE", "resultado")
+SOURCE: script/looks.json; scope=block; id=30; label="Get text from→"
+
+FUNCTION: ui.log
+SYNTAX: ui.log("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="any"; value de muestra="Esta el modo oscuro!".
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Log». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.log("valor")
+SOURCE: script/looks.json; scope=block; id=0; label="Log"
+
+FUNCTION: ui.make_invisible
+SYNTAX: ui.make_invisible("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; value de muestra="_,".
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Makeinvisible». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.make_invisible("ID_OBJETO_EXISTENTE")
+SOURCE: script/looks.json; scope=block; id=8; label="Makeinvisible"
+
+FUNCTION: ui.make_visible
+SYNTAX: ui.make_visible("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Makevisible». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.make_visible("ID_OBJETO_EXISTENTE")
+SOURCE: script/looks.json; scope=block; id=9; label="Makevisible"
+
+FUNCTION: ui.set_attribute
+SYNTAX: ui.set_attribute("<attribute>", "<arg2>", "<any>")
+PARAMETERS:
+- Posición 1: l="attribute"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 3: l="any?"; t="any"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Setofto». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.set_attribute("mi_atributo", "ID_OBJETO_EXISTENTE", "valor")
+SOURCE: script/looks.json; scope=block; id=138; label="Setofto"
+
+FUNCTION: ui.set_image_to
+SYNTAX: ui.set_image_to("<arg1>", "<arg2>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="id"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Setimage to». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.set_image_to("ID_OBJETO_EXISTENTE", "ID_EXISTENTE")
+SOURCE: script/looks.json; scope=block; id=106; label="Setimage to"
+
+FUNCTION: ui.set_property
+SYNTAX: ui.set_property("<property>", "<arg2>", "<arg3>")
+PARAMETERS:
+- Posición 1: l="property"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 3: l=<l ausente>; t="any"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Setofto». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.set_property("Visible", "ID_OBJETO_EXISTENTE", "valor")
+SOURCE: script/looks.json; scope=block; id=31; label="Setofto"
+
+FUNCTION: ui.set_text_to
+SYNTAX: ui.set_text_to("<arg1>", "<arg2>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="string"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Settext to». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.set_text_to("ID_OBJETO_EXISTENTE", "valor")
+SOURCE: script/looks.json; scope=block; id=10; label="Settext to"
+
+FUNCTION: ui.tween_of_to
+SYNTAX: ui.tween_of_to("<property>", "<arg2>", "<arg3>", 1, "<style>", "<direction>")
+PARAMETERS:
+- Posición 1: l="property"; t="string"; value de muestra="".
+- Posición 2: l=<l ausente>; t="object"; sin value de muestra.
+- Posición 3: l=<l ausente>; t="any"; value de muestra="".
+- Posición 4: l="time"; t="number"; value de muestra="".
+- Posición 5: l="style"; t="string"; sin value de muestra.
+- Posición 6: l="direction"; t="string"; sin value de muestra.
+DESCRIPTION: Lee o modifica una propiedad, atributo o estado de interfaz según la etiqueta «Tweenofto-». El catálogo no documenta el conjunto completo de propiedades válidas.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    ui.tween_of_to("Visible", "ID_OBJETO_EXISTENTE", "valor", 1, "valor", "valor")
+SOURCE: script/looks.json; scope=block; id=88; label="Tweenofto-"
+
+
+MODULE: loops  [origen: script/loops.json; 4 entradas]
+===============
+
+FUNCTION: loops.break
+SYNTAX: loops.break()
+PARAMETERS:
+- Ninguno en la plantilla.
+DESCRIPTION: Bloque llamado «Break», destinado al control de un ciclo; el repositorio no precisa sus reglas de salida.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    for loops.repeat_times(3):
+        loops.break()
+SOURCE: script/loops.json; scope=block; id=24; label="Break"
+
+FUNCTION: loops.log
+SYNTAX: loops.log("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="any"; value de muestra="hola".
+DESCRIPTION: Registra el valor indicado; el destino exacto depende de la categoría. Etiqueta del catálogo: «Log».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    loops.log("valor")
+SOURCE: script/loops.json; scope=block; id=0; label="Log"
+
+FUNCTION: loops.repeat_forever
+SYNTAX: for loops.repeat_forever():
+PARAMETERS:
+- Ninguno en la plantilla.
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Repeat forever»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    for loops.repeat_forever():
+        console.log("cuerpo del bloque")
+SOURCE: script/loops.json; scope=block; id=23; label="Repeat forever"
+
+FUNCTION: loops.repeat_times
+SYNTAX: for loops.repeat_times(1):
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="number"; value de muestra="3".
+DESCRIPTION: Abre un bloque de control. La etiqueta del catálogo es «Repeattimes»; las acciones anidadas se ejecutan según esa condición o repetición.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    for loops.repeat_times(1):
+        console.log("cuerpo del bloque")
+SOURCE: script/loops.json; scope=block; id=22; label="Repeattimes"
+
+
+MODULE: variables  [origen: script/math-variables.json; 7 entradas]
+===================
+Origen compartido: script/math-variables.json.
+
+FUNCTION: variables.decrease_by
+SYNTAX: variables.decrease_by("<variable>", 1)
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="number"; sin value de muestra.
+DESCRIPTION: Modifica o elimina la variable indicada; la operación específica es «Decreaseby».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    variables.decrease_by("resultado", 1)
+SOURCE: script/math-variables.json; scope=block; id=13; label="Decreaseby"
+
+FUNCTION: variables.delete
+SYNTAX: variables.delete("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Modifica o elimina la variable indicada; la operación específica es «Delete».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    variables.delete("resultado")
+SOURCE: script/math-variables.json; scope=block; id=96; label="Delete"
+
+FUNCTION: variables.divide_by
+SYNTAX: variables.divide_by("<variable>", 1)
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="number"; sin value de muestra.
+DESCRIPTION: Modifica o elimina la variable indicada; la operación específica es «Divideby».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    variables.divide_by("resultado", 1)
+SOURCE: script/math-variables.json; scope=block; id=15; label="Divideby"
+
+FUNCTION: variables.increase_by
+SYNTAX: variables.increase_by("<variable>", 1)
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="number"; sin value de muestra.
+DESCRIPTION: Modifica o elimina la variable indicada; la operación específica es «Increaseby».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    variables.increase_by("resultado", 1)
+SOURCE: script/math-variables.json; scope=block; id=12; label="Increaseby"
+
+FUNCTION: variables.multiply_by
+SYNTAX: variables.multiply_by("<variable>", 1)
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="number"; sin value de muestra.
+DESCRIPTION: Modifica o elimina la variable indicada; la operación específica es «Multiplyby».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    variables.multiply_by("resultado", 1)
+SOURCE: script/math-variables.json; scope=block; id=14; label="Multiplyby"
+
+FUNCTION: variables.set
+SYNTAX: variables.set("<variable>", "<any>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; value de muestra="hola".
+- Posición 2: l="any"; t="string"; value de muestra="5".
+DESCRIPTION: Modifica o elimina la variable indicada; la operación específica es «Setto».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    variables.set("resultado", "valor")
+SOURCE: script/math-variables.json; scope=block; id=11; label="Setto"
+
+FUNCTION: variables.set_random
+SYNTAX: variables.set_random("<var>", 1, 1)
+PARAMETERS:
+- Posición 1: l="var"; t="string"; sin value de muestra.
+- Posición 2: l="n"; t="number"; sin value de muestra.
+- Posición 3: l="n"; t="number"; sin value de muestra.
+DESCRIPTION: Modifica o elimina la variable indicada; la operación específica es «Setto random-».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    variables.set_random("valor", 1, 1)
+SOURCE: script/math-variables.json; scope=block; id=27; label="Setto random-"
+
+
+MODULE: math  [origen: script/math-variables.json; 6 entradas]
+==============
+Origen compartido: script/math-variables.json.
+
+FUNCTION: math.apply
+SYNTAX: math.apply("<function>", [], "<variable>")
+PARAMETERS:
+- Posición 1: l="function​"; t="string"; value de muestra="".
+- Posición 2: l=<l ausente>; t="tuple"; value de muestra=[{"value":"arg1","l":"any","t":"string"},{"value":"Arg2","t":"string","l":"any"},{"value":"ejemplos se pueden agregar muchos","l":"any","t":"string"}].
+- Posición 3: l="variable"; t="string"; value de muestra="Variable de salida (si no hay crea)".
+DESCRIPTION: Operación matemática indicada por la etiqueta «Run math function→». El catálogo no documenta límites, coerciones ni precisión.
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    math.apply("valor", [], "resultado")
+SOURCE: script/math-variables.json; scope=block; id=114; label="Run math function→"
+
+FUNCTION: math.ceil
+SYNTAX: math.ceil("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Operación matemática indicada por la etiqueta «Ceil». El catálogo no documenta límites, coerciones ni precisión.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    math.ceil("resultado")
+SOURCE: script/math-variables.json; scope=block; id=78; label="Ceil"
+
+FUNCTION: math.floor
+SYNTAX: math.floor("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Operación matemática indicada por la etiqueta «Floor». El catálogo no documenta límites, coerciones ni precisión.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    math.floor("resultado")
+SOURCE: script/math-variables.json; scope=block; id=17; label="Floor"
+
+FUNCTION: math.modulo
+SYNTAX: math.modulo("<variable>", 1)
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="number"; sin value de muestra.
+DESCRIPTION: Operación matemática indicada por la etiqueta «modulo». El catálogo no documenta límites, coerciones ni precisión.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    math.modulo("resultado", 1)
+SOURCE: script/math-variables.json; scope=block; id=41; label="modulo"
+
+FUNCTION: math.power
+SYNTAX: math.power("<variable>", 1)
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="number"; sin value de muestra.
+DESCRIPTION: Operación matemática indicada por la etiqueta «Raiseto the power of». El catálogo no documenta límites, coerciones ni precisión.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    math.power("resultado", 1)
+SOURCE: script/math-variables.json; scope=block; id=40; label="Raiseto the power of"
+
+FUNCTION: math.round
+SYNTAX: math.round("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Operación matemática indicada por la etiqueta «Round». El catálogo no documenta límites, coerciones ni precisión.
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    math.round("resultado")
+SOURCE: script/math-variables.json; scope=block; id=16; label="Round"
+
+
+MODULE: navigation  [origen: script/navigation.json; 3 entradas]
+====================
+
+FUNCTION: navigation.get_query_string_parameter
+SYNTAX: navigation.get_query_string_parameter("<arg1>", "<variable>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get query string parameter→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    navigation.get_query_string_parameter("valor", "resultado")
+SOURCE: script/navigation.json; scope=block; id=67; label="Get query string parameter→"
+
+FUNCTION: navigation.get_url
+SYNTAX: navigation.get_url("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get URL →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    navigation.get_url("resultado")
+SOURCE: script/navigation.json; scope=block; id=117; label="Get URL →"
+
+FUNCTION: navigation.redirect_to
+SYNTAX: navigation.redirect_to("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+DESCRIPTION: Redirige a la URL indicada. Etiqueta del catálogo: «Redirect to».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    navigation.redirect_to("valor")
+SOURCE: script/navigation.json; scope=block; id=4; label="Redirect to"
+
+
+MODULE: network  [origen: script/network.json; 6 entradas]
+=================
+
+FUNCTION: network.broadcast_across_page
+SYNTAX: network.broadcast_across_page("<message>")
+PARAMETERS:
+- Posición 1: l="message"; t="string"; sin value de muestra.
+DESCRIPTION: Envía o difunde el mensaje indicado; la referencia no garantiza entrega ni especifica filtros. Etiqueta del catálogo: «Broadcastacross page».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    network.broadcast_across_page("mensaje")
+SOURCE: script/network.json; scope=block; id=32; label="Broadcastacross page"
+
+FUNCTION: network.broadcast_across_site
+SYNTAX: network.broadcast_across_site("<message>")
+PARAMETERS:
+- Posición 1: l="message"; t="string"; sin value de muestra.
+DESCRIPTION: Envía o difunde el mensaje indicado; la referencia no garantiza entrega ni especifica filtros. Etiqueta del catálogo: «Broadcastacross site».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    network.broadcast_across_site("mensaje")
+SOURCE: script/network.json; scope=block; id=33; label="Broadcastacross site"
+
+FUNCTION: network.broadcast_cross_site_to
+SYNTAX: network.broadcast_cross_site_to("<message>", "<page>")
+PARAMETERS:
+- Posición 1: l="message"; t="string"; sin value de muestra.
+- Posición 2: l="page"; t="string"; sin value de muestra.
+DESCRIPTION: Envía o difunde el mensaje indicado; la referencia no garantiza entrega ni especifica filtros. Etiqueta del catálogo: «Broadcastcross-site to».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    network.broadcast_cross_site_to("mensaje", "pagina-destino")
+SOURCE: script/network.json; scope=block; id=130; label="Broadcastcross-site to"
+
+FUNCTION: network.get_local_display_name
+SYNTAX: network.get_local_display_name("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get local display name →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    network.get_local_display_name("resultado")
+SOURCE: script/network.json; scope=block; id=53; label="Get local display name →"
+
+FUNCTION: network.get_local_user_id
+SYNTAX: network.get_local_user_id("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get local user ID →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    network.get_local_user_id("resultado")
+SOURCE: script/network.json; scope=block; id=52; label="Get local user ID →"
+
+FUNCTION: network.get_local_username
+SYNTAX: network.get_local_username("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get local username →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    network.get_local_username("resultado")
+SOURCE: script/network.json; scope=block; id=51; label="Get local username →"
+
+
+MODULE: text  [origen: script/strings.json; 7 entradas]
+==============
+
+FUNCTION: text.concatenate_with
+SYNTAX: text.concatenate_with("<arg1>", "<arg2>", "<variable>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 3: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Concatena los valores indicados. Etiqueta del catálogo: «Concatenatewith→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    text.concatenate_with("valor", "valor", "resultado")
+SOURCE: script/strings.json; scope=block; id=109; label="Concatenatewith→"
+
+FUNCTION: text.get_length_of
+SYNTAX: text.get_length_of("<arg1>", "<variable>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get length of→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    text.get_length_of("valor", "resultado")
+SOURCE: script/strings.json; scope=block; id=48; label="Get length of→"
+
+FUNCTION: text.lower
+SYNTAX: text.lower("<arg1>", "<variable>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Convierte el texto a minúsculas. Etiqueta del catálogo: «Lower→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    text.lower("valor", "resultado")
+SOURCE: script/strings.json; scope=block; id=69; label="Lower→"
+
+FUNCTION: text.replace_in_by
+SYNTAX: text.replace_in_by("<arg1>", "<variable>", "<arg3>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+- Posición 3: l=<l ausente>; t="string"; sin value de muestra.
+DESCRIPTION: Reemplaza texto según los argumentos indicados. Etiqueta del catálogo: «Replaceinby».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    text.replace_in_by("valor", "resultado", "valor")
+SOURCE: script/strings.json; scope=block; id=43; label="Replaceinby"
+
+FUNCTION: text.split
+SYNTAX: text.split("<arg1>", "<separator>", "<table>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l="separator"; t="string"; sin value de muestra.
+- Posición 3: l="table"; t="string"; sin value de muestra.
+DESCRIPTION: Divide el texto usando el separador indicado y guarda el resultado en el destino. Etiqueta del catálogo: «Split→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="table", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    text.split("valor", " ", "mi_tabla")
+SOURCE: script/strings.json; scope=block; id=57; label="Split→"
+
+FUNCTION: text.sub
+SYNTAX: text.sub("<variable>", 1, 1)
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+- Posición 2: l="start"; t="number"; sin value de muestra.
+- Posición 3: l="end"; t="number"; sin value de muestra.
+DESCRIPTION: Extrae el fragmento indicado según los límites suministrados. Etiqueta del catálogo: «Sub-».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    text.sub("resultado", 1, 1)
+SOURCE: script/strings.json; scope=block; id=42; label="Sub-"
+
+FUNCTION: text.upper
+SYNTAX: text.upper("<arg1>", "<variable>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Convierte el texto a mayúsculas. Etiqueta del catálogo: «Upper→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    text.upper("valor", "resultado")
+SOURCE: script/strings.json; scope=block; id=70; label="Upper→"
+
+
+MODULE: tables  [origen: script/tables.json; 10 entradas]
+================
+
+FUNCTION: tables.create_table
+SYNTAX: tables.create_table("<table>")
+PARAMETERS:
+- Posición 1: l="table"; t="string"; sin value de muestra.
+DESCRIPTION: Crea el elemento indicado. Etiqueta del catálogo: «Create table».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    tables.create_table("mi_tabla")
+SOURCE: script/tables.json; scope=block; id=54; label="Create table"
+
+FUNCTION: tables.delete_entry_of
+SYNTAX: tables.delete_entry_of("<entry>", "<table>")
+PARAMETERS:
+- Posición 1: l="entry"; t="string"; sin value de muestra.
+- Posición 2: l="table"; t="string"; sin value de muestra.
+DESCRIPTION: Elimina el elemento indicado. Etiqueta del catálogo: «Delete entryof».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    tables.delete_entry_of("clave", "mi_tabla")
+SOURCE: script/tables.json; scope=block; id=90; label="Delete entryof"
+
+FUNCTION: tables.get_entry_of
+SYNTAX: tables.get_entry_of("<entry>", "<table>", "<variable>")
+PARAMETERS:
+- Posición 1: l="entry"; t="string"; sin value de muestra.
+- Posición 2: l="table"; t="string"; sin value de muestra.
+- Posición 3: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get entryof→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    tables.get_entry_of("clave", "mi_tabla", "resultado")
+SOURCE: script/tables.json; scope=block; id=56; label="Get entryof→"
+
+FUNCTION: tables.get_length_of
+SYNTAX: tables.get_length_of("<array>", "<variable>")
+PARAMETERS:
+- Posición 1: l="array"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get length of→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    tables.get_length_of("mi_arreglo", "resultado")
+SOURCE: script/tables.json; scope=block; id=59; label="Get length of→"
+
+FUNCTION: tables.insert_at_position_of
+SYNTAX: tables.insert_at_position_of("<any>", 1, "<array>")
+PARAMETERS:
+- Posición 1: l="any"; t="string"; sin value de muestra.
+- Posición 2: l="number?"; t="number"; sin value de muestra.
+- Posición 3: l="array"; t="string"; sin value de muestra.
+DESCRIPTION: Inserta un valor en la posición indicada. Etiqueta del catálogo: «Insertat positionof».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    tables.insert_at_position_of("valor", 1, "mi_arreglo")
+SOURCE: script/tables.json; scope=block; id=89; label="Insertat positionof"
+
+FUNCTION: tables.iterate_through_l_index_l_value
+SYNTAX: for tables.iterate_through_l_index_l_value("<table>"):
+PARAMETERS:
+- Posición 1: l="table"; t="string"; sin value de muestra.
+DESCRIPTION: Recorre la tabla indicada y expone el índice actual como {l!index} y el valor actual como {l!value}; esos nombres constan en la plantilla del catálogo.
+RETURNS: No declara valor de retorno; abre un bloque de control.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    for tables.iterate_through_l_index_l_value("mi_tabla"):
+        console.log("cuerpo del bloque")
+SOURCE: script/tables.json; scope=block; id=113; label="Iterate through({l!index},{l!value})"
+
+FUNCTION: tables.join_using
+SYNTAX: tables.join_using("<array>", "<string>", "<variable>")
+PARAMETERS:
+- Posición 1: l="array"; t="string"; sin value de muestra.
+- Posición 2: l="string"; t="string"; sin value de muestra.
+- Posición 3: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Une los elementos de la colección usando el separador indicado. Etiqueta del catálogo: «Joinusing→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    tables.join_using("mi_arreglo", ",", "resultado")
+SOURCE: script/tables.json; scope=block; id=110; label="Joinusing→"
+
+FUNCTION: tables.log
+SYNTAX: tables.log("<arg1>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="any"; value de muestra="accion que se repite dentro, uso variables {l!index} y {l!value} !!!".
+DESCRIPTION: Registra el valor indicado; el destino exacto depende de la categoría. Etiqueta del catálogo: «Log».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    tables.log("valor")
+SOURCE: script/tables.json; scope=block; id=0; label="Log"
+
+FUNCTION: tables.remove_entry_at_position_of
+SYNTAX: tables.remove_entry_at_position_of(1, "<array>")
+PARAMETERS:
+- Posición 1: l="number?"; t="number"; sin value de muestra.
+- Posición 2: l="array"; t="string"; sin value de muestra.
+DESCRIPTION: Elimina la entrada indicada. Etiqueta del catálogo: «Remove entry at positionof».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    tables.remove_entry_at_position_of(1, "mi_arreglo")
+SOURCE: script/tables.json; scope=block; id=91; label="Remove entry at positionof"
+
+FUNCTION: tables.set_entry_of_to
+SYNTAX: tables.set_entry_of_to("<entry>", "<table>", "<any>")
+PARAMETERS:
+- Posición 1: l="entry"; t="string"; sin value de muestra.
+- Posición 2: l="table"; t="string"; sin value de muestra.
+- Posición 3: l="any"; t="string"; sin value de muestra.
+DESCRIPTION: Establece el valor o propiedad indicados. Etiqueta del catálogo: «Set entryofto».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    tables.set_entry_of_to("clave", "mi_tabla", "valor")
+SOURCE: script/tables.json; scope=block; id=55; label="Set entryofto"
+
+
+MODULE: time  [origen: script/time.json; 6 entradas]
+==============
+
+FUNCTION: time.format_current_date_time
+SYNTAX: time.format_current_date_time("<format>", "<variable>")
+PARAMETERS:
+- Posición 1: l="format"; t="string"; sin value de muestra.
+- Posición 2: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Formatea la fecha/hora indicada según el patrón suministrado. Etiqueta del catálogo: «Format current date/time→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    time.format_current_date_time("yyyy-MM-dd", "resultado")
+SOURCE: script/time.json; scope=block; id=71; label="Format current date/time→"
+
+FUNCTION: time.format_from_unix
+SYNTAX: time.format_from_unix(1, "<format>", "<variable>")
+PARAMETERS:
+- Posición 1: l=<l ausente>; t="number"; sin value de muestra.
+- Posición 2: l="format"; t="string"; sin value de muestra.
+- Posición 3: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Formatea la fecha/hora indicada según el patrón suministrado. Etiqueta del catálogo: «Format from unix→».
+RETURNS: No declara tipo de retorno. Escribe el/los resultado(s) en los destinos etiquetados: l="variable", t="string".
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    time.format_from_unix(1, "yyyy-MM-dd", "resultado")
+SOURCE: script/time.json; scope=block; id=72; label="Format from unix→"
+
+FUNCTION: time.get_server_unix_timestamp
+SYNTAX: time.get_server_unix_timestamp("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get server unix timestamp →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    time.get_server_unix_timestamp("resultado")
+SOURCE: script/time.json; scope=block; id=116; label="Get server unix timestamp →"
+
+FUNCTION: time.get_tick
+SYNTAX: time.get_tick("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get tick →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    time.get_tick("resultado")
+SOURCE: script/time.json; scope=block; id=83; label="Get tick →"
+
+FUNCTION: time.get_timezone
+SYNTAX: time.get_timezone("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get timezone →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    time.get_timezone("resultado")
+SOURCE: script/time.json; scope=block; id=118; label="Get timezone →"
+
+FUNCTION: time.get_unix_timestamp
+SYNTAX: time.get_unix_timestamp("<variable>")
+PARAMETERS:
+- Posición 1: l="variable"; t="string"; sin value de muestra.
+DESCRIPTION: Obtiene o lee el dato indicado; si el bloque muestra una salida, la escribe en el destino correspondiente. Etiqueta del catálogo: «Get unix timestamp →».
+RETURNS: La plantilla no declara valor ni tipo de retorno.
+EXAMPLE (CSL; IDs/recursos marcados deben existir en el proyecto):
+on load:
+    time.get_unix_timestamp("resultado")
+SOURCE: script/time.json; scope=block; id=68; label="Get unix timestamp →"

@@ -4,36 +4,53 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>Catweb Studio</title>
+  <meta name="theme-color" content="#1e1e1e">
+  <link rel="icon" href="icon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="icon.png">
+  <title>CatWet Studio — Script Lab</title>
   <link rel="stylesheet" href="studio/script-app.css">
 </head>
 <body>
   <header class="titlebar">
-    <a class="brand" href="./"><span class="brand-mark">C</span><span>Catweb</span></a>
+    <a class="brand" href="./"><img class="brand-mark" src="icon.png" alt=""><span>CatWet Studio</span></a>
     <span id="windowTitle" class="window-title">Script Lab — my_site.cat</span>
     <div class="top-actions"><button id="openProject" class="tool-button">Import JSON</button><input id="fileInput" type="file" accept=".json,application/json" hidden><button id="saveSource" class="tool-button">Save .cat</button><button id="download" class="tool-button">Export project</button><button id="compile" class="compile-button"><span>▶</span> Compile script</button></div>
   </header>
   <main class="workbench">
+    <nav class="activity-bar" aria-label="Activity bar">
+      <button class="activity-button active" type="button" data-panel-toggle="explorer" aria-label="Toggle project explorer" title="Explorer" aria-pressed="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="1"/><path d="M9 4v16"/></svg>
+      </button>
+      <button class="activity-button" type="button" id="activitySearch" aria-label="Search blocks" title="Search blocks">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.5 15.5 4.2 4.2"/></svg>
+      </button>
+      <button class="activity-button" type="button" id="activityEvents" aria-label="Go to active script events" title="Active script events">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2.8 5.8 13h5.1l-.5 8.2L18.3 11h-5.2z"/></svg>
+      </button>
+      <button class="activity-button" type="button" data-panel-toggle="catalog" aria-label="Toggle blocks panel" title="Blocks" aria-pressed="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="8" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="10" cy="19" r="1.5"/></svg>
+      </button>
+    </nav>
     <aside class="explorer file-explorer">
-      <div class="explorer-title"><span>EXPLORER</span><a href="README.md" title="Documentation">⋯</a></div>
+      <div class="explorer-title"><span>EXPLORER</span><a href="README.md" title="Documentation" aria-label="Documentation">⋯</a></div>
       <div class="project-heading"><span class="tree-chevron">⌄</span><span id="projectName">MY PROJECT</span><button id="newScript" class="project-action" title="Create script">＋ Script</button></div>
       <div id="projectTree" class="project-tree" role="tree" aria-label="Project items"></div>
       <label class="watermark-label" for="folderAlias">Folder name / brand</label>
-      <input id="folderAlias" class="watermark-input" value="Catweb Script Lab" maxlength="80" aria-label="Exported folder name">
+      <input id="folderAlias" class="watermark-input" value="CatWet Script Lab" maxlength="80" aria-label="Exported folder name">
       <section id="objectInspector" class="object-inspector" aria-live="polite"></section>
       <div class="explorer-footer"><a href="CATWEB_SCRIPT_LANGUAGE.md">CSL syntax</a><span>v0.2</span></div>
     </aside>
     <section class="editor-column">
-      <div class="tabbar"><div class="active-tab"><span class="tab-icon">⌘</span> <span id="scriptTitle">my_site</span>.cat <span class="language-pill">CSL</span></div><div class="tab-tools"><button class="snippet" data-insert="log">＋ console.log</button><button class="snippet" data-insert="set">＋ assignment</button><a href="CATWEB_SCRIPT_LANGUAGE.md" target="_blank" rel="noreferrer">Syntax ↗</a></div></div>
-      <div class="edit-area"><div id="lineNumbers" class="line-numbers" aria-hidden="true"></div><div class="code-stack"><pre id="highlight" aria-hidden="true"></pre><textarea id="source" aria-label="Catweb code" autocomplete="off" autocapitalize="off" spellcheck="false" wrap="off"></textarea></div></div>
+      <div class="tabbar"><div class="active-tab"><svg class="tab-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5h6l4 4v7H3z"/><path d="M9 2.5v4h4"/></svg><span id="scriptTitle">my_site</span>.cat <span class="language-pill">CSL</span></div><div class="tab-tools"><button class="snippet" data-insert="log" title="Insert console.log">＋ console.log</button><button class="snippet" data-insert="set" title="Insert assignment">＋ assignment</button><a href="CATWEB_SCRIPT_LANGUAGE.md" target="_blank" rel="noreferrer">Syntax ↗</a></div></div>
+      <div class="breadcrumbs"><span id="breadcrumbProject">CatWet Script Lab</span><span class="breadcrumb-separator">›</span><span id="breadcrumbScript">my_site.cat</span><span class="breadcrumb-separator">›</span><span>CSL</span></div>
+      <div class="edit-area"><div id="lineNumbers" class="line-numbers" aria-hidden="true"></div><div class="code-stack"><div class="indent-guides" aria-hidden="true"><i></i><i></i><i></i><i></i></div><pre id="highlight" aria-hidden="true"></pre><textarea id="source" aria-label="Catweb code" autocomplete="off" autocapitalize="off" spellcheck="false" wrap="off"></textarea></div></div>
       <div id="diagnostics" class="diagnostics" aria-live="polite"></div>
-      <section id="outputPanel" class="output-panel"><button id="toggleOutput" class="output-bar"><span>⌄</span> PROJECT JSON <small id="outputStatus">Project ready</small></button><div class="output-content"><pre id="output" class="output"><span class="output-placeholder">Compact project JSON will appear here.</span></pre><div class="output-buttons"><button id="copy" class="tool-button" disabled>Copy</button><button id="clearOutput" class="tool-button">Clear view</button></div></div></section>
-      <footer class="statusbar"><span id="sourceStatus"><i></i> Syntax recognized</span><span id="lineStatus">Line 1, column 1</span><span>CSL · Ctrl+Enter to compile</span></footer>
+      <section id="outputPanel" class="output-panel"><button id="toggleOutput" class="output-bar" aria-label="Toggle project JSON output" aria-expanded="false"><span>⌄</span> PROJECT JSON <small id="outputStatus">Project ready</small></button><div class="output-content"><pre id="output" class="output"><span class="output-placeholder">Compact project JSON will appear here.</span></pre><div class="output-buttons"><button id="copy" class="tool-button" disabled>Copy</button><button id="clearOutput" class="tool-button">Clear view</button></div></div></section>
     </section>
     <aside class="right-sidebar" aria-label="Catweb events and blocks">
       <section class="right-section event-section">
         <div class="right-section-heading">ACTIVE SCRIPT EVENTS</div>
-        <div id="eventTree" class="event-tree"></div>
+        <div id="eventTree" class="event-tree" tabindex="-1"></div>
       </section>
       <section class="right-section block-section">
         <div class="right-section-heading">ALL BLOCKS</div>
@@ -43,6 +60,7 @@
       </section>
     </aside>
   </main>
+  <footer class="statusbar"><span id="sourceStatus"><i></i> Syntax recognized</span><span id="lineStatus">Line 1, column 1</span><span>CSL · Ctrl+Enter to compile</span></footer>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="studio/catweb-csl.js"></script>
   <script src="studio/script-app.js"></script>

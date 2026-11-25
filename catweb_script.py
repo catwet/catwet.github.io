@@ -544,7 +544,7 @@ def _indent_of(line: str) -> int:
     return len(line) - len(line.lstrip(" \t"))
 
 
-def compile_script(source: str, *, folder_alias: str = "Catweb Script Lab",
+def compile_script(source: str, *, folder_alias: str = "CatWet Script Lab",
                    catalog: BlockCatalog | None = None) -> list[dict[str, Any]]:
     """Compile readable Python-like Catweb calls into an importable project.
 
@@ -806,7 +806,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Compile CSL into compact Catweb project JSON.")
     parser.add_argument("source", type=Path, help="CSL source file")
     parser.add_argument("-o", "--output", type=Path, help="Output JSON path (default: source with .json extension)")
-    parser.add_argument("--name", default="Catweb Script Lab", help="Folder alias/mark in the generated document")
+    parser.add_argument("--name", default="CatWet Script Lab", help="Folder alias/mark in the generated document")
     parser.add_argument("--pretty", action="store_true", help="Write readable indented JSON instead of compact JSON")
     args = parser.parse_args()
     output = args.output or args.source.with_suffix(".json")

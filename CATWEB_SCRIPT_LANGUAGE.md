@@ -49,26 +49,63 @@ not described there or guarantee permissions or execution in the game.
 
 ## Importing and Preserving Scripts
 
-In Script Lab, you can import a complete Catweb project, a script, or a list of
-scripts. The explorer lets you select scripts and objects; selecting a script
-decompiles its content to CSL. When compiled, the result replaces that script's
-content in the imported project. Download exports the project as compact JSON,
-the reduced format accepted by Catweb.
+In CatWet Script Lab, you can import a complete Catweb project, a script, or a
+list of scripts. The explorer lets you select scripts and objects; selecting a
+script decompiles its content to CSL. When compiled, the result replaces that
+script's content in the imported project. Download exports the project as
+compact JSON, the reduced format accepted by Catweb.
 Project objects retain their positions. `raw` actions and unknown data are
 preserved to prevent information loss.
 
-CSL preserves `globalid` and other metadata in comments. Positions do not need
-to be specified: top-level blocks are placed at `(0, 0)` when compiled. For
-example:
+CSL preserves `globalid` and other block metadata in inline comments. These are
+ordinary source comments (they begin with `#`), but the CSL compiler recognizes
+the `@{...}` JSON object and restores its fields when you compile. For example:
 
 ```text
 console.log("Hello")  # @{"globalid":"abc123","width":"350"}
 ```
 
+The `globalid` is Catweb's identifier for that block; `width` and similar
+properties are retained when present in the imported JSON. For an `if` or loop,
+the metadata can also preserve the identifier and extra properties of its
+implicit end block. They are not errors or text executed by Catweb. Keep them
+when editing imported scripts if you want to preserve those identifiers and
+properties. Positions do not need to be specified: top-level blocks are placed
+at `(0, 0)` when compiled.
+
+When a project is imported into CatWet Studio, metadata is separated from the
+editable source and kept internally by line. The code therefore contains no
+visible `# @...` comments, while an `i` in the line-number gutter indicates
+preserved metadata; hover over it or click it to inspect the fields. Compilation
+uses that metadata, and saving a `.cat` source file writes it back as inline
+comments for compatibility with Catweb and other CSL tools.
+
 Blocks without an interpretable name are represented as `raw` to preserve
 their data unchanged. An unrecognized top-level block is preserved as
 `topraw`. You can edit these forms directly to preserve a future or
 Catweb-specific template.
+
+## Function Return Values
+
+Use `functions.return(value)` inside a function to return a value. To capture
+that value, pass the destination variable name to the `functions.run_function`
+block:
+
+```text
+def valor_fijo():
+    functions.return(10)
+
+on load:
+functions.run_function("valor_fijo", [], "resultado")
+console.log("Resultado: {resultado}")
+```
+
+The third argument, `"resultado"`, is the output variable. The empty list means
+the function takes no arguments. The current CSL compiler accepts literals in
+arguments and assignments; it does not support a nested call such as
+`resultado = sumar(5 + 5)`. Use the catalog's blocks and output-variable field
+instead. Confirm the result in Catweb, since this repository only documents
+the observed block format.
 
 ## Compatibility and Compilation
 

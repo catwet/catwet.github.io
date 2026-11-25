@@ -443,7 +443,8 @@
   function compileScript(source, options = {}) {
     const catalog = options.catalog;
     if (!catalog) throw new Error('The block catalog is unavailable.');
-    const alias = options.folderAlias || 'Catweb Script Lab';
+    const alias = options.folderAlias || 'CatWet Script Lab';
+    const metadataByLine = options.metadataByLine;
     const content = [];
     let currentTop = null;
     let bodyIndent = null;
@@ -513,11 +514,16 @@
       const line = index + 1;
       const parsedLine = readMetadataComment(original, line);
       const stripped = parsedLine.code.trim();
+      const savedMetadata = metadataByLine && typeof metadataByLine.get === 'function'
+        ? metadataByLine.get(line) : null;
+      const inlineMetadata = {
+        ...(savedMetadata && typeof savedMetadata === 'object' && !Array.isArray(savedMetadata) ? savedMetadata : {}),
+        ...parsedLine.metadata
+      };
       if (!stripped) {
         if (!original.trim().startsWith('#')) previousBlank = true;
         return;
       }
-      const inlineMetadata = parsedLine.metadata;
       const indent = (original.match(/^[ \t]*/) || [''])[0].replace(/\t/g, '    ').length;
 
       const loadHeader = stripped.match(/^on\s+load\s*:\s*(?:@(\{.*\}))?$/i);

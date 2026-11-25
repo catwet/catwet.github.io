@@ -199,7 +199,7 @@
       const current = findNode(selectedId);
       if (current.class === 'script') {
         const catalog = await catalogPromise;
-        const generated = CatwebCSL.compileScript($('#scriptSource').value, { catalog, folderAlias: documentData[0].alias || 'Catweb Studio' });
+        const generated = CatwebCSL.compileScript($('#scriptSource').value, { catalog, folderAlias: documentData[0].alias || 'CatWet Studio' });
         const edited = clone(current);
         edited.content = generated[0].children[0].content;
         replaceSelected(edited);

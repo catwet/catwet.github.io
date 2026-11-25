@@ -6,7 +6,7 @@
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const uid = () => crypto.getRandomValues(new Uint32Array(2)).join('').slice(0, 12);
   const sample = `# Welcome script\non load:\nconsole.log("Welcome to my site")\nvisits = 1`;
-  let documentData = [{ class: 'Folder', globalid: uid(), alias: 'Catweb Script Lab', children: [] }];
+  let documentData = [{ class: 'Folder', globalid: uid(), alias: 'CatWet Script Lab', children: [] }];
   const firstScript = { class: 'script', globalid: uid(), content: [] };
   documentData[0].children.push(firstScript);
   let selectedNodeId = firstScript.globalid;
@@ -16,6 +16,7 @@
   let projectLabelFallback = 'MY PROJECT';
   let toastTimer;
   const drafts = new Map([[firstScript.globalid, sample]]);
+  const metadataDrafts = new Map();
   const dirtyUserScripts = new Set();
   const collapsed = new Set();
   const appScriptUrl = document.currentScript && document.currentScript.src;
@@ -24,10 +25,101 @@
     : new URL('./script/', document.baseURI).toString();
   const catalogPromise = CatwebCSL.loadCatalog(catalogBase);
   source.value = sample;
+  let activeMetadata = new Map();
+  let previousSourceValue = source.value;
 
   const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({
     '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
   }[character]));
+  function splitInlineComment(line) {
+    let quote = null;
+    let escaped = false;
+    for (let index = 0; index < line.length; index += 1) {
+      const character = line[index];
+      if (quote) {
+        if (escaped) escaped = false;
+        else if (character === '\\') escaped = true;
+        else if (character === quote) quote = null;
+      } else if (character === '"' || character === "'") quote = character;
+      else if (character === '#') {
+        const comment = line.slice(index + 1).trim();
+        return {
+          code: line.slice(0, index),
+          comment,
+          metadata: comment.startsWith('@') ? comment.slice(1).trim() : ''
+        };
+      }
+    }
+    return { code: line, comment: '', metadata: '' };
+  }
+  function parseMetadata(metadataText) {
+    try {
+      const metadata = JSON.parse(metadataText);
+      if (!metadata || Array.isArray(metadata) || typeof metadata !== 'object') return null;
+      return metadata;
+    } catch {
+      return null;
+    }
+  }
+  function metadataDescription(metadata) {
+    return `Preserved block metadata · ${Object.entries(metadata).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join(' · ')}`;
+  }
+  function extractMetadata(text) {
+    const metadata = new Map();
+    const lines = text.split('\n').map((line, index) => {
+      const parsed = splitInlineComment(line);
+      if (!parsed.metadata) return line;
+      const values = parseMetadata(parsed.metadata);
+      if (!values) return line;
+      metadata.set(index + 1, values);
+      return parsed.code.replace(/[ \t]+$/, '');
+    });
+    return { source: lines.join('\n'), metadata };
+  }
+  function remapMetadata(previousText, nextText, metadata) {
+    if (previousText === nextText) return metadata;
+    const previousLines = previousText.split('\n');
+    const nextLines = nextText.split('\n');
+    const result = new Map();
+    const copyMetadata = (previousIndex, nextIndex) => {
+      const values = metadata.get(previousIndex + 1);
+      if (values && splitInlineComment(nextLines[nextIndex]).code.trim()) result.set(nextIndex + 1, values);
+    };
+    let prefix = 0;
+    while (prefix < previousLines.length && prefix < nextLines.length
+      && previousLines[prefix] === nextLines[prefix]) {
+      copyMetadata(prefix, prefix);
+      prefix += 1;
+    }
+    let previousEnd = previousLines.length - 1;
+    let nextEnd = nextLines.length - 1;
+    while (previousEnd >= prefix && nextEnd >= prefix
+      && previousLines[previousEnd] === nextLines[nextEnd]) {
+      copyMetadata(previousEnd, nextEnd);
+      previousEnd -= 1;
+      nextEnd -= 1;
+    }
+    const previousMiddle = previousEnd - prefix + 1;
+    const nextMiddle = nextEnd - prefix + 1;
+    if (previousMiddle === nextMiddle) {
+      for (let offset = 0; offset < previousMiddle; offset += 1) copyMetadata(prefix + offset, prefix + offset);
+    } else if (previousMiddle === 1 && nextMiddle > 1) {
+      copyMetadata(prefix, prefix);
+    }
+    return result;
+  }
+  function sourceWithMetadata(text, metadata) {
+    const result = [];
+    text.split('\n').forEach((line, index) => {
+      const values = metadata.get(index + 1);
+      if (!values) { result.push(line); return; }
+      const parsed = splitInlineComment(line);
+      if (!parsed.code.trim() || parsed.metadata) { result.push(line); return; }
+      result.push(`${parsed.code.replace(/[ \t]+$/, '')} # @${JSON.stringify(values)}`);
+      if (parsed.comment) result.push(`# ${parsed.comment}`);
+    });
+    return result.join('\n');
+  }
   const iconFor = (type) => ({
     Folder: '▰', Frame: '▧', TextLabel: 'T', TextButton: '▰',
     'TextButton?link': '↗', 'TextButton?transfer': '↗', 'TextButton?avataritem': '↗',
@@ -105,7 +197,7 @@
     if (!entries.length || entries.some((entry) => !entry || entry.class === 'Folder')) {
       throw new Error('Import a complete Catweb folder or a script object/array.');
     }
-    const project = [{ class: 'Folder', globalid: uid(), alias: 'Catweb Script Lab', children: entries }];
+    const project = [{ class: 'Folder', globalid: uid(), alias: 'CatWet Script Lab', children: entries }];
     validateProject(project);
     return project;
   }
@@ -117,7 +209,7 @@
     let previousLineBlank = false;
     for (const [index, original] of text.split('\n').entries()) {
       const line = index + 1;
-      const trimmed = original.trim();
+      const trimmed = splitInlineComment(original).code.trim();
       if (!trimmed) { previousLineBlank = true; continue; }
       if (trimmed.startsWith('#')) continue;
       const indent = original.match(/^[ \t]*/)[0].replace(/\t/g, '    ').length;
@@ -156,7 +248,14 @@
     }
     output += escapeHtml(source.value.slice(lastIndex));
     highlight.innerHTML = output + (source.value.endsWith('\n') ? ' ' : '\n');
-    lineNumbers.textContent = Array.from({ length: Math.max(1, source.value.split('\n').length) }, (_, index) => index + 1).join('\n');
+    lineNumbers.innerHTML = source.value.split('\n').map((line, index) => {
+      const inlineMetadata = splitInlineComment(line).metadata;
+      const metadata = activeMetadata.get(index + 1) || (inlineMetadata ? parseMetadata(inlineMetadata) : null);
+      const marker = metadata
+        ? `<button class="metadata-indicator" type="button" title="${escapeHtml(metadataDescription(metadata))}" aria-label="${escapeHtml(metadataDescription(metadata))}" data-metadata="${escapeHtml(metadataDescription(metadata))}">i</button>`
+        : '<span class="metadata-spacer"></span>';
+      return `<span class="gutter-row"><span class="line-number">${index + 1}</span>${marker}</span>`;
+    }).join('');
     syncScroll();
   }
 
@@ -170,7 +269,7 @@
 
   function renderStructure() {
     const headers = source.value.split('\n')
-      .map((text, index) => ({ text, line: index + 1 }))
+      .map((line, index) => ({ text: splitInlineComment(line).code, line: index + 1 }))
       .filter(({ text }) => /^(?:on\s+[A-Za-z_]\w*\s*(?:\(.*\))?\s*:|def\s+[A-Za-z_]\w*\s*(?:\(\s*\))?\s*:|top\s+\S+|topraw\s+\{)/i.test(text));
     $('#eventTree').innerHTML = headers.map(({ text, line }, index) => {
       const label = /^on\s+/i.test(text) ? text.slice(0, text.lastIndexOf(':')).trim()
@@ -255,6 +354,7 @@
     renderInspector();
     $('#folderAlias').value = documentData[0].alias || '';
     $('#projectName').textContent = documentData[0].alias || projectLabelFallback;
+    $('#breadcrumbProject').textContent = documentData[0].alias || projectLabelFallback;
   }
 
   function countObjects(node) {
@@ -330,6 +430,10 @@
   }
 
   function updateEditor(markDirty = false) {
+    if (source.value !== previousSourceValue) {
+      activeMetadata = remapMetadata(previousSourceValue, source.value, activeMetadata);
+      previousSourceValue = source.value;
+    }
     highlightSource();
     renderStructure();
     renderDiagnostics(inspectSource());
@@ -340,13 +444,22 @@
     activeScriptId = scriptNode.globalid;
     source.disabled = true;
     source.value = 'Loading the block catalog…';
+    activeMetadata = new Map();
+    previousSourceValue = source.value;
     $('#scriptTitle').textContent = scriptNode.alias || scriptNode.name || 'script';
+    $('#breadcrumbScript').textContent = `${$('#scriptTitle').textContent}.cat`;
     $('#windowTitle').textContent = `Script Lab — ${$('#scriptTitle').textContent}.cat`;
     catalogPromise.then((catalog) => {
       if (activeScriptId !== scriptNode.globalid) return;
-      source.value = drafts.has(scriptNode.globalid)
-        ? drafts.get(scriptNode.globalid)
-        : CatwebCSL.decompileScript(scriptNode.content, catalog);
+      if (drafts.has(scriptNode.globalid)) {
+        source.value = drafts.get(scriptNode.globalid);
+        activeMetadata = new Map(metadataDrafts.get(scriptNode.globalid) || []);
+      } else {
+        const extracted = extractMetadata(CatwebCSL.decompileScript(scriptNode.content, catalog));
+        source.value = extracted.source;
+        activeMetadata = extracted.metadata;
+      }
+      previousSourceValue = source.value;
       sourceDirty = drafts.has(scriptNode.globalid);
       source.disabled = false;
       updateEditor(false);
@@ -354,6 +467,8 @@
     }).catch((error) => {
       if (activeScriptId !== scriptNode.globalid) return;
       source.value = `Could not load script: ${error.message}`;
+      activeMetadata = new Map();
+      previousSourceValue = source.value;
       source.disabled = true;
       updateEditor(false);
       showToast(error.message);
@@ -363,7 +478,10 @@
   function selectNode(id) {
     const selected = nodeById(id);
     if (!selected) return;
-    if (sourceDirty && activeScriptId) drafts.set(activeScriptId, source.value);
+    if (sourceDirty && activeScriptId) {
+      drafts.set(activeScriptId, source.value);
+      metadataDrafts.set(activeScriptId, new Map(activeMetadata));
+    }
     selectedNodeId = id;
     renderProject();
     if (selected.class === 'script') loadScriptIntoEditor(selected);
@@ -384,11 +502,13 @@
     projectLabelFallback = filename || 'MY PROJECT';
     collapsed.clear();
     drafts.clear();
+    metadataDrafts.clear();
     dirtyUserScripts.clear();
     selectedNodeId = documentData[0].globalid;
     const first = findFirstScript();
     activeScriptId = first ? first.globalid : null;
     sourceDirty = false;
+    activeMetadata = new Map();
     $('#folderAlias').value = documentData[0].alias || '';
     $('#projectName').textContent = documentData[0].alias || projectLabelFallback;
     if (first) {
@@ -398,8 +518,10 @@
       $('#saveSource').disabled = false;
     } else {
       source.value = '';
+      previousSourceValue = source.value;
       source.disabled = true;
       $('#scriptTitle').textContent = 'no_script';
+      $('#breadcrumbScript').textContent = 'no_script.cat';
       $('#windowTitle').textContent = 'Script Lab — no script';
       $('#saveSource').disabled = true;
       updateEditor(false);
@@ -445,7 +567,8 @@
       const catalog = await catalogPromise;
       const result = CatwebCSL.compileScript(source.value, {
         catalog,
-        folderAlias: $('#folderAlias').value.trim() || 'Catweb Script Lab'
+        folderAlias: $('#folderAlias').value.trim() || 'CatWet Script Lab',
+        metadataByLine: activeMetadata
       });
       const scriptData = result[0].children[0];
       const target = nodeById(activeScriptId);
@@ -453,6 +576,7 @@
       target.content = scriptData.content;
       sourceDirty = false;
       drafts.delete(activeScriptId);
+      metadataDrafts.delete(activeScriptId);
       dirtyUserScripts.delete(activeScriptId);
       const mainCount = scriptData.content.length;
       const actionCount = scriptData.content.reduce((sum, item) => sum + (item.actions || []).length, 0);
@@ -530,6 +654,11 @@
     drafts.delete(scriptNode.globalid);
     source.disabled = false;
     source.value = '';
+    activeMetadata = new Map();
+    previousSourceValue = source.value;
+    $('#scriptTitle').textContent = 'script';
+    $('#breadcrumbScript').textContent = 'script.cat';
+    $('#windowTitle').textContent = 'Script Lab — script.cat';
     $('#saveSource').disabled = false;
     renderProject();
     updateEditor(false);
@@ -550,7 +679,7 @@
   }
 
   function saveSource() {
-    const blob = new Blob([source.value + '\n'], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([sourceWithMetadata(source.value, activeMetadata) + '\n'], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     const name = ($('#scriptTitle').textContent || 'my_site').replace(/[^\w-]+/g, '_');
@@ -570,6 +699,10 @@
   source.addEventListener('click', syncScroll);
   source.addEventListener('keyup', syncScroll);
   source.addEventListener('scroll', syncScroll);
+  lineNumbers.addEventListener('click', (event) => {
+    const marker = event.target.closest('.metadata-indicator');
+    if (marker) showToast(marker.dataset.metadata);
+  });
   source.addEventListener('keydown', (event) => {
     if (event.key === 'Tab') {
       event.preventDefault();
@@ -584,7 +717,7 @@
     if (event.key === 'Enter') {
       const lineStart = source.value.lastIndexOf('\n', source.selectionStart - 1) + 1;
       let indent = source.value.slice(lineStart, source.selectionStart).match(/^\s*/)?.[0] || '';
-      const currentLine = source.value.slice(lineStart, source.selectionStart).trimEnd();
+      const currentLine = splitInlineComment(source.value.slice(lineStart, source.selectionStart)).code.trimEnd();
       if (/^(?:if|for|else)\b.*:\s*$/.test(currentLine.trim())) indent += '    ';
       event.preventDefault();
       source.setRangeText(`\n${indent}`, source.selectionStart, source.selectionEnd, 'end');
@@ -609,6 +742,8 @@
       if (scriptNode) scriptNode.content = [];
       sourceDirty = false;
       drafts.delete(activeScriptId);
+      metadataDrafts.delete(activeScriptId);
+      activeMetadata = new Map();
       dirtyUserScripts.delete(activeScriptId);
       refreshProjectJson('Project ready · compact');
     }
@@ -661,8 +796,43 @@
   $('#folderAlias').addEventListener('input', () => {
     documentData[0].alias = $('#folderAlias').value;
     $('#projectName').textContent = documentData[0].alias || projectLabelFallback;
+    $('#breadcrumbProject').textContent = documentData[0].alias || projectLabelFallback;
     renderProjectTree();
     refreshProjectJson('Project updated · compact');
+  });
+  const workbench = $('.workbench');
+  document.querySelectorAll('[data-panel-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const panel = button.dataset.panelToggle;
+      const compact = window.matchMedia('(max-width: 760px)').matches;
+      const narrow = window.matchMedia('(max-width: 850px)').matches;
+      const openClass = panel === 'explorer' && compact ? 'show-explorer'
+        : panel === 'catalog' && narrow ? 'show-catalog' : null;
+      const closedClass = `hide-${panel}`;
+      if (openClass) {
+        workbench.classList.remove(closedClass);
+        const isOpen = workbench.classList.toggle(openClass);
+        button.setAttribute('aria-pressed', String(isOpen));
+      } else {
+        workbench.classList.remove(panel === 'explorer' ? 'show-explorer' : 'show-catalog');
+        const isHidden = workbench.classList.toggle(closedClass);
+        button.setAttribute('aria-pressed', String(!isHidden));
+      }
+      button.classList.toggle('active', button.getAttribute('aria-pressed') === 'true');
+    });
+  });
+  $('#activitySearch').addEventListener('click', () => {
+    const narrow = window.matchMedia('(max-width: 850px)').matches;
+    workbench.classList.remove('hide-catalog');
+    if (narrow) workbench.classList.add('show-catalog');
+    const blocksButton = document.querySelector('[data-panel-toggle="catalog"]');
+    blocksButton.setAttribute('aria-pressed', 'true');
+    blocksButton.classList.add('active');
+    $('#catalogSearch').focus();
+  });
+  $('#activityEvents').addEventListener('click', () => {
+    const firstEvent = $('#eventTree .event-node');
+    if (firstEvent) firstEvent.click();
   });
   $('#copy').addEventListener('click', async () => {
     try {
@@ -673,7 +843,10 @@
     }
   });
   $('#clearOutput').addEventListener('click', clearOutput);
-  $('#toggleOutput').addEventListener('click', () => $('#outputPanel').classList.toggle('open'));
+  $('#toggleOutput').addEventListener('click', () => {
+    const isOpen = $('#outputPanel').classList.toggle('open');
+    $('#toggleOutput').setAttribute('aria-expanded', String(isOpen));
+  });
   $('#catalogSearch').addEventListener('input', (event) =>
     catalogPromise.then((catalog) => renderCatalog(catalog, event.target.value)));
   $('#catalogEntries').addEventListener('click', (event) => {
