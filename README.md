@@ -25,6 +25,9 @@ in Catweb.**
 | [`info.md`](info.md) | Original notes on variables, objects, events, properties, and known limitations. |
 | [`examples/`](examples/) | Python/CSL source files and sample JSON outputs. |
 | [`catweb_script.py`](catweb_script.py) | Python CSL compiler with generic blocks backed by the available catalog. |
+| [`API_REFERENCE.json`](API_REFERENCE.json) | Shared API v2 names, signatures, aliases, and block argument mappings. |
+| [`API_V2.md`](API_V2.md) | Complete API v2 function, event, parameter, and example reference. |
+| [`API_MIGRATION.md`](API_MIGRATION.md) | Legacy-name and parameter-order migration table. |
 | [`CATWEB_SCRIPT_LANGUAGE.md`](CATWEB_SCRIPT_LANGUAGE.md) | Supported syntax, mappings, and rules for extending the language. |
 | [`studio/catweb-csl.js`](studio/catweb-csl.js) | CSL compiler and decompiler shared by the web editors. |
 | [`examples/welcome.cat`](examples/welcome.cat) | Catweb language source example. |
@@ -82,8 +85,10 @@ python catweb_script.py examples/welcome.cat
 Known blocks use semantic named calls and parentheses. The legacy syntax
 `top category/id [arguments]` and `block category/id [arguments]` is still
 supported; `raw` preserves JSON blocks without a recognized CSL form. See
-[`CATWEB_SCRIPT_LANGUAGE.md`](CATWEB_SCRIPT_LANGUAGE.md) for scopes, end markers,
-events, metadata, and keys with multiple variants.
+[`API_V2.md`](API_V2.md) for the complete canonical function and event API, and
+[`API_MIGRATION.md`](API_MIGRATION.md) for legacy names and argument-order
+compatibility. [`CATWEB_SCRIPT_LANGUAGE.md`](CATWEB_SCRIPT_LANGUAGE.md)
+describes scopes, end markers, metadata, and generic catalog syntax.
 
 The command creates `examples/welcome.json`, a `files.json`-style array with a
 folder, `script` object, top-level blocks, and ordered actions. JSON is compact

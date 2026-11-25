@@ -156,7 +156,7 @@ def _call_name(template: Template) -> str | None:
 class BlockCatalog:
     """Indexes all content and action templates, deduplicated by argument shape."""
 
-    def __init__(self, directory: Path = CATALOG):
+    def __init__(self, directory: Path = CATALOG, api_reference: Path | None = None):
         grouped: dict[tuple[str, str, str], list[tuple[tuple[Any, ...], dict[str, Any]]]] = {}
         self.sources: dict[str, list[dict[str, Any]]] = {}
         for path in sorted(directory.glob("*.json")):
@@ -188,17 +188,27 @@ class BlockCatalog:
 
         self._link_scopes()
         self.by_call: dict[tuple[str, str], Template] = {}
+        self.by_alias: dict[tuple[str, str], Template] = {}
+        self.argument_orders: dict[tuple[str, str], list[int]] = {}
         self.named_templates: list[Template] = []
         for item in self.by_key.values():
             item.call_name = _call_name(item)
-            if item.call_name is None:
-                continue
-            call_key = (item.scope, item.call_name)
-            if call_key in self.by_call:
-                other = self.by_call[call_key]
-                raise RuntimeError(f"Duplicate readable name {item.call_name!r}: {other.key}, {item.key}")
-            self.by_call[call_key] = item
-            self.named_templates.append(item)
+        reference_path = api_reference
+        if reference_path is None and directory.resolve() == CATALOG.resolve():
+            reference_path = ROOT / "API_REFERENCE.json"
+        if reference_path is not None and reference_path.is_file():
+            self._apply_api_reference(reference_path)
+        else:
+            for item in self.by_key.values():
+                if item.call_name is None:
+                    continue
+                call_key = (item.scope, item.call_name)
+                if call_key in self.by_call:
+                    other = self.by_call[call_key]
+                    raise RuntimeError(f"Duplicate readable name {item.call_name!r}: {other.key}, {item.key}")
+                self.by_call[call_key] = item
+                self.argument_orders[call_key] = list(range(len(_argument_fields(item.node))))
+                self.named_templates.append(item)
 
     @staticmethod
     def _add(grouped: dict, scope: str, category: str, node: dict[str, Any]) -> None:
@@ -210,6 +220,79 @@ class BlockCatalog:
         variants = grouped.setdefault(key, [])
         if all(existing_signature != signature for existing_signature, _ in variants):
             variants.append((signature, copy.deepcopy(node)))
+
+    def _apply_api_reference(self, path: Path) -> None:
+        try:
+            reference = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise RuntimeError(f"Cannot read API reference {path}: {exc}") from exc
+        if reference.get("version") != 2:
+            raise RuntimeError(f"Unsupported API reference version in {path}")
+
+        registered: set[tuple[str, str]] = set()
+
+        def register(entry: dict[str, Any], scope: str, name: str) -> Template:
+            source = entry["source"]
+            template = self.by_key.get(f"{scope}/{source['key']}")
+            if template is None or template.scope != scope:
+                raise RuntimeError(f"API reference source not found: {source}")
+            call_key = (scope, name)
+            if call_key in registered or call_key in self.by_alias:
+                raise RuntimeError(f"Duplicate API v2 name {name!r} in {scope} scope")
+            fields = _argument_fields(template.node)
+            order = entry.get("sourceArgumentOrder", list(range(len(fields))))
+            if len(order) != len(fields) or sorted(order) != list(range(len(fields))):
+                raise RuntimeError(f"Invalid source argument order for {name!r}")
+            if len(entry.get("parameters", [])) != len(fields):
+                raise RuntimeError(f"API parameter count does not match {name!r}")
+            template.call_name = name
+            self.by_call[call_key] = template
+            self.argument_orders[call_key] = order
+            registered.add(call_key)
+            self.named_templates.append(template)
+            return template
+
+        for module in reference.get("modules", []):
+            for entry in module.get("functions", []):
+                template = register(entry, "block", entry["qualifiedName"])
+                alias_names = entry.get("legacyAliases", [])
+                for alias in alias_names:
+                    alias_key = ("block", alias)
+                    if alias_key in registered or alias_key in self.by_alias:
+                        raise RuntimeError(f"Duplicate legacy API name {alias!r}")
+                    self.by_alias[alias_key] = template
+
+        for entry in reference.get("events", []):
+            template = register(entry, "top", entry["name"])
+            for alias in entry.get("legacyAliases", []):
+                alias_key = ("top", alias)
+                if alias_key in registered or alias_key in self.by_alias:
+                    raise RuntimeError(f"Duplicate legacy event name {alias!r}")
+                self.by_alias[alias_key] = template
+
+        for alias in reference.get("extraAliases", []):
+            alias_key = (alias["scope"], alias["name"])
+            target_key = (alias["scope"], alias["qualifiedName"])
+            template = self.by_call.get(target_key)
+            if template is None or alias_key in registered or alias_key in self.by_alias:
+                raise RuntimeError(f"Invalid extra API alias: {alias}")
+            self.by_alias[alias_key] = template
+
+        for construct in reference.get("languageConstructs", []):
+            source = construct["source"]
+            template = self.by_key.get(f"{source['scope']}/{source['key']}")
+            if template is None:
+                raise RuntimeError(f"Language construct source not found: {source}")
+            template.call_name = "functions.define"
+            self.named_templates.append(template)
+
+        expected = {
+            ("block", entry["qualifiedName"])
+            for module in reference.get("modules", [])
+            for entry in module.get("functions", [])
+        } | {("top", entry["name"]) for entry in reference.get("events", [])}
+        if expected != registered:
+            raise RuntimeError("API reference registration is incomplete")
 
     def _link_scopes(self) -> None:
         for item in self.by_key.values():
@@ -242,12 +325,36 @@ class BlockCatalog:
         raise CompileError(f"line {line}: catalog entry {key!r} was not found in the {scope} catalog")
 
     def get_named(self, scope: str, name: str, line: int) -> Template:
-        item = self.by_call.get((scope, name))
-        if item is None and scope == "block" and name in {"log", "warn", "error"}:
-            item = self.by_call.get(("block", f"console.{name}"))
+        item = self.by_call.get((scope, name)) or self.by_alias.get((scope, name))
         if item:
             return item
         raise CompileError(f"line {line}: unknown {scope} name {name!r}; choose a name from the block catalog")
+
+    def resolve_named(self, scope: str, name: str, arguments: list[Any],
+                      line: int) -> tuple[Template, list[Any]]:
+        call_key = (scope, name)
+        template = self.by_call.get(call_key)
+        if template is not None:
+            order = self.argument_orders[call_key]
+        else:
+            template = self.by_alias.get(call_key)
+            if template is None:
+                raise CompileError(f"line {line}: unknown {scope} name {name!r}; choose a name from the block catalog")
+            order = list(range(len(_argument_fields(template.node))))
+        expected = len(_argument_fields(template.node))
+        if len(arguments) != expected:
+            raise CompileError(f"line {line}: {name} expects {expected} arguments; received {len(arguments)}")
+        return template, [arguments[index] for index in order]
+
+    def canonical_arguments(self, template: Template, arguments: list[Any]) -> list[Any]:
+        order = self.argument_orders.get(
+            (template.scope, template.call_name or ""),
+            list(range(len(arguments))),
+        )
+        canonical = [MISSING] * len(order)
+        for source_index, canonical_index in enumerate(order):
+            canonical[canonical_index] = arguments[source_index]
+        return canonical
 
     def match_existing(self, scope: str, node: dict[str, Any]) -> Template | None:
         block_id = str(node.get("id", ""))
@@ -475,7 +582,7 @@ def _decompile_actions(actions: list[dict[str, Any]], catalog: BlockCatalog,
         if not template or not template.call_name:
             add_line(_raw_line("raw", action, 0).lstrip())
             continue
-        arguments = _args_for(action)
+        arguments = catalog.canonical_arguments(template, _args_for(action))
         metadata = _metadata_for(action, template)
         if template.category == "math-variables" and template.block_id == "11" and len(arguments) == 2:
             variable = arguments[0]
@@ -512,7 +619,8 @@ def decompile_script(content: list[dict[str, Any]], catalog: BlockCatalog | None
     for node in content:
         template = catalog.match_existing("top", node)
         metadata = _metadata_for(node, template)
-        arguments = _args_for(node)
+        arguments = (_args_for(node) if not template else
+                     catalog.canonical_arguments(template, _args_for(node)))
         if template and template.call_name == "load" and not _argument_fields(node):
             header = "on load:"
         elif template and template.scope == "top" and template.category == "events" and template.call_name:
@@ -639,7 +747,8 @@ def compile_script(source: str, *, folder_alias: str = "CatWet Script Lab",
                     metadata.update(json.loads(load_header.group(1)))
                 except json.JSONDecodeError as exc:
                     raise CompileError(f"line {line_number}: metadata after on load: must be a JSON object") from exc
-            start_top(catalog.get_named("top", "load", line_number), [], metadata, line_number)
+            template, args = catalog.resolve_named("top", "load", [], line_number)
+            start_top(template, args, metadata, line_number)
             previous_blank = False
             continue
 
@@ -647,7 +756,7 @@ def compile_script(source: str, *, folder_alias: str = "CatWet Script Lab",
         if indent == 0 and event_header:
             event_name, arguments_source = event_header.groups()
             name, args = _read_named_call(f"{event_name}({arguments_source or ''})", line_number)
-            template = catalog.get_named("top", name, line_number)
+            template, args = catalog.resolve_named("top", name, args, line_number)
             if template.category != "events":
                 raise CompileError(f"line {line_number}: {event_name!r} is not a Catweb event")
             start_top(template, args, dict(inline_metadata), line_number)
@@ -656,7 +765,7 @@ def compile_script(source: str, *, folder_alias: str = "CatWet Script Lab",
 
         function_header = re.fullmatch(r"def\s+([A-Za-z_]\w*)\s*(?:\(\s*\))?\s*:", stripped)
         if indent == 0 and function_header:
-            template = catalog.get_named("top", "functions.define_function", line_number)
+            template = catalog.get("top", "functions/6", line_number)
             start_top(template, [function_header.group(1)], dict(inline_metadata), line_number)
             previous_blank = False
             continue
@@ -724,7 +833,7 @@ def compile_script(source: str, *, folder_alias: str = "CatWet Script Lab",
         if named_scope:
             mode, call_source = named_scope.groups()
             name, args = _read_named_call(call_source, line_number)
-            template = catalog.get_named("block", name, line_number)
+            template, args = catalog.resolve_named("block", name, args, line_number)
             append_action(template, args, dict(inline_metadata), line_number, indent, mode, True)
             previous_blank = False
             continue
@@ -751,8 +860,10 @@ def compile_script(source: str, *, folder_alias: str = "CatWet Script Lab",
                 raise CompileError(f"line {line_number}: message must be a quoted string") from exc
             if not isinstance(value, str):
                 raise CompileError(f"line {line_number}: {operation} expects a quoted string")
-            template = catalog.get_named("block", f"console.{operation.lower()}", line_number)
-            append_action(template, [value], dict(inline_metadata), line_number, indent, "call")
+            template, args = catalog.resolve_named(
+                "block", f"console.{operation.lower()}", [value], line_number
+            )
+            append_action(template, args, dict(inline_metadata), line_number, indent, "call")
             previous_blank = False
             continue
 
@@ -787,7 +898,7 @@ def compile_script(source: str, *, folder_alias: str = "CatWet Script Lab",
             raise CompileError(f"line {line_number}: unrecognized statement; use a named function such as console.log(\"message\")") from exc
         if name in {"log", "warn", "error"}:
             name = f"console.{name}"
-        template = catalog.get_named("block", name, line_number)
+        template, args = catalog.resolve_named("block", name, args, line_number)
         append_action(template, args, dict(inline_metadata), line_number, indent, "call")
         previous_blank = False
 

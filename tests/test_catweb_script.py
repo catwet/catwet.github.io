@@ -1,4 +1,5 @@
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -89,11 +90,70 @@ class CatwebScriptTests(unittest.TestCase):
         content = compile_script(source)[0]["children"][0]["content"]
         content[0]["actions"][-1]["future_metadata"] = {"keep": True}
         decompiled = decompile_script(content)
-        self.assertIn('if logic.is_equal_to("left", "right"):', decompiled)
-        self.assertIn('network.broadcast_across_page(', decompiled)
+        self.assertIn('if logic.equals("left", "right"):', decompiled)
+        self.assertIn('network.send_page(', decompiled)
         self.assertNotIn('block logic/18', decompiled)
         result = compile_script(decompiled)[0]["children"][0]["content"]
         self.assertEqual(content, result)
+
+    def test_api_v2_uses_canonical_order_and_legacy_aliases_keep_catalog_order(self):
+        canonical = compile_script(
+            'on button_press("button01"):\n'
+            'tables.set("items", "entry", "value")\n'
+            'tables.insert("items", 2, "new")'
+        )[0]["children"][0]["content"]
+        event, = canonical
+        self.assertEqual(event["id"], "1")
+        set_block, insert_block, = event["actions"]
+        self.assertEqual(set_block["id"], "55")
+        self.assertEqual([field["value"] for field in set_block["text"] if isinstance(field, dict)],
+                         ["entry", "items", "value"])
+        self.assertEqual(insert_block["id"], "89")
+        self.assertEqual([field["value"] for field in insert_block["text"] if isinstance(field, dict)],
+                         ["new", 2, "items"])
+
+        legacy = compile_script(
+            'on button_pressed("button01"):\n'
+            'tables.set_entry_of_to("entry", "items", "value")'
+        )[0]["children"][0]["content"]
+        self.assertEqual(legacy[0]["id"], "1")
+        legacy_set = legacy[0]["actions"][0]
+        self.assertEqual(legacy_set["id"], set_block["id"])
+        self.assertEqual([field["value"] for field in legacy_set["text"] if isinstance(field, dict)],
+                         ["entry", "items", "value"])
+        self.assertIn('on button_press("button01"):', decompile_script(legacy))
+
+    def test_api_reference_covers_all_named_catalog_entries_and_aliases(self):
+        reference = json.loads((ROOT / "API_REFERENCE.json").read_text(encoding="utf-8"))
+        catalog = BlockCatalog()
+        functions = [entry for module in reference["modules"] for entry in module["functions"]]
+
+        self.assertEqual(reference["version"], 2)
+        self.assertEqual(len(functions), 126)
+        self.assertEqual(len(reference["events"]), 11)
+        self.assertEqual(len(reference["languageConstructs"]), 1)
+        self.assertEqual(len(catalog.named_templates), 138)
+        self.assertEqual(len({entry["qualifiedName"] for entry in functions}), len(functions))
+        old_names = {
+            entry["legacyName"]
+            for entry in functions + reference["events"] + reference["languageConstructs"]
+        }
+        inventory_names = set(re.findall(
+            r"^FUNCTION: (.+)$",
+            (ROOT / "CATWEB_FUNCTIONS.txt").read_text(encoding="utf-8"),
+            re.MULTILINE,
+        ))
+        self.assertEqual(old_names, inventory_names)
+
+        for module in reference["modules"]:
+            for entry in module["functions"]:
+                canonical = catalog.get_named("block", entry["qualifiedName"], 1)
+                for alias in entry["legacyAliases"]:
+                    self.assertIs(catalog.get_named("block", alias, 1), canonical)
+        for entry in reference["events"]:
+            canonical = catalog.get_named("top", entry["name"], 1)
+            for alias in entry["legacyAliases"]:
+                self.assertIs(catalog.get_named("top", alias, 1), canonical)
 
     def test_python_like_calls_assignments_and_events_compile(self):
         source = (
@@ -125,9 +185,9 @@ class CatwebScriptTests(unittest.TestCase):
         decompiled = decompile_script(content)
         lines = [line.partition("  # ")[0] for line in decompiled.splitlines()]
         self.assertEqual(lines, [
-            "on load:", 'console.log("inicio")', 'if logic.is_equal_to("a", "b"):',
+            "on load:", 'console.log("inicio")', 'if logic.equals("a", "b"):',
             '    console.log("dentro")', 'console.warn("fuera")', "",
-            'on button_pressed("boton"):', 'console.log("otro evento")',
+            'on button_press("boton"):', 'console.log("otro evento")',
         ])
 
     def test_compiled_top_level_blocks_reset_positions_without_changing_actions(self):

@@ -374,9 +374,10 @@
     return String(value);
   }
 
-  function callForTemplate(item) {
+  function callForTemplate(item, catalog) {
     const fields = item.node.text.filter((part) => part && typeof part === 'object' && !Array.isArray(part));
-    const args = fields.map((field) => Object.prototype.hasOwnProperty.call(field, 'value') ? field.value : undefined);
+    const sourceArgs = fields.map((field) => Object.prototype.hasOwnProperty.call(field, 'value') ? field.value : undefined);
+    const args = catalog.canonicalArguments(item, sourceArgs);
     const callArgs = `(${args.map(formatLiteral).join(', ')})`;
     if (item.scope === 'top' && item.category === 'events') {
       return item.callName === 'load' && args.length === 0 ? 'on load:' : `on ${item.callName}${callArgs}:`;
@@ -406,7 +407,7 @@
     });
     $('#catalogEntries').innerHTML = templates.map((item) => {
       const label = (item.node.text || []).filter((part) => typeof part === 'string').join('').trim() || '(unnamed block)';
-      const call = callForTemplate(item);
+      const call = callForTemplate(item, catalog);
       return `<button class="catalog-entry" type="button" data-call="${escapeHtml(call)}" data-scope="${item.scope}"><span>${escapeHtml(label)}</span><small>${escapeHtml(item.callName)} · ${item.scope === 'top' ? 'event/top-level block' : 'action'}</small></button>`;
     }).join('') || '<p class="catalog-empty">No blocks found.</p>';
   }

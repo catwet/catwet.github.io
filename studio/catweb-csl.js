@@ -5,56 +5,6 @@
   const MISSING = Object.freeze({ cslMissing: true });
   const fieldValues = (node) => (node.text || []).filter((part) => part && typeof part === 'object' && !Array.isArray(part));
   const labelOf = (node) => (node.text || []).filter((part) => typeof part === 'string').join('').trim();
-  const namespaces = {
-    audio:'audio', color:'color', console:'console', cookies:'cookies', functions:'functions',
-    hierarchy:'objects', input:'input', logic:'logic', looks:'ui', loops:'loops',
-    'math-variables':'variables', navigation:'navigation', network:'network',
-    strings:'text', tables:'tables', time:'time'
-  };
-  const eventNames = {
-    '0':'load', '1':'button_pressed', '2':'key_pressed', '3':'mouse_enters',
-    '7':'avatar_item_bought', '8':'input_submitted', '9':'message_received',
-    '10':'object_changed', '11':'mouse_down_on', '14':'cross_site_message_received',
-    '15':'donation_completed'
-  };
-  const mathVariableNames = {
-    '11':['variables','set'], '12':['variables','increase_by'], '13':['variables','decrease_by'],
-    '14':['variables','multiply_by'], '15':['variables','divide_by'], '16':['math','round'],
-    '17':['math','floor'], '27':['variables','set_random'], '40':['math','power'],
-    '41':['math','modulo'], '78':['math','ceil'], '96':['variables','delete'],
-    '114':['math','apply']
-  };
-  const friendlyNames = {
-    'color/121':'color.hex_from_rgb', 'color/122':'color.hex_from_hsv',
-    'looks/31':'ui.set_property', 'looks/39':'ui.get_property',
-    'looks/138':'ui.set_attribute', 'looks/139':'ui.get_attribute'
-  };
-
-  function callName(item) {
-    if (item.scope === 'top') {
-      if (item.category === 'events') return eventNames[item.id] || null;
-      if (item.category === 'functions' && item.id === '6') return 'functions.define_function';
-      return null;
-    }
-    if (item.scope !== 'block') return null;
-    const fields = fieldValues(item.node);
-    if (fields.some((field) => field.l === 'comment')) return null;
-    const label = labelOf(item.node).toLowerCase();
-    if (label === 'end' || label === 'else') return null;
-    const special = friendlyNames[`${item.category}/${item.id}`];
-    if (special) return special;
-    if (item.category === 'math-variables' && mathVariableNames[item.id]) {
-      return mathVariableNames[item.id].join('.');
-    }
-    const namespace = namespaces[item.category] || item.category.replace(/-/g, '_');
-    const raw = (item.node.text || []).filter((part) => typeof part === 'string').join(' ')
-      .replace(/([a-z0-9])([A-Z])/g, '$1 $2');
-    const words = raw.toLowerCase().match(/[a-z0-9]+/g) || [];
-    if (words[0] === 'if') words.shift();
-    const method = words.join('_');
-    return method ? `${namespace}.${method}` : null;
-  }
-
   function stable(value) {
     if (Array.isArray(value)) return value.map(stable);
     if (value && typeof value === 'object') {
@@ -78,7 +28,7 @@
     }));
   }
 
-  function createCatalog(sources) {
+  function createCatalog(sources, reference) {
     const groups = new Map();
     Object.entries(sources).forEach(([category, examples]) => {
       (Array.isArray(examples) ? examples : []).forEach((example) => {
@@ -131,13 +81,49 @@
     });
 
     const byCall = new Map();
+    const byAlias = new Map();
+    const argumentOrders = new Map();
     const named = [];
-    byKey.forEach((item) => {
-      item.callName = callName(item);
-      if (!item.callName) return;
-      const callKey = `${item.scope}/${item.callName}`;
-      if (byCall.has(callKey)) throw new Error(`The CSL name ${item.callName} is duplicated in the catalog.`);
+    const registered = new Set();
+    const register = (entry, scope, name) => {
+      const item = byKey.get(`${scope}/${entry.source.key}`);
+      if (!item || item.scope !== scope) throw new Error(`API reference source was not found: ${entry.source.key}.`);
+      const callKey = `${scope}/${name}`;
+      if (registered.has(callKey) || byAlias.has(callKey)) throw new Error(`The API v2 name ${name} is duplicated.`);
+      const fields = fieldValues(item.node);
+      const order = entry.sourceArgumentOrder || fields.map((_, index) => index);
+      if (order.length !== fields.length || [...order].sort().some((value, index) => value !== index)
+          || !Array.isArray(entry.parameters) || entry.parameters.length !== fields.length) {
+        throw new Error(`The API reference signature does not match ${name}.`);
+      }
+      item.callName = name;
       byCall.set(callKey, item);
+      argumentOrders.set(callKey, order);
+      registered.add(callKey);
+      named.push(item);
+      (entry.legacyAliases || []).forEach((alias) => {
+        const aliasKey = `${scope}/${alias}`;
+        if (registered.has(aliasKey) || byAlias.has(aliasKey)) throw new Error(`The legacy API name ${alias} is duplicated.`);
+        byAlias.set(aliasKey, item);
+      });
+    };
+    if (!reference || reference.version !== 2) throw new Error('API_REFERENCE.json must describe API version 2.');
+    (reference.modules || []).forEach((module) => {
+      (module.functions || []).forEach((entry) => register(entry, 'block', entry.qualifiedName));
+    });
+    (reference.events || []).forEach((entry) => register(entry, 'top', entry.name));
+    (reference.extraAliases || []).forEach((alias) => {
+      const aliasKey = `${alias.scope}/${alias.name}`;
+      const target = byCall.get(`${alias.scope}/${alias.qualifiedName}`);
+      if (!target || registered.has(aliasKey) || byAlias.has(aliasKey)) {
+        throw new Error(`The extra API alias ${alias.name} is invalid.`);
+      }
+      byAlias.set(aliasKey, target);
+    });
+    (reference.languageConstructs || []).forEach((construct) => {
+      const item = byKey.get(`${construct.source.scope}/${construct.source.key}`);
+      if (!item) throw new Error(`Language construct source was not found: ${construct.source.key}.`);
+      item.callName = 'functions.define';
       named.push(item);
     });
 
@@ -161,26 +147,47 @@
     }
 
     function getNamed(scope, name, line) {
-      const item = byCall.get(`${scope}/${name}`)
-        || (scope === 'block' && ['log', 'warn', 'error'].includes(name) ? byCall.get(`block/console.${name}`) : null);
+      const item = byCall.get(`${scope}/${name}`) || byAlias.get(`${scope}/${name}`);
       if (!item) throw new Error(`Line ${line}: the name ${name} was not found in the ${scope} catalog.`);
       return item;
     }
 
-    return { byKey, byBase, byCall, named, get, getNamed, matchExisting };
+    function resolveNamed(scope, name, args, line) {
+      const callKey = `${scope}/${name}`;
+      const item = getNamed(scope, name, line);
+      const fields = fieldValues(item.node);
+      if (args.length !== fields.length) {
+        throw new Error(`Line ${line}: ${name} expects ${fields.length} arguments; received ${args.length}.`);
+      }
+      const order = byCall.has(callKey) ? argumentOrders.get(callKey) : fields.map((_, index) => index);
+      return { item, args: order.map((index) => args[index]) };
+    }
+
+    function canonicalArguments(item, args) {
+      const order = argumentOrders.get(`${item.scope}/${item.callName}`);
+      if (!order) return args;
+      const canonical = new Array(order.length);
+      order.forEach((canonicalIndex, sourceIndex) => { canonical[canonicalIndex] = args[sourceIndex]; });
+      return canonical;
+    }
+
+    return { byKey, byBase, byCall, named, get, getNamed, resolveNamed, canonicalArguments, matchExisting };
   }
 
   async function loadCatalog(base = '../script/') {
-    const indexResponse = await fetch(`${base}catalog-index.json`);
+    const catalogUrl = new URL(base, document.baseURI);
+    const indexResponse = await fetch(new URL('catalog-index.json', catalogUrl));
     if (!indexResponse.ok) throw new Error('Could not load script/catalog-index.json.');
     const index = await indexResponse.json();
     if (!index || !Array.isArray(index.categories)) throw new Error('The catalog index does not contain valid categories.');
     const pairs = await Promise.all(index.categories.map(async (category) => {
-      const response = await fetch(`${base}${encodeURIComponent(category)}.json`);
+      const response = await fetch(new URL(`${encodeURIComponent(category)}.json`, catalogUrl));
       if (!response.ok) throw new Error(`Could not load script/${category}.json.`);
       return [category, await response.json()];
     }));
-    return createCatalog(Object.fromEntries(pairs));
+    const referenceResponse = await fetch(new URL('../API_REFERENCE.json', catalogUrl));
+    if (!referenceResponse.ok) throw new Error('Could not load API_REFERENCE.json.');
+    return createCatalog(Object.fromEntries(pairs), await referenceResponse.json());
   }
 
   function instantiate(template, args, metadata, line) {
@@ -533,21 +540,23 @@
           try { Object.assign(metadata, JSON.parse(loadHeader[1])); }
           catch { throw new Error(`Line ${line}: on load metadata must be a JSON object.`); }
         }
-        startTop(catalog.getNamed('top', 'load', line), [], metadata, line);
+        const resolved = catalog.resolveNamed('top', 'load', [], line);
+        startTop(resolved.item, resolved.args, metadata, line);
         previousBlank = false; return;
       }
       const eventHeader = stripped.match(/^on\s+([A-Za-z_]\w*)\s*(?:\(([\s\S]*)\))?\s*:/);
       if (!indent && eventHeader) {
         const [, eventName, argsSource] = eventHeader;
         const call = readNamedCall(`${eventName}(${argsSource || ''})`, line);
-        const template = catalog.getNamed('top', call.name, line);
+        const resolved = catalog.resolveNamed('top', call.name, call.args, line);
+        const template = resolved.item;
         if (template.category !== 'events') throw new Error(`Line ${line}: ${eventName} is not a Catweb event.`);
-        startTop(template, call.args, inlineMetadata, line);
+        startTop(template, resolved.args, inlineMetadata, line);
         previousBlank = false; return;
       }
       const functionHeader = stripped.match(/^def\s+([A-Za-z_]\w*)\s*(?:\(\s*\))?\s*:/);
       if (!indent && functionHeader) {
-        startTop(catalog.getNamed('top', 'functions.define_function', line), [functionHeader[1]], inlineMetadata, line);
+        startTop(catalog.get('top', 'functions/6', line), [functionHeader[1]], inlineMetadata, line);
         previousBlank = false; return;
       }
       if (!indent && stripped.startsWith('top ')) {
@@ -597,7 +606,8 @@
       if (namedScope) {
         const [, mode, callSource] = namedScope;
         const call = readNamedCall(callSource, line);
-        appendAction(catalog.getNamed('block', call.name, line), call.args, inlineMetadata, line, indent, mode, true);
+        const resolved = catalog.resolveNamed('block', call.name, call.args, line);
+        appendAction(resolved.item, resolved.args, inlineMetadata, line, indent, mode, true);
         previousBlank = false; return;
       }
       const generic = stripped.match(/^(block|if|scope)\s+([\s\S]+)$/);
@@ -616,7 +626,8 @@
         let value;
         try { value = JSON.parse(message[2]); } catch { throw new Error(`Line ${line}: the message must be a quoted JSON string.`); }
         if (typeof value !== 'string') throw new Error(`Line ${line}: ${message[1]} requires a string.`);
-        appendAction(catalog.getNamed('block', message[1].toLowerCase(), line), [value], inlineMetadata, line, indent, 'call');
+        const resolved = catalog.resolveNamed('block', `console.${message[1].toLowerCase()}`, [value], line);
+        appendAction(resolved.item, resolved.args, inlineMetadata, line, indent, 'call');
         previousBlank = false; return;
       }
       const legacySet = stripped.match(/^set\s+([A-Za-z_]\w*)\s*=\s*(.+)$/);
@@ -639,7 +650,8 @@
         previousBlank = false; return;
       }
       const call = readNamedCall(stripped, line);
-      appendAction(catalog.getNamed('block', call.name, line), call.args, inlineMetadata, line, indent, 'call');
+      const resolved = catalog.resolveNamed('block', call.name, call.args, line);
+      appendAction(resolved.item, resolved.args, inlineMetadata, line, indent, 'call');
       previousBlank = false;
     });
     while (stack.length) closeScope();
@@ -659,7 +671,7 @@
     if (!Array.isArray(content)) throw new Error('Script content must be an array.');
     const sections = content.map((node) => {
       const template = catalog.matchExisting('top', node);
-      const args = template ? argsFor(node) : [];
+      const args = template ? catalog.canonicalArguments(template, argsFor(node)) : [];
       let header;
       if (template && template.category === 'events') {
         header = template.id === '0' && !args.length ? 'on load:' : `on ${template.callName}${formatArguments(args)}:`;
@@ -732,7 +744,7 @@
         lines.push(`${'    '.repeat(indent)}raw ${JSON.stringify(action)}`);
         continue;
       }
-      const args = argsFor(action);
+      const args = catalog.canonicalArguments(template, argsFor(action));
       const metadata = metadataFor(action, template);
       const isScope = template.opensScope && template.endTemplate;
       const call = `${template.callName}${formatArguments(args)}`;

@@ -1,0 +1,5113 @@
+{
+  "version": 2,
+  "language": "Catweb CSL API",
+  "argumentMode": "positional literals only; no nested function calls",
+  "compatibility": {
+    "legacyFunctionNames": true,
+    "legacyEventNames": true,
+    "legacyArgumentOrder": true,
+    "sourceArgumentOrderDescription": "For a canonical call, sourceArgumentOrder gives the canonical parameter indexes in the original Catweb block field order. Legacy names always use original field order."
+  },
+  "modules": [
+    {
+      "name": "audio",
+      "sourceCategories": [
+        "audio"
+      ],
+      "functions": [
+        {
+          "name": "get_property",
+          "qualifiedName": "audio.get_property",
+          "kind": "action",
+          "syntax": "audio.get_property(audio, property, result)",
+          "source": {
+            "scope": "block",
+            "category": "audio",
+            "id": "95",
+            "key": "audio/95"
+          },
+          "legacyName": "audio.get_of",
+          "legacyAliases": [
+            "audio.get_of"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "audio",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "property",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "property",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Getof→"
+        },
+        {
+          "name": "pause",
+          "qualifiedName": "audio.pause",
+          "kind": "action",
+          "syntax": "audio.pause(audio)",
+          "source": {
+            "scope": "block",
+            "category": "audio",
+            "id": "75",
+            "key": "audio/75"
+          },
+          "legacyName": "audio.pause_audio",
+          "legacyAliases": [
+            "audio.pause_audio"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "audio",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Pause audio"
+        },
+        {
+          "name": "play",
+          "qualifiedName": "audio.play",
+          "kind": "action",
+          "syntax": "audio.play(asset_id, result)",
+          "source": {
+            "scope": "block",
+            "category": "audio",
+            "id": "5",
+            "key": "audio/5"
+          },
+          "legacyName": "audio.play_audio",
+          "legacyAliases": [
+            "audio.play_audio"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "asset_id",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "id",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable?",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Play audio→"
+        },
+        {
+          "name": "play_looped",
+          "qualifiedName": "audio.play_looped",
+          "kind": "action",
+          "syntax": "audio.play_looped(asset_id, result)",
+          "source": {
+            "scope": "block",
+            "category": "audio",
+            "id": "26",
+            "key": "audio/26"
+          },
+          "legacyName": "audio.play_looped_audio",
+          "legacyAliases": [
+            "audio.play_looped_audio"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "asset_id",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "id",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable?",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Play looped audio→"
+        },
+        {
+          "name": "resume",
+          "qualifiedName": "audio.resume",
+          "kind": "action",
+          "syntax": "audio.resume(audio)",
+          "source": {
+            "scope": "block",
+            "category": "audio",
+            "id": "76",
+            "key": "audio/76"
+          },
+          "legacyName": "audio.resume_audio",
+          "legacyAliases": [
+            "audio.resume_audio"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "audio",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Resume audio"
+        },
+        {
+          "name": "set_property",
+          "qualifiedName": "audio.set_property",
+          "kind": "action",
+          "syntax": "audio.set_property(audio, property, value)",
+          "source": {
+            "scope": "block",
+            "category": "audio",
+            "id": "94",
+            "key": "audio/94"
+          },
+          "legacyName": "audio.set_of_to",
+          "legacyAliases": [
+            "audio.set_of_to"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "audio",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "property",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "property",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "value",
+              "position": 3,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Setofto"
+        },
+        {
+          "name": "set_speed",
+          "qualifiedName": "audio.set_speed",
+          "kind": "action",
+          "syntax": "audio.set_speed(audio, speed)",
+          "source": {
+            "scope": "block",
+            "category": "audio",
+            "id": "77",
+            "key": "audio/77"
+          },
+          "legacyName": "audio.set_speed_of_to",
+          "legacyAliases": [
+            "audio.set_speed_of_to"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "audio",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "speed",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Set speed ofto"
+        },
+        {
+          "name": "set_volume",
+          "qualifiedName": "audio.set_volume",
+          "kind": "action",
+          "syntax": "audio.set_volume(audio, volume)",
+          "source": {
+            "scope": "block",
+            "category": "audio",
+            "id": "73",
+            "key": "audio/73"
+          },
+          "legacyName": "audio.set_volume_of_to",
+          "legacyAliases": [
+            "audio.set_volume_of_to"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "audio",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "volume",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Set volume ofto"
+        },
+        {
+          "name": "stop",
+          "qualifiedName": "audio.stop",
+          "kind": "action",
+          "syntax": "audio.stop(audio)",
+          "source": {
+            "scope": "block",
+            "category": "audio",
+            "id": "74",
+            "key": "audio/74"
+          },
+          "legacyName": "audio.stop_audio",
+          "legacyAliases": [
+            "audio.stop_audio"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "audio",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Stop audio"
+        },
+        {
+          "name": "stop_all",
+          "qualifiedName": "audio.stop_all",
+          "kind": "action",
+          "syntax": "audio.stop_all()",
+          "source": {
+            "scope": "block",
+            "category": "audio",
+            "id": "7",
+            "key": "audio/7"
+          },
+          "legacyName": "audio.stop_all_audio",
+          "legacyAliases": [
+            "audio.stop_all_audio"
+          ],
+          "sourceArgumentOrder": [],
+          "parameters": [],
+          "catalogLabel": "Stop all audio"
+        }
+      ]
+    },
+    {
+      "name": "color",
+      "sourceCategories": [
+        "color"
+      ],
+      "functions": [
+        {
+          "name": "hsv_to_hex",
+          "qualifiedName": "color.hsv_to_hex",
+          "kind": "action",
+          "syntax": "color.hsv_to_hex(hsv, result)",
+          "source": {
+            "scope": "block",
+            "category": "color",
+            "id": "122",
+            "key": "color/122"
+          },
+          "legacyName": "color.hex_from_hsv",
+          "legacyAliases": [
+            "color.hex_from_hsv"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "hsv",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "HSV",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Convertto hex →"
+        },
+        {
+          "name": "lerp",
+          "qualifiedName": "color.lerp",
+          "kind": "action",
+          "syntax": "color.lerp(start, end, amount, result)",
+          "source": {
+            "scope": "block",
+            "category": "color",
+            "id": "123",
+            "key": "color/123"
+          },
+          "legacyName": "color.lerp_to_by",
+          "legacyAliases": [
+            "color.lerp_to_by"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "parameters": [
+            {
+              "name": "start",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "hex",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "end",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "hex",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "amount",
+              "position": 3,
+              "type": "number",
+              "catalogLabel": "alpha",
+              "direction": "input",
+              "sourcePosition": 3
+            },
+            {
+              "name": "result",
+              "position": 4,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 4
+            }
+          ],
+          "catalogLabel": "Lerptoby→"
+        },
+        {
+          "name": "rgb_to_hex",
+          "qualifiedName": "color.rgb_to_hex",
+          "kind": "action",
+          "syntax": "color.rgb_to_hex(rgb, result)",
+          "source": {
+            "scope": "block",
+            "category": "color",
+            "id": "121",
+            "key": "color/121"
+          },
+          "legacyName": "color.hex_from_rgb",
+          "legacyAliases": [
+            "color.hex_from_rgb"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "rgb",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "RGB",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Convertto hex →"
+        },
+        {
+          "name": "to_hsv",
+          "qualifiedName": "color.to_hsv",
+          "kind": "action",
+          "syntax": "color.to_hsv(hex, result)",
+          "source": {
+            "scope": "block",
+            "category": "color",
+            "id": "120",
+            "key": "color/120"
+          },
+          "legacyName": "color.convert_to_hsv",
+          "legacyAliases": [
+            "color.convert_to_hsv"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "hex",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "hex",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Convertto HSV →"
+        },
+        {
+          "name": "to_rgb",
+          "qualifiedName": "color.to_rgb",
+          "kind": "action",
+          "syntax": "color.to_rgb(hex, result)",
+          "source": {
+            "scope": "block",
+            "category": "color",
+            "id": "119",
+            "key": "color/119"
+          },
+          "legacyName": "color.convert_to_rgb",
+          "legacyAliases": [
+            "color.convert_to_rgb"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "hex",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "hex",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Convertto RGB →"
+        }
+      ]
+    },
+    {
+      "name": "console",
+      "sourceCategories": [
+        "console"
+      ],
+      "functions": [
+        {
+          "name": "error",
+          "qualifiedName": "console.error",
+          "kind": "action",
+          "syntax": "console.error(message)",
+          "source": {
+            "scope": "block",
+            "category": "console",
+            "id": "2",
+            "key": "console/2"
+          },
+          "legacyName": "console.error",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "position": 1,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Error"
+        },
+        {
+          "name": "log",
+          "qualifiedName": "console.log",
+          "kind": "action",
+          "syntax": "console.log(message)",
+          "source": {
+            "scope": "block",
+            "category": "console",
+            "id": "0",
+            "key": "console/0"
+          },
+          "legacyName": "console.log",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "position": 1,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Log"
+        },
+        {
+          "name": "warn",
+          "qualifiedName": "console.warn",
+          "kind": "action",
+          "syntax": "console.warn(message)",
+          "source": {
+            "scope": "block",
+            "category": "console",
+            "id": "1",
+            "key": "console/1"
+          },
+          "legacyName": "console.warn",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "position": 1,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Warn"
+        }
+      ]
+    },
+    {
+      "name": "cookies",
+      "sourceCategories": [
+        "cookies"
+      ],
+      "functions": [
+        {
+          "name": "add",
+          "qualifiedName": "cookies.add",
+          "kind": "action",
+          "syntax": "cookies.add(cookie, amount)",
+          "source": {
+            "scope": "block",
+            "category": "cookies",
+            "id": "35",
+            "key": "cookies/35"
+          },
+          "legacyName": "cookies.increase_by",
+          "legacyAliases": [
+            "cookies.increase_by"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "cookie",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "cookie",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "amount",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Increaseby"
+        },
+        {
+          "name": "delete",
+          "qualifiedName": "cookies.delete",
+          "kind": "action",
+          "syntax": "cookies.delete(cookie)",
+          "source": {
+            "scope": "block",
+            "category": "cookies",
+            "id": "62",
+            "key": "cookies/62"
+          },
+          "legacyName": "cookies.delete_cookie",
+          "legacyAliases": [
+            "cookies.delete_cookie"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "cookie",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "cookie",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Delete cookie"
+        },
+        {
+          "name": "get",
+          "qualifiedName": "cookies.get",
+          "kind": "action",
+          "syntax": "cookies.get(cookie, result)",
+          "source": {
+            "scope": "block",
+            "category": "cookies",
+            "id": "36",
+            "key": "cookies/36"
+          },
+          "legacyName": "cookies.get_cookie",
+          "legacyAliases": [
+            "cookies.get_cookie"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "cookie",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "cookie",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Get cookie→"
+        },
+        {
+          "name": "set",
+          "qualifiedName": "cookies.set",
+          "kind": "action",
+          "syntax": "cookies.set(cookie, value)",
+          "source": {
+            "scope": "block",
+            "category": "cookies",
+            "id": "34",
+            "key": "cookies/34"
+          },
+          "legacyName": "cookies.set_to",
+          "legacyAliases": [
+            "cookies.set_to"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "cookie",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "cookie",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "value",
+              "position": 2,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Setto"
+        }
+      ]
+    },
+    {
+      "name": "functions",
+      "sourceCategories": [
+        "functions"
+      ],
+      "functions": [
+        {
+          "name": "return",
+          "qualifiedName": "functions.return",
+          "kind": "action",
+          "syntax": "functions.return(value)",
+          "source": {
+            "scope": "block",
+            "category": "functions",
+            "id": "115",
+            "key": "functions/115"
+          },
+          "legacyName": "functions.return",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "value",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Return"
+        },
+        {
+          "name": "run",
+          "qualifiedName": "functions.run",
+          "kind": "action",
+          "syntax": "functions.run(function, arguments, result)",
+          "source": {
+            "scope": "block",
+            "category": "functions",
+            "id": "132",
+            "key": "functions/132"
+          },
+          "legacyName": "functions.run_function",
+          "legacyAliases": [
+            "functions.run_function"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "function",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "function",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "arguments",
+              "position": 2,
+              "type": "tuple",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable?",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Run function→"
+        },
+        {
+          "name": "run_background",
+          "qualifiedName": "functions.run_background",
+          "kind": "action",
+          "syntax": "functions.run_background(function, arguments)",
+          "source": {
+            "scope": "block",
+            "category": "functions",
+            "id": "133",
+            "key": "functions/133"
+          },
+          "legacyName": "functions.run_function_in_background",
+          "legacyAliases": [
+            "functions.run_function_in_background"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "function",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "function",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "arguments",
+              "position": 2,
+              "type": "tuple",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Run function in background"
+        },
+        {
+          "name": "run_protected",
+          "qualifiedName": "functions.run_protected",
+          "kind": "action",
+          "syntax": "functions.run_protected(function, arguments, success, result)",
+          "source": {
+            "scope": "block",
+            "category": "functions",
+            "id": "134",
+            "key": "functions/134"
+          },
+          "legacyName": "functions.run_function_protected",
+          "legacyAliases": [
+            "functions.run_function_protected"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "parameters": [
+            {
+              "name": "function",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "function",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "arguments",
+              "position": 2,
+              "type": "tuple",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "success",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "success_variable?",
+              "direction": "output",
+              "sourcePosition": 3
+            },
+            {
+              "name": "result",
+              "position": 4,
+              "type": "string",
+              "catalogLabel": "variable?",
+              "direction": "output",
+              "sourcePosition": 4
+            }
+          ],
+          "catalogLabel": "Run function protected→"
+        }
+      ]
+    },
+    {
+      "name": "input",
+      "sourceCategories": [
+        "input"
+      ],
+      "functions": [
+        {
+          "name": "cursor_position",
+          "qualifiedName": "input.cursor_position",
+          "kind": "action",
+          "syntax": "input.cursor_position(x, y)",
+          "source": {
+            "scope": "block",
+            "category": "input",
+            "id": "85",
+            "key": "input/85"
+          },
+          "legacyName": "input.get_cursor_position",
+          "legacyAliases": [
+            "input.get_cursor_position"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "x",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "x",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "y",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "y",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Get cursor position →"
+        },
+        {
+          "name": "hide_cursor",
+          "qualifiedName": "input.hide_cursor",
+          "kind": "action",
+          "syntax": "input.hide_cursor()",
+          "source": {
+            "scope": "block",
+            "category": "input",
+            "id": "136",
+            "key": "input/136"
+          },
+          "legacyName": "input.hide_mouse_cursor",
+          "legacyAliases": [
+            "input.hide_mouse_cursor"
+          ],
+          "sourceArgumentOrder": [],
+          "parameters": [],
+          "catalogLabel": "Hide mouse cursor"
+        },
+        {
+          "name": "key_down",
+          "qualifiedName": "input.key_down",
+          "kind": "condition",
+          "syntax": "if input.key_down(key):",
+          "source": {
+            "scope": "block",
+            "category": "input",
+            "id": "82",
+            "key": "input/82"
+          },
+          "legacyName": "input.down",
+          "legacyAliases": [
+            "input.down"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "key",
+              "position": 1,
+              "type": "key",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Ifdown"
+        },
+        {
+          "name": "left_mouse_down",
+          "qualifiedName": "input.left_mouse_down",
+          "kind": "condition",
+          "syntax": "if input.left_mouse_down():",
+          "source": {
+            "scope": "block",
+            "category": "input",
+            "id": "79",
+            "key": "input/79"
+          },
+          "legacyName": "input.left_mouse_button_down",
+          "legacyAliases": [
+            "input.left_mouse_button_down"
+          ],
+          "sourceArgumentOrder": [],
+          "parameters": [],
+          "catalogLabel": "If left mouse button down"
+        },
+        {
+          "name": "set_mouse_icon",
+          "qualifiedName": "input.set_mouse_icon",
+          "kind": "action",
+          "syntax": "input.set_mouse_icon(icon_id)",
+          "source": {
+            "scope": "block",
+            "category": "input",
+            "id": "135",
+            "key": "input/135"
+          },
+          "legacyName": "input.set_mouse_icon_to",
+          "legacyAliases": [
+            "input.set_mouse_icon_to"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "icon_id",
+              "position": 1,
+              "type": "id",
+              "catalogLabel": "id?",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Set mouse icon to"
+        },
+        {
+          "name": "show_cursor",
+          "qualifiedName": "input.show_cursor",
+          "kind": "action",
+          "syntax": "input.show_cursor()",
+          "source": {
+            "scope": "block",
+            "category": "input",
+            "id": "137",
+            "key": "input/137"
+          },
+          "legacyName": "input.show_mouse_cursor",
+          "legacyAliases": [
+            "input.show_mouse_cursor"
+          ],
+          "sourceArgumentOrder": [],
+          "parameters": [],
+          "catalogLabel": "Show mouse cursor"
+        },
+        {
+          "name": "viewport_size",
+          "qualifiedName": "input.viewport_size",
+          "kind": "action",
+          "syntax": "input.viewport_size(width, height)",
+          "source": {
+            "scope": "block",
+            "category": "input",
+            "id": "84",
+            "key": "input/84"
+          },
+          "legacyName": "input.get_viewport_size",
+          "legacyAliases": [
+            "input.get_viewport_size"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "width",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "x",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "height",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "y",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Get viewport size →"
+        }
+      ]
+    },
+    {
+      "name": "logic",
+      "sourceCategories": [
+        "logic"
+      ],
+      "functions": [
+        {
+          "name": "and",
+          "qualifiedName": "logic.and",
+          "kind": "condition",
+          "syntax": "if logic.and(left, right):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "44",
+            "key": "logic/44"
+          },
+          "legacyName": "logic.and",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "left",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "right",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "IfAND"
+        },
+        {
+          "name": "contains",
+          "qualifiedName": "logic.contains",
+          "kind": "condition",
+          "syntax": "if logic.contains(text, part):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "37",
+            "key": "logic/37"
+          },
+          "legacyName": "logic.contains",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "text",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "part",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Ifcontains"
+        },
+        {
+          "name": "equals",
+          "qualifiedName": "logic.equals",
+          "kind": "condition",
+          "syntax": "if logic.equals(left, right):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "18",
+            "key": "logic/18"
+          },
+          "legacyName": "logic.is_equal_to",
+          "legacyAliases": [
+            "logic.is_equal_to"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "left",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "right",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Ifis equal to"
+        },
+        {
+          "name": "exists",
+          "qualifiedName": "logic.exists",
+          "kind": "condition",
+          "syntax": "if logic.exists(variable):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "92",
+            "key": "logic/92"
+          },
+          "legacyName": "logic.exists",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "variable",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Ifexists"
+        },
+        {
+          "name": "greater_or_equal",
+          "qualifiedName": "logic.greater_or_equal",
+          "kind": "condition",
+          "syntax": "if logic.greater_or_equal(left, right):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "125",
+            "key": "logic/125"
+          },
+          "legacyName": "logic.is_greater_or_equal_to",
+          "legacyAliases": [
+            "logic.is_greater_or_equal_to"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "left",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "right",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Ifis greater or equal to"
+        },
+        {
+          "name": "greater_than",
+          "qualifiedName": "logic.greater_than",
+          "kind": "condition",
+          "syntax": "if logic.greater_than(left, right):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "20",
+            "key": "logic/20"
+          },
+          "legacyName": "logic.is_greater_than",
+          "legacyAliases": [
+            "logic.is_greater_than"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "left",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "right",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Ifis greater than"
+        },
+        {
+          "name": "log",
+          "qualifiedName": "logic.log",
+          "kind": "action",
+          "syntax": "logic.log(message)",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "0",
+            "key": "logic/0"
+          },
+          "legacyName": "logic.log",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "position": 1,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Log"
+        },
+        {
+          "name": "lower_or_equal",
+          "qualifiedName": "logic.lower_or_equal",
+          "kind": "condition",
+          "syntax": "if logic.lower_or_equal(left, right):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "126",
+            "key": "logic/126"
+          },
+          "legacyName": "logic.is_lower_or_equal_to",
+          "legacyAliases": [
+            "logic.is_lower_or_equal_to"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "left",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "right",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Ifis lower or equal to"
+        },
+        {
+          "name": "lower_than",
+          "qualifiedName": "logic.lower_than",
+          "kind": "condition",
+          "syntax": "if logic.lower_than(left, right):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "21",
+            "key": "logic/21"
+          },
+          "legacyName": "logic.is_lower_than",
+          "legacyAliases": [
+            "logic.is_lower_than"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "left",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "right",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Ifis lower than"
+        },
+        {
+          "name": "nor",
+          "qualifiedName": "logic.nor",
+          "kind": "condition",
+          "syntax": "if logic.nor(left, right):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "46",
+            "key": "logic/46"
+          },
+          "legacyName": "logic.nor",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "left",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "right",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "IfNOR"
+        },
+        {
+          "name": "not_contains",
+          "qualifiedName": "logic.not_contains",
+          "kind": "condition",
+          "syntax": "if logic.not_contains(text, part):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "38",
+            "key": "logic/38"
+          },
+          "legacyName": "logic.doesn_t_contain",
+          "legacyAliases": [
+            "logic.doesn_t_contain"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "text",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "part",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Ifdoesn't contain"
+        },
+        {
+          "name": "not_equals",
+          "qualifiedName": "logic.not_equals",
+          "kind": "condition",
+          "syntax": "if logic.not_equals(left, right):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "19",
+            "key": "logic/19"
+          },
+          "legacyName": "logic.is_not_equal_to",
+          "legacyAliases": [
+            "logic.is_not_equal_to"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "left",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "right",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Ifis not equal to"
+        },
+        {
+          "name": "not_exists",
+          "qualifiedName": "logic.not_exists",
+          "kind": "condition",
+          "syntax": "if logic.not_exists(variable):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "93",
+            "key": "logic/93"
+          },
+          "legacyName": "logic.doesn_t_exist",
+          "legacyAliases": [
+            "logic.doesn_t_exist"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "variable",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Ifdoesn't exist"
+        },
+        {
+          "name": "or",
+          "qualifiedName": "logic.or",
+          "kind": "condition",
+          "syntax": "if logic.or(left, right):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "45",
+            "key": "logic/45"
+          },
+          "legacyName": "logic.or",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "left",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "right",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "IfOR"
+        },
+        {
+          "name": "xor",
+          "qualifiedName": "logic.xor",
+          "kind": "condition",
+          "syntax": "if logic.xor(left, right):",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "47",
+            "key": "logic/47"
+          },
+          "legacyName": "logic.xor",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "left",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "right",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "IfXOR"
+        }
+      ]
+    },
+    {
+      "name": "loops",
+      "sourceCategories": [
+        "loops"
+      ],
+      "functions": [
+        {
+          "name": "break",
+          "qualifiedName": "loops.break",
+          "kind": "action",
+          "syntax": "loops.break()",
+          "source": {
+            "scope": "block",
+            "category": "loops",
+            "id": "24",
+            "key": "loops/24"
+          },
+          "legacyName": "loops.break",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [],
+          "parameters": [],
+          "catalogLabel": "Break"
+        },
+        {
+          "name": "forever",
+          "qualifiedName": "loops.forever",
+          "kind": "loop",
+          "syntax": "for loops.forever():",
+          "source": {
+            "scope": "block",
+            "category": "loops",
+            "id": "23",
+            "key": "loops/23"
+          },
+          "legacyName": "loops.repeat_forever",
+          "legacyAliases": [
+            "loops.repeat_forever"
+          ],
+          "sourceArgumentOrder": [],
+          "parameters": [],
+          "catalogLabel": "Repeat forever"
+        },
+        {
+          "name": "log",
+          "qualifiedName": "loops.log",
+          "kind": "action",
+          "syntax": "loops.log(message)",
+          "source": {
+            "scope": "block",
+            "category": "loops",
+            "id": "0",
+            "key": "loops/0"
+          },
+          "legacyName": "loops.log",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "position": 1,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Log"
+        },
+        {
+          "name": "repeat",
+          "qualifiedName": "loops.repeat",
+          "kind": "loop",
+          "syntax": "for loops.repeat(count):",
+          "source": {
+            "scope": "block",
+            "category": "loops",
+            "id": "22",
+            "key": "loops/22"
+          },
+          "legacyName": "loops.repeat_times",
+          "legacyAliases": [
+            "loops.repeat_times"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "count",
+              "position": 1,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Repeattimes"
+        }
+      ]
+    },
+    {
+      "name": "math",
+      "sourceCategories": [
+        "math-variables"
+      ],
+      "functions": [
+        {
+          "name": "apply",
+          "qualifiedName": "math.apply",
+          "kind": "action",
+          "syntax": "math.apply(function, arguments, result)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "114",
+            "key": "math-variables/114"
+          },
+          "legacyName": "math.apply",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "function",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "function​",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "arguments",
+              "position": 2,
+              "type": "tuple",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Run math function→"
+        },
+        {
+          "name": "ceil",
+          "qualifiedName": "math.ceil",
+          "kind": "action",
+          "syntax": "math.ceil(value)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "78",
+            "key": "math-variables/78"
+          },
+          "legacyName": "math.ceil",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "value",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Ceil"
+        },
+        {
+          "name": "floor",
+          "qualifiedName": "math.floor",
+          "kind": "action",
+          "syntax": "math.floor(value)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "17",
+            "key": "math-variables/17"
+          },
+          "legacyName": "math.floor",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "value",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Floor"
+        },
+        {
+          "name": "mod",
+          "qualifiedName": "math.mod",
+          "kind": "action",
+          "syntax": "math.mod(dividend, divisor)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "41",
+            "key": "math-variables/41"
+          },
+          "legacyName": "math.modulo",
+          "legacyAliases": [
+            "math.modulo"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "dividend",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "divisor",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "modulo"
+        },
+        {
+          "name": "pow",
+          "qualifiedName": "math.pow",
+          "kind": "action",
+          "syntax": "math.pow(base, exponent)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "40",
+            "key": "math-variables/40"
+          },
+          "legacyName": "math.power",
+          "legacyAliases": [
+            "math.power"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "base",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "exponent",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Raiseto the power of"
+        },
+        {
+          "name": "round",
+          "qualifiedName": "math.round",
+          "kind": "action",
+          "syntax": "math.round(value)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "16",
+            "key": "math-variables/16"
+          },
+          "legacyName": "math.round",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "value",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Round"
+        }
+      ]
+    },
+    {
+      "name": "navigation",
+      "sourceCategories": [
+        "navigation"
+      ],
+      "functions": [
+        {
+          "name": "query_param",
+          "qualifiedName": "navigation.query_param",
+          "kind": "action",
+          "syntax": "navigation.query_param(name, result)",
+          "source": {
+            "scope": "block",
+            "category": "navigation",
+            "id": "67",
+            "key": "navigation/67"
+          },
+          "legacyName": "navigation.get_query_string_parameter",
+          "legacyAliases": [
+            "navigation.get_query_string_parameter"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "name",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Get query string parameter→"
+        },
+        {
+          "name": "redirect",
+          "qualifiedName": "navigation.redirect",
+          "kind": "action",
+          "syntax": "navigation.redirect(url)",
+          "source": {
+            "scope": "block",
+            "category": "navigation",
+            "id": "4",
+            "key": "navigation/4"
+          },
+          "legacyName": "navigation.redirect_to",
+          "legacyAliases": [
+            "navigation.redirect_to"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "url",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Redirect to"
+        },
+        {
+          "name": "url",
+          "qualifiedName": "navigation.url",
+          "kind": "action",
+          "syntax": "navigation.url(result)",
+          "source": {
+            "scope": "block",
+            "category": "navigation",
+            "id": "117",
+            "key": "navigation/117"
+          },
+          "legacyName": "navigation.get_url",
+          "legacyAliases": [
+            "navigation.get_url"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "result",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Get URL →"
+        }
+      ]
+    },
+    {
+      "name": "network",
+      "sourceCategories": [
+        "network"
+      ],
+      "functions": [
+        {
+          "name": "display_name",
+          "qualifiedName": "network.display_name",
+          "kind": "action",
+          "syntax": "network.display_name(result)",
+          "source": {
+            "scope": "block",
+            "category": "network",
+            "id": "53",
+            "key": "network/53"
+          },
+          "legacyName": "network.get_local_display_name",
+          "legacyAliases": [
+            "network.get_local_display_name"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "result",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Get local display name →"
+        },
+        {
+          "name": "send_page",
+          "qualifiedName": "network.send_page",
+          "kind": "action",
+          "syntax": "network.send_page(message)",
+          "source": {
+            "scope": "block",
+            "category": "network",
+            "id": "32",
+            "key": "network/32"
+          },
+          "legacyName": "network.broadcast_across_page",
+          "legacyAliases": [
+            "network.broadcast_across_page"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "message",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Broadcastacross page"
+        },
+        {
+          "name": "send_site",
+          "qualifiedName": "network.send_site",
+          "kind": "action",
+          "syntax": "network.send_site(message)",
+          "source": {
+            "scope": "block",
+            "category": "network",
+            "id": "33",
+            "key": "network/33"
+          },
+          "legacyName": "network.broadcast_across_site",
+          "legacyAliases": [
+            "network.broadcast_across_site"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "message",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Broadcastacross site"
+        },
+        {
+          "name": "send_to_site",
+          "qualifiedName": "network.send_to_site",
+          "kind": "action",
+          "syntax": "network.send_to_site(page, message)",
+          "source": {
+            "scope": "block",
+            "category": "network",
+            "id": "130",
+            "key": "network/130"
+          },
+          "legacyName": "network.broadcast_cross_site_to",
+          "legacyAliases": [
+            "network.broadcast_cross_site_to"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0
+          ],
+          "parameters": [
+            {
+              "name": "page",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "page",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "message",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "message",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Broadcastcross-site to"
+        },
+        {
+          "name": "user_id",
+          "qualifiedName": "network.user_id",
+          "kind": "action",
+          "syntax": "network.user_id(result)",
+          "source": {
+            "scope": "block",
+            "category": "network",
+            "id": "52",
+            "key": "network/52"
+          },
+          "legacyName": "network.get_local_user_id",
+          "legacyAliases": [
+            "network.get_local_user_id"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "result",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Get local user ID →"
+        },
+        {
+          "name": "username",
+          "qualifiedName": "network.username",
+          "kind": "action",
+          "syntax": "network.username(result)",
+          "source": {
+            "scope": "block",
+            "category": "network",
+            "id": "51",
+            "key": "network/51"
+          },
+          "legacyName": "network.get_local_username",
+          "legacyAliases": [
+            "network.get_local_username"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "result",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Get local username →"
+        }
+      ]
+    },
+    {
+      "name": "objects",
+      "sourceCategories": [
+        "hierarchy"
+      ],
+      "functions": [
+        {
+          "name": "children",
+          "qualifiedName": "objects.children",
+          "kind": "action",
+          "syntax": "objects.children(parent, result)",
+          "source": {
+            "scope": "block",
+            "category": "hierarchy",
+            "id": "101",
+            "key": "hierarchy/101"
+          },
+          "legacyName": "objects.get_children_of",
+          "legacyAliases": [
+            "objects.get_children_of"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "parent",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "table",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Get children of→"
+        },
+        {
+          "name": "descendants",
+          "qualifiedName": "objects.descendants",
+          "kind": "action",
+          "syntax": "objects.descendants(ancestor, result)",
+          "source": {
+            "scope": "block",
+            "category": "hierarchy",
+            "id": "102",
+            "key": "hierarchy/102"
+          },
+          "legacyName": "objects.get_descendants_of",
+          "legacyAliases": [
+            "objects.get_descendants_of"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "ancestor",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "table",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Get descendants of→"
+        },
+        {
+          "name": "find_ancestor",
+          "qualifiedName": "objects.find_ancestor",
+          "kind": "action",
+          "syntax": "objects.find_ancestor(object, name, result)",
+          "source": {
+            "scope": "block",
+            "category": "hierarchy",
+            "id": "98",
+            "key": "hierarchy/98"
+          },
+          "legacyName": "objects.find_ancestor_named_in",
+          "legacyAliases": [
+            "objects.find_ancestor_named_in"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "name",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Find ancestor namedin→"
+        },
+        {
+          "name": "find_child",
+          "qualifiedName": "objects.find_child",
+          "kind": "action",
+          "syntax": "objects.find_child(parent, name, result)",
+          "source": {
+            "scope": "block",
+            "category": "hierarchy",
+            "id": "99",
+            "key": "hierarchy/99"
+          },
+          "legacyName": "objects.find_child_named_in",
+          "legacyAliases": [
+            "objects.find_child_named_in"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "parent",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "name",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Find child namedin→"
+        },
+        {
+          "name": "find_descendant",
+          "qualifiedName": "objects.find_descendant",
+          "kind": "action",
+          "syntax": "objects.find_descendant(ancestor, name, result)",
+          "source": {
+            "scope": "block",
+            "category": "hierarchy",
+            "id": "100",
+            "key": "hierarchy/100"
+          },
+          "legacyName": "objects.find_descendant_named_in",
+          "legacyAliases": [
+            "objects.find_descendant_named_in"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "ancestor",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "name",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Find descendant namedin→"
+        },
+        {
+          "name": "is_ancestor",
+          "qualifiedName": "objects.is_ancestor",
+          "kind": "condition",
+          "syntax": "if objects.is_ancestor(ancestor, object):",
+          "source": {
+            "scope": "block",
+            "category": "hierarchy",
+            "id": "103",
+            "key": "hierarchy/103"
+          },
+          "legacyName": "objects.is_ancestor_of",
+          "legacyAliases": [
+            "objects.is_ancestor_of"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "ancestor",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "object",
+              "position": 2,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Ifis ancestor of"
+        },
+        {
+          "name": "is_child",
+          "qualifiedName": "objects.is_child",
+          "kind": "condition",
+          "syntax": "if objects.is_child(child, parent):",
+          "source": {
+            "scope": "block",
+            "category": "hierarchy",
+            "id": "104",
+            "key": "hierarchy/104"
+          },
+          "legacyName": "objects.is_child_of",
+          "legacyAliases": [
+            "objects.is_child_of"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "child",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "parent",
+              "position": 2,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Ifis child of"
+        },
+        {
+          "name": "is_descendant",
+          "qualifiedName": "objects.is_descendant",
+          "kind": "condition",
+          "syntax": "if objects.is_descendant(descendant, ancestor):",
+          "source": {
+            "scope": "block",
+            "category": "hierarchy",
+            "id": "105",
+            "key": "hierarchy/105"
+          },
+          "legacyName": "objects.is_descendant_of",
+          "legacyAliases": [
+            "objects.is_descendant_of"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "descendant",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "ancestor",
+              "position": 2,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Ifis descendant of"
+        },
+        {
+          "name": "log",
+          "qualifiedName": "objects.log",
+          "kind": "action",
+          "syntax": "objects.log(message)",
+          "source": {
+            "scope": "block",
+            "category": "hierarchy",
+            "id": "0",
+            "key": "hierarchy/0"
+          },
+          "legacyName": "objects.log",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "position": 1,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Log"
+        },
+        {
+          "name": "parent",
+          "qualifiedName": "objects.parent",
+          "kind": "action",
+          "syntax": "objects.parent(object, result)",
+          "source": {
+            "scope": "block",
+            "category": "hierarchy",
+            "id": "97",
+            "key": "hierarchy/97"
+          },
+          "legacyName": "objects.get_parent_of",
+          "legacyAliases": [
+            "objects.get_parent_of"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Get parent of→"
+        },
+        {
+          "name": "set_parent",
+          "qualifiedName": "objects.set_parent",
+          "kind": "action",
+          "syntax": "objects.set_parent(child, parent)",
+          "source": {
+            "scope": "block",
+            "category": "hierarchy",
+            "id": "58",
+            "key": "hierarchy/58"
+          },
+          "legacyName": "objects.parent_under",
+          "legacyAliases": [
+            "objects.parent_under"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "child",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "parent",
+              "position": 2,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Parentunder"
+        }
+      ]
+    },
+    {
+      "name": "tables",
+      "sourceCategories": [
+        "tables"
+      ],
+      "functions": [
+        {
+          "name": "create",
+          "qualifiedName": "tables.create",
+          "kind": "action",
+          "syntax": "tables.create(table)",
+          "source": {
+            "scope": "block",
+            "category": "tables",
+            "id": "54",
+            "key": "tables/54"
+          },
+          "legacyName": "tables.create_table",
+          "legacyAliases": [
+            "tables.create_table"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "table",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "table",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Create table"
+        },
+        {
+          "name": "delete",
+          "qualifiedName": "tables.delete",
+          "kind": "action",
+          "syntax": "tables.delete(table, key)",
+          "source": {
+            "scope": "block",
+            "category": "tables",
+            "id": "90",
+            "key": "tables/90"
+          },
+          "legacyName": "tables.delete_entry_of",
+          "legacyAliases": [
+            "tables.delete_entry_of"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0
+          ],
+          "parameters": [
+            {
+              "name": "table",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "table",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "key",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "entry",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Delete entryof"
+        },
+        {
+          "name": "each",
+          "qualifiedName": "tables.each",
+          "kind": "loop",
+          "syntax": "for tables.each(table):",
+          "source": {
+            "scope": "block",
+            "category": "tables",
+            "id": "113",
+            "key": "tables/113"
+          },
+          "legacyName": "tables.iterate_through_l_index_l_value",
+          "legacyAliases": [
+            "tables.iterate_through_l_index_l_value"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "table",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "table",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Iterate through({l!index},{l!value})"
+        },
+        {
+          "name": "get",
+          "qualifiedName": "tables.get",
+          "kind": "action",
+          "syntax": "tables.get(table, key, result)",
+          "source": {
+            "scope": "block",
+            "category": "tables",
+            "id": "56",
+            "key": "tables/56"
+          },
+          "legacyName": "tables.get_entry_of",
+          "legacyAliases": [
+            "tables.get_entry_of"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "table",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "table",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "key",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "entry",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Get entryof→"
+        },
+        {
+          "name": "insert",
+          "qualifiedName": "tables.insert",
+          "kind": "action",
+          "syntax": "tables.insert(table, index, value)",
+          "source": {
+            "scope": "block",
+            "category": "tables",
+            "id": "89",
+            "key": "tables/89"
+          },
+          "legacyName": "tables.insert_at_position_of",
+          "legacyAliases": [
+            "tables.insert_at_position_of"
+          ],
+          "sourceArgumentOrder": [
+            2,
+            1,
+            0
+          ],
+          "parameters": [
+            {
+              "name": "table",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "array",
+              "direction": "input",
+              "sourcePosition": 3
+            },
+            {
+              "name": "index",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": "number?",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "value",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Insertat positionof"
+        },
+        {
+          "name": "join",
+          "qualifiedName": "tables.join",
+          "kind": "action",
+          "syntax": "tables.join(table, separator, result)",
+          "source": {
+            "scope": "block",
+            "category": "tables",
+            "id": "110",
+            "key": "tables/110"
+          },
+          "legacyName": "tables.join_using",
+          "legacyAliases": [
+            "tables.join_using"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "table",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "array",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "separator",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "string",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Joinusing→"
+        },
+        {
+          "name": "length",
+          "qualifiedName": "tables.length",
+          "kind": "action",
+          "syntax": "tables.length(table, result)",
+          "source": {
+            "scope": "block",
+            "category": "tables",
+            "id": "59",
+            "key": "tables/59"
+          },
+          "legacyName": "tables.get_length_of",
+          "legacyAliases": [
+            "tables.get_length_of"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "table",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "array",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Get length of→"
+        },
+        {
+          "name": "log",
+          "qualifiedName": "tables.log",
+          "kind": "action",
+          "syntax": "tables.log(message)",
+          "source": {
+            "scope": "block",
+            "category": "tables",
+            "id": "0",
+            "key": "tables/0"
+          },
+          "legacyName": "tables.log",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "position": 1,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Log"
+        },
+        {
+          "name": "remove",
+          "qualifiedName": "tables.remove",
+          "kind": "action",
+          "syntax": "tables.remove(table, index)",
+          "source": {
+            "scope": "block",
+            "category": "tables",
+            "id": "91",
+            "key": "tables/91"
+          },
+          "legacyName": "tables.remove_entry_at_position_of",
+          "legacyAliases": [
+            "tables.remove_entry_at_position_of"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0
+          ],
+          "parameters": [
+            {
+              "name": "table",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "array",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "index",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": "number?",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Remove entry at positionof"
+        },
+        {
+          "name": "set",
+          "qualifiedName": "tables.set",
+          "kind": "action",
+          "syntax": "tables.set(table, key, value)",
+          "source": {
+            "scope": "block",
+            "category": "tables",
+            "id": "55",
+            "key": "tables/55"
+          },
+          "legacyName": "tables.set_entry_of_to",
+          "legacyAliases": [
+            "tables.set_entry_of_to"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "table",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "table",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "key",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "entry",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "value",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Set entryofto"
+        }
+      ]
+    },
+    {
+      "name": "text",
+      "sourceCategories": [
+        "strings"
+      ],
+      "functions": [
+        {
+          "name": "concat",
+          "qualifiedName": "text.concat",
+          "kind": "action",
+          "syntax": "text.concat(first, second, result)",
+          "source": {
+            "scope": "block",
+            "category": "strings",
+            "id": "109",
+            "key": "strings/109"
+          },
+          "legacyName": "text.concatenate_with",
+          "legacyAliases": [
+            "text.concatenate_with"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "first",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "second",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Concatenatewith→"
+        },
+        {
+          "name": "length",
+          "qualifiedName": "text.length",
+          "kind": "action",
+          "syntax": "text.length(text, result)",
+          "source": {
+            "scope": "block",
+            "category": "strings",
+            "id": "48",
+            "key": "strings/48"
+          },
+          "legacyName": "text.get_length_of",
+          "legacyAliases": [
+            "text.get_length_of"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "text",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Get length of→"
+        },
+        {
+          "name": "lower",
+          "qualifiedName": "text.lower",
+          "kind": "action",
+          "syntax": "text.lower(text, result)",
+          "source": {
+            "scope": "block",
+            "category": "strings",
+            "id": "69",
+            "key": "strings/69"
+          },
+          "legacyName": "text.lower",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "text",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Lower→"
+        },
+        {
+          "name": "replace",
+          "qualifiedName": "text.replace",
+          "kind": "action",
+          "syntax": "text.replace(text, search, replacement)",
+          "source": {
+            "scope": "block",
+            "category": "strings",
+            "id": "43",
+            "key": "strings/43"
+          },
+          "legacyName": "text.replace_in_by",
+          "legacyAliases": [
+            "text.replace_in_by"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "text",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "search",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "replacement",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Replaceinby"
+        },
+        {
+          "name": "slice",
+          "qualifiedName": "text.slice",
+          "kind": "action",
+          "syntax": "text.slice(text, start, end)",
+          "source": {
+            "scope": "block",
+            "category": "strings",
+            "id": "42",
+            "key": "strings/42"
+          },
+          "legacyName": "text.sub",
+          "legacyAliases": [
+            "text.sub"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "text",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "start",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": "start",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "end",
+              "position": 3,
+              "type": "number",
+              "catalogLabel": "end",
+              "direction": "input",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Sub-"
+        },
+        {
+          "name": "split",
+          "qualifiedName": "text.split",
+          "kind": "action",
+          "syntax": "text.split(text, separator, table)",
+          "source": {
+            "scope": "block",
+            "category": "strings",
+            "id": "57",
+            "key": "strings/57"
+          },
+          "legacyName": "text.split",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "text",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "separator",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "separator",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "table",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "table",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Split→"
+        },
+        {
+          "name": "upper",
+          "qualifiedName": "text.upper",
+          "kind": "action",
+          "syntax": "text.upper(text, result)",
+          "source": {
+            "scope": "block",
+            "category": "strings",
+            "id": "70",
+            "key": "strings/70"
+          },
+          "legacyName": "text.upper",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "text",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Upper→"
+        }
+      ]
+    },
+    {
+      "name": "time",
+      "sourceCategories": [
+        "logic",
+        "time"
+      ],
+      "functions": [
+        {
+          "name": "format_now",
+          "qualifiedName": "time.format_now",
+          "kind": "action",
+          "syntax": "time.format_now(format, result)",
+          "source": {
+            "scope": "block",
+            "category": "time",
+            "id": "71",
+            "key": "time/71"
+          },
+          "legacyName": "time.format_current_date_time",
+          "legacyAliases": [
+            "time.format_current_date_time"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "format",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "format",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Format current date/time→"
+        },
+        {
+          "name": "format_unix",
+          "qualifiedName": "time.format_unix",
+          "kind": "action",
+          "syntax": "time.format_unix(timestamp, format, result)",
+          "source": {
+            "scope": "block",
+            "category": "time",
+            "id": "72",
+            "key": "time/72"
+          },
+          "legacyName": "time.format_from_unix",
+          "legacyAliases": [
+            "time.format_from_unix"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "timestamp",
+              "position": 1,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "format",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "format",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Format from unix→"
+        },
+        {
+          "name": "server_unix",
+          "qualifiedName": "time.server_unix",
+          "kind": "action",
+          "syntax": "time.server_unix(result)",
+          "source": {
+            "scope": "block",
+            "category": "time",
+            "id": "116",
+            "key": "time/116"
+          },
+          "legacyName": "time.get_server_unix_timestamp",
+          "legacyAliases": [
+            "time.get_server_unix_timestamp"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "result",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Get server unix timestamp →"
+        },
+        {
+          "name": "tick",
+          "qualifiedName": "time.tick",
+          "kind": "action",
+          "syntax": "time.tick(result)",
+          "source": {
+            "scope": "block",
+            "category": "time",
+            "id": "83",
+            "key": "time/83"
+          },
+          "legacyName": "time.get_tick",
+          "legacyAliases": [
+            "time.get_tick"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "result",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Get tick →"
+        },
+        {
+          "name": "timezone",
+          "qualifiedName": "time.timezone",
+          "kind": "action",
+          "syntax": "time.timezone(result)",
+          "source": {
+            "scope": "block",
+            "category": "time",
+            "id": "118",
+            "key": "time/118"
+          },
+          "legacyName": "time.get_timezone",
+          "legacyAliases": [
+            "time.get_timezone"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "result",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Get timezone →"
+        },
+        {
+          "name": "unix",
+          "qualifiedName": "time.unix",
+          "kind": "action",
+          "syntax": "time.unix(result)",
+          "source": {
+            "scope": "block",
+            "category": "time",
+            "id": "68",
+            "key": "time/68"
+          },
+          "legacyName": "time.get_unix_timestamp",
+          "legacyAliases": [
+            "time.get_unix_timestamp"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "result",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Get unix timestamp →"
+        },
+        {
+          "name": "wait",
+          "qualifiedName": "time.wait",
+          "kind": "action",
+          "syntax": "time.wait(seconds)",
+          "source": {
+            "scope": "block",
+            "category": "logic",
+            "id": "3",
+            "key": "logic/3"
+          },
+          "legacyName": "logic.wait_seconds",
+          "legacyAliases": [
+            "logic.wait_seconds"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "seconds",
+              "position": 1,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Waitseconds"
+        }
+      ]
+    },
+    {
+      "name": "ui",
+      "sourceCategories": [
+        "looks"
+      ],
+      "functions": [
+        {
+          "name": "asset_info",
+          "qualifiedName": "ui.asset_info",
+          "kind": "action",
+          "syntax": "ui.asset_info(info, asset_id, result)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "129",
+            "key": "looks/129"
+          },
+          "legacyName": "ui.get_of_asset",
+          "legacyAliases": [
+            "ui.get_of_asset"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "info",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "info",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "asset_id",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "id",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Getof asset→"
+        },
+        {
+          "name": "attributes",
+          "qualifiedName": "ui.attributes",
+          "kind": "action",
+          "syntax": "ui.attributes(object, result)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "140",
+            "key": "looks/140"
+          },
+          "legacyName": "ui.get_all_attributes_of",
+          "legacyAliases": [
+            "ui.get_all_attributes_of"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "table",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Get all attributes of→"
+        },
+        {
+          "name": "dark_theme_enabled",
+          "qualifiedName": "ui.dark_theme_enabled",
+          "kind": "condition",
+          "syntax": "if ui.dark_theme_enabled():",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "108",
+            "key": "looks/108"
+          },
+          "legacyName": "ui.dark_theme_enabled",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [],
+          "parameters": [],
+          "catalogLabel": "If dark theme enabled"
+        },
+        {
+          "name": "delete",
+          "qualifiedName": "ui.delete",
+          "kind": "action",
+          "syntax": "ui.delete(object)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "50",
+            "key": "looks/50"
+          },
+          "legacyName": "ui.delete",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Delete"
+        },
+        {
+          "name": "duplicate",
+          "qualifiedName": "ui.duplicate",
+          "kind": "action",
+          "syntax": "ui.duplicate(object, result)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "49",
+            "key": "looks/49"
+          },
+          "legacyName": "ui.duplicate",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable?",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Duplicate→"
+        },
+        {
+          "name": "get_attribute",
+          "qualifiedName": "ui.get_attribute",
+          "kind": "action",
+          "syntax": "ui.get_attribute(object, name, result)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "139",
+            "key": "looks/139"
+          },
+          "legacyName": "ui.get_attribute",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "name",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "attribute",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Getof→"
+        },
+        {
+          "name": "get_property",
+          "qualifiedName": "ui.get_property",
+          "kind": "action",
+          "syntax": "ui.get_property(object, property, result)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "39",
+            "key": "looks/39"
+          },
+          "legacyName": "ui.get_property",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "property",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "property",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Getof→"
+        },
+        {
+          "name": "get_text",
+          "qualifiedName": "ui.get_text",
+          "kind": "action",
+          "syntax": "ui.get_text(input, result)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "30",
+            "key": "looks/30"
+          },
+          "legacyName": "ui.get_text_from",
+          "legacyAliases": [
+            "ui.get_text_from"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "input",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": "input",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "result",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "output",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Get text from→"
+        },
+        {
+          "name": "hide",
+          "qualifiedName": "ui.hide",
+          "kind": "action",
+          "syntax": "ui.hide(object)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "8",
+            "key": "looks/8"
+          },
+          "legacyName": "ui.make_invisible",
+          "legacyAliases": [
+            "ui.make_invisible"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Makeinvisible"
+        },
+        {
+          "name": "log",
+          "qualifiedName": "ui.log",
+          "kind": "action",
+          "syntax": "ui.log(message)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "0",
+            "key": "looks/0"
+          },
+          "legacyName": "ui.log",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "message",
+              "position": 1,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Log"
+        },
+        {
+          "name": "objects_at",
+          "qualifiedName": "ui.objects_at",
+          "kind": "action",
+          "syntax": "ui.objects_at(x, y, result)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "127",
+            "key": "looks/127"
+          },
+          "legacyName": "ui.get_objects_at_position",
+          "legacyAliases": [
+            "ui.get_objects_at_position"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "x",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "x​",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "y",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "y​",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "result",
+              "position": 3,
+              "type": "string",
+              "catalogLabel": "array",
+              "direction": "output",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Get objects at position→"
+        },
+        {
+          "name": "set_attribute",
+          "qualifiedName": "ui.set_attribute",
+          "kind": "action",
+          "syntax": "ui.set_attribute(object, name, value)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "138",
+            "key": "looks/138"
+          },
+          "legacyName": "ui.set_attribute",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "name",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "attribute",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "value",
+              "position": 3,
+              "type": "any",
+              "catalogLabel": "any?",
+              "direction": "input",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Setofto"
+        },
+        {
+          "name": "set_image",
+          "qualifiedName": "ui.set_image",
+          "kind": "action",
+          "syntax": "ui.set_image(object, image_id)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "106",
+            "key": "looks/106"
+          },
+          "legacyName": "ui.set_image_to",
+          "legacyAliases": [
+            "ui.set_image_to"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "image_id",
+              "position": 2,
+              "type": "id",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Setimage to"
+        },
+        {
+          "name": "set_property",
+          "qualifiedName": "ui.set_property",
+          "kind": "action",
+          "syntax": "ui.set_property(object, property, value)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "31",
+            "key": "looks/31"
+          },
+          "legacyName": "ui.set_property",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "property",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "property",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "value",
+              "position": 3,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Setofto"
+        },
+        {
+          "name": "set_text",
+          "qualifiedName": "ui.set_text",
+          "kind": "action",
+          "syntax": "ui.set_text(object, text)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "10",
+            "key": "looks/10"
+          },
+          "legacyName": "ui.set_text_to",
+          "legacyAliases": [
+            "ui.set_text_to"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "text",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Settext to"
+        },
+        {
+          "name": "show",
+          "qualifiedName": "ui.show",
+          "kind": "action",
+          "syntax": "ui.show(object)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "9",
+            "key": "looks/9"
+          },
+          "legacyName": "ui.make_visible",
+          "legacyAliases": [
+            "ui.make_visible"
+          ],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Makevisible"
+        },
+        {
+          "name": "tween",
+          "qualifiedName": "ui.tween",
+          "kind": "action",
+          "syntax": "ui.tween(object, property, value, duration, style, direction)",
+          "source": {
+            "scope": "block",
+            "category": "looks",
+            "id": "88",
+            "key": "looks/88"
+          },
+          "legacyName": "ui.tween_of_to",
+          "legacyAliases": [
+            "ui.tween_of_to"
+          ],
+          "sourceArgumentOrder": [
+            1,
+            0,
+            2,
+            3,
+            4,
+            5
+          ],
+          "parameters": [
+            {
+              "name": "object",
+              "position": 1,
+              "type": "object",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "property",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "property",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "value",
+              "position": 3,
+              "type": "any",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 3
+            },
+            {
+              "name": "duration",
+              "position": 4,
+              "type": "number",
+              "catalogLabel": "time",
+              "direction": "input",
+              "sourcePosition": 4
+            },
+            {
+              "name": "style",
+              "position": 5,
+              "type": "string",
+              "catalogLabel": "style",
+              "direction": "input",
+              "sourcePosition": 5
+            },
+            {
+              "name": "direction",
+              "position": 6,
+              "type": "string",
+              "catalogLabel": "direction",
+              "direction": "input",
+              "sourcePosition": 6
+            }
+          ],
+          "catalogLabel": "Tweenofto-"
+        }
+      ]
+    },
+    {
+      "name": "variables",
+      "sourceCategories": [
+        "math-variables"
+      ],
+      "functions": [
+        {
+          "name": "add",
+          "qualifiedName": "variables.add",
+          "kind": "action",
+          "syntax": "variables.add(variable, amount)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "12",
+            "key": "math-variables/12"
+          },
+          "legacyName": "variables.increase_by",
+          "legacyAliases": [
+            "variables.increase_by"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "variable",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "amount",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Increaseby"
+        },
+        {
+          "name": "delete",
+          "qualifiedName": "variables.delete",
+          "kind": "action",
+          "syntax": "variables.delete(variable)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "96",
+            "key": "math-variables/96"
+          },
+          "legacyName": "variables.delete",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0
+          ],
+          "parameters": [
+            {
+              "name": "variable",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            }
+          ],
+          "catalogLabel": "Delete"
+        },
+        {
+          "name": "divide",
+          "qualifiedName": "variables.divide",
+          "kind": "action",
+          "syntax": "variables.divide(variable, amount)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "15",
+            "key": "math-variables/15"
+          },
+          "legacyName": "variables.divide_by",
+          "legacyAliases": [
+            "variables.divide_by"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "variable",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "amount",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Divideby"
+        },
+        {
+          "name": "multiply",
+          "qualifiedName": "variables.multiply",
+          "kind": "action",
+          "syntax": "variables.multiply(variable, amount)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "14",
+            "key": "math-variables/14"
+          },
+          "legacyName": "variables.multiply_by",
+          "legacyAliases": [
+            "variables.multiply_by"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "variable",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "amount",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Multiplyby"
+        },
+        {
+          "name": "random",
+          "qualifiedName": "variables.random",
+          "kind": "action",
+          "syntax": "variables.random(variable, minimum, maximum)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "27",
+            "key": "math-variables/27"
+          },
+          "legacyName": "variables.set_random",
+          "legacyAliases": [
+            "variables.set_random"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1,
+            2
+          ],
+          "parameters": [
+            {
+              "name": "variable",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "var",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "minimum",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": "n",
+              "direction": "input",
+              "sourcePosition": 2
+            },
+            {
+              "name": "maximum",
+              "position": 3,
+              "type": "number",
+              "catalogLabel": "n",
+              "direction": "input",
+              "sourcePosition": 3
+            }
+          ],
+          "catalogLabel": "Setto random-"
+        },
+        {
+          "name": "set",
+          "qualifiedName": "variables.set",
+          "kind": "action",
+          "syntax": "variables.set(variable, value)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "11",
+            "key": "math-variables/11"
+          },
+          "legacyName": "variables.set",
+          "legacyAliases": [],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "variable",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "value",
+              "position": 2,
+              "type": "string",
+              "catalogLabel": "any",
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Setto"
+        },
+        {
+          "name": "subtract",
+          "qualifiedName": "variables.subtract",
+          "kind": "action",
+          "syntax": "variables.subtract(variable, amount)",
+          "source": {
+            "scope": "block",
+            "category": "math-variables",
+            "id": "13",
+            "key": "math-variables/13"
+          },
+          "legacyName": "variables.decrease_by",
+          "legacyAliases": [
+            "variables.decrease_by"
+          ],
+          "sourceArgumentOrder": [
+            0,
+            1
+          ],
+          "parameters": [
+            {
+              "name": "variable",
+              "position": 1,
+              "type": "string",
+              "catalogLabel": "variable",
+              "direction": "input",
+              "sourcePosition": 1
+            },
+            {
+              "name": "amount",
+              "position": 2,
+              "type": "number",
+              "catalogLabel": null,
+              "direction": "input",
+              "sourcePosition": 2
+            }
+          ],
+          "catalogLabel": "Decreaseby"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "load",
+      "qualifiedName": "events.load",
+      "kind": "event",
+      "syntax": "on load:",
+      "source": {
+        "scope": "top",
+        "category": "events",
+        "id": "0",
+        "key": "events/0"
+      },
+      "legacyName": "load",
+      "legacyAliases": [],
+      "sourceArgumentOrder": [],
+      "parameters": [],
+      "catalogLabel": "When website loaded..."
+    },
+    {
+      "name": "button_press",
+      "qualifiedName": "events.button_press",
+      "kind": "event",
+      "syntax": "on button_press(button):",
+      "source": {
+        "scope": "top",
+        "category": "events",
+        "id": "1",
+        "key": "events/1"
+      },
+      "legacyName": "button_pressed",
+      "legacyAliases": [
+        "button_pressed"
+      ],
+      "sourceArgumentOrder": [
+        0
+      ],
+      "parameters": [
+        {
+          "name": "button",
+          "position": 1,
+          "type": "object",
+          "catalogLabel": "button",
+          "direction": "input",
+          "sourcePosition": 1
+        }
+      ],
+      "catalogLabel": "Whenpressed..."
+    },
+    {
+      "name": "key_press",
+      "qualifiedName": "events.key_press",
+      "kind": "event",
+      "syntax": "on key_press(key):",
+      "source": {
+        "scope": "top",
+        "category": "events",
+        "id": "2",
+        "key": "events/2"
+      },
+      "legacyName": "key_pressed",
+      "legacyAliases": [
+        "key_pressed"
+      ],
+      "sourceArgumentOrder": [
+        0
+      ],
+      "parameters": [
+        {
+          "name": "key",
+          "position": 1,
+          "type": "key",
+          "catalogLabel": null,
+          "direction": "input",
+          "sourcePosition": 1
+        }
+      ],
+      "catalogLabel": "Whenpressed..."
+    },
+    {
+      "name": "mouse_enter",
+      "qualifiedName": "events.mouse_enter",
+      "kind": "event",
+      "syntax": "on mouse_enter(object):",
+      "source": {
+        "scope": "top",
+        "category": "events",
+        "id": "3",
+        "key": "events/3"
+      },
+      "legacyName": "mouse_enters",
+      "legacyAliases": [
+        "mouse_enters"
+      ],
+      "sourceArgumentOrder": [
+        0
+      ],
+      "parameters": [
+        {
+          "name": "object",
+          "position": 1,
+          "type": "object",
+          "catalogLabel": null,
+          "direction": "input",
+          "sourcePosition": 1
+        }
+      ],
+      "catalogLabel": "When mouse enters..."
+    },
+    {
+      "name": "mouse_down",
+      "qualifiedName": "events.mouse_down",
+      "kind": "event",
+      "syntax": "on mouse_down(object):",
+      "source": {
+        "scope": "top",
+        "category": "events",
+        "id": "11",
+        "key": "events/11"
+      },
+      "legacyName": "mouse_down_on",
+      "legacyAliases": [
+        "mouse_down_on"
+      ],
+      "sourceArgumentOrder": [
+        0
+      ],
+      "parameters": [
+        {
+          "name": "object",
+          "position": 1,
+          "type": "object",
+          "catalogLabel": "button",
+          "direction": "input",
+          "sourcePosition": 1
+        }
+      ],
+      "catalogLabel": "When mouse down on..."
+    },
+    {
+      "name": "avatar_item_purchased",
+      "qualifiedName": "events.avatar_item_purchased",
+      "kind": "event",
+      "syntax": "on avatar_item_purchased(item):",
+      "source": {
+        "scope": "top",
+        "category": "events",
+        "id": "7",
+        "key": "events/7"
+      },
+      "legacyName": "avatar_item_bought",
+      "legacyAliases": [
+        "avatar_item_bought"
+      ],
+      "sourceArgumentOrder": [
+        0
+      ],
+      "parameters": [
+        {
+          "name": "item",
+          "position": 1,
+          "type": "object",
+          "catalogLabel": "avataritem",
+          "direction": "input",
+          "sourcePosition": 1
+        }
+      ],
+      "catalogLabel": "Whenbought..."
+    },
+    {
+      "name": "input_submit",
+      "qualifiedName": "events.input_submit",
+      "kind": "event",
+      "syntax": "on input_submit(input):",
+      "source": {
+        "scope": "top",
+        "category": "events",
+        "id": "8",
+        "key": "events/8"
+      },
+      "legacyName": "input_submitted",
+      "legacyAliases": [
+        "input_submitted"
+      ],
+      "sourceArgumentOrder": [
+        0
+      ],
+      "parameters": [
+        {
+          "name": "input",
+          "position": 1,
+          "type": "object",
+          "catalogLabel": "input",
+          "direction": "input",
+          "sourcePosition": 1
+        }
+      ],
+      "catalogLabel": "Whensubmitted..."
+    },
+    {
+      "name": "message_received",
+      "qualifiedName": "events.message_received",
+      "kind": "event",
+      "syntax": "on message_received:",
+      "source": {
+        "scope": "top",
+        "category": "events",
+        "id": "9",
+        "key": "events/9"
+      },
+      "legacyName": "message_received",
+      "legacyAliases": [],
+      "sourceArgumentOrder": [],
+      "parameters": [],
+      "catalogLabel": "When message received..."
+    },
+    {
+      "name": "object_change",
+      "qualifiedName": "events.object_change",
+      "kind": "event",
+      "syntax": "on object_change(object):",
+      "source": {
+        "scope": "top",
+        "category": "events",
+        "id": "10",
+        "key": "events/10"
+      },
+      "legacyName": "object_changed",
+      "legacyAliases": [
+        "object_changed"
+      ],
+      "sourceArgumentOrder": [
+        0
+      ],
+      "parameters": [
+        {
+          "name": "object",
+          "position": 1,
+          "type": "object",
+          "catalogLabel": null,
+          "direction": "input",
+          "sourcePosition": 1
+        }
+      ],
+      "catalogLabel": "Whenchanged..."
+    },
+    {
+      "name": "site_message_received",
+      "qualifiedName": "events.site_message_received",
+      "kind": "event",
+      "syntax": "on site_message_received:",
+      "source": {
+        "scope": "top",
+        "category": "events",
+        "id": "14",
+        "key": "events/14"
+      },
+      "legacyName": "cross_site_message_received",
+      "legacyAliases": [
+        "cross_site_message_received"
+      ],
+      "sourceArgumentOrder": [],
+      "parameters": [],
+      "catalogLabel": "When cross-site message received..."
+    },
+    {
+      "name": "donation_complete",
+      "qualifiedName": "events.donation_complete",
+      "kind": "event",
+      "syntax": "on donation_complete:",
+      "source": {
+        "scope": "top",
+        "category": "events",
+        "id": "15",
+        "key": "events/15"
+      },
+      "legacyName": "donation_completed",
+      "legacyAliases": [
+        "donation_completed"
+      ],
+      "sourceArgumentOrder": [],
+      "parameters": [],
+      "catalogLabel": "When donation completed..."
+    }
+  ],
+  "languageConstructs": [
+    {
+      "name": "def",
+      "canonicalSyntax": "def <function_name>():",
+      "legacyName": "functions.define_function",
+      "source": {
+        "scope": "top",
+        "category": "functions",
+        "id": "6",
+        "key": "functions/6"
+      },
+      "parameters": [
+        {
+          "name": "function_name",
+          "position": 1,
+          "type": "string",
+          "catalogLabel": "function",
+          "direction": "input",
+          "sourcePosition": 1
+        }
+      ],
+      "notes": "Language declaration syntax, not a callable function. Legacy top functions/6 remains supported."
+    }
+  ],
+  "extraAliases": [
+    {
+      "name": "log",
+      "qualifiedName": "console.log",
+      "scope": "block"
+    },
+    {
+      "name": "warn",
+      "qualifiedName": "console.warn",
+      "scope": "block"
+    },
+    {
+      "name": "error",
+      "qualifiedName": "console.error",
+      "scope": "block"
+    }
+  ]
+}

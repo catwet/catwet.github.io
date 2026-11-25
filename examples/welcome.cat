@@ -1,7 +1,7 @@
-# Catweb Script Language (CSL)
+# Catweb Script Language API v2
 on load:
-log "Welcome to my Catweb site!"
-set visitor_count = "1"
+console.log("Welcome to my Catweb site!")
+visitor_count = 1
 
 on load:
-warn "This is a developer console message."
+console.warn("This is a developer console message.")

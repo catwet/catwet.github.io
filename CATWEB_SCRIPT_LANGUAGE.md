@@ -8,8 +8,8 @@ by Catweb. The Python compiler is in
 
 ## Events and Actions
 
-Each script is organized into events or functions. Actions are written as
-semantic named calls:
+Each script is organized into events or functions. Actions use the canonical
+names and parameter order in [`API_V2.md`](API_V2.md):
 
 ```text
 on load:
@@ -17,14 +17,15 @@ console.log("Welcome")
 visits = 1
 visits += 1
 
-on button_pressed("main-button"):
+on button_press("main-button"):
 console.warn("Button pressed")
 ```
 
-Available names are derived from the templates in
-`script/catalog-index.json`, with short names for events, variables,
-conditions, and common blocks. The Script Lab block panel shows valid calls and
-their arguments; click one to insert it. Arguments use simple literals:
+`API_REFERENCE.json` maps API v2 names onto the unchanged templates in
+`script/catalog-index.json`. Every previous function and event name remains a
+legacy alias and keeps its original argument order. The Script Lab block panel
+shows the canonical calls and their arguments; click one to insert it.
+Arguments use simple literals:
 strings, numbers, `True`, `False`, `None`, lists, dictionaries, and `...` for
 an undefined value. Values are converted to the format expected by each
 template. For example, if a Catweb template defines a value as a string, `1` is
@@ -34,18 +35,20 @@ Control blocks with end markers in the catalog are written with indentation:
 
 ```text
 on load:
-if logic.is_equal_to("status", "ready"):
+if logic.equals("status", "ready"):
     console.log("Continue")
 else:
     console.warn("Waiting")
 
-for loops.repeat_times(3):
+for loops.repeat(3):
     console.log("Repeat")
 ```
 
 Specific names and arguments depend on the available Catweb catalog. CSL
 covers the templates included in this repository; it cannot generate functions
-not described there or guarantee permissions or execution in the game.
+not described there or guarantee permissions or execution in the game. See
+[`API_MIGRATION.md`](API_MIGRATION.md) for all old-to-new names and parameter
+order mappings.
 
 ## Importing and Preserving Scripts
 
@@ -96,7 +99,7 @@ def valor_fijo():
     functions.return(10)
 
 on load:
-functions.run_function("valor_fijo", [], "resultado")
+functions.run("valor_fijo", [], "resultado")
 console.log("Resultado: {resultado}")
 ```
 
