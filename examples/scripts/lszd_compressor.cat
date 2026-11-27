@@ -1,0 +1,41 @@
+# LSZD demo: reversible compression with a small fixed pattern dictionary.
+# Add a TextBox with globalid C" and a TextButton with globalid B0.
+# Change those IDs below if your project uses different objects.
+# Codes 91-98 represent phrases; 90 escapes a literal 9.
+# This is fixed-pattern substitution, not a standard LZ77/LZSS implementation.
+# replace_in_by uses the native argument order: pattern, variable, replacement.
+
+on button_press("B0"):
+ui.get_text("C\"") = lszd_input
+text.length("{lszd_input}") = lszd_source_length
+
+lszd_compressed = "{lszd_input}"
+text.replace_in_by("9", "lszd_compressed", "90")
+text.replace_in_by(" que ", "lszd_compressed", "91")
+text.replace_in_by(" para ", "lszd_compressed", "92")
+text.replace_in_by(" con ", "lszd_compressed", "93")
+text.replace_in_by(" los ", "lszd_compressed", "94")
+text.replace_in_by(" las ", "lszd_compressed", "95")
+text.replace_in_by(" una ", "lszd_compressed", "96")
+text.replace_in_by(" del ", "lszd_compressed", "97")
+text.replace_in_by(" por ", "lszd_compressed", "98")
+text.length("{lszd_compressed}") = lszd_compressed_length
+
+console.log("LSZD input: {lszd_input}")
+console.log("LSZD output: {lszd_compressed}")
+console.log("Characters: {lszd_source_length} -> {lszd_compressed_length}")
+
+lszd_restored = "{lszd_compressed}"
+text.replace_in_by("91", "lszd_restored", " que ")
+text.replace_in_by("92", "lszd_restored", " para ")
+text.replace_in_by("93", "lszd_restored", " con ")
+text.replace_in_by("94", "lszd_restored", " los ")
+text.replace_in_by("95", "lszd_restored", " las ")
+text.replace_in_by("96", "lszd_restored", " una ")
+text.replace_in_by("97", "lszd_restored", " del ")
+text.replace_in_by("98", "lszd_restored", " por ")
+text.replace_in_by("90", "lszd_restored", "9")
+if logic.equals("{lszd_restored}", "{lszd_input}"):
+    console.log("LSZD round-trip: OK")
+else:
+    console.error("LSZD round-trip: ERROR")

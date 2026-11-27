@@ -129,6 +129,11 @@ supported; `raw` preserves JSON blocks without a recognized CSL form. See
 compatibility. [`docs/CATWEB_SCRIPT_LANGUAGE.md`](docs/CATWEB_SCRIPT_LANGUAGE.md)
 describes scopes, end markers, metadata, and generic catalog syntax.
 
+[`examples/scripts/lszd_compressor.cat`](examples/scripts/lszd_compressor.cat)
+is a small Catweb example: it reads a TextBox, replaces a fixed set of common
+Spanish phrases with reversible markers, logs the result, and checks that
+decoding restores the original text.
+
 The command creates `examples/scripts/welcome.json`, a
 `examples/projects/files.json`-style array with a folder, `script` object,
 top-level blocks, and ordered actions. JSON is compact

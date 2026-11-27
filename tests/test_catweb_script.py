@@ -14,6 +14,23 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class CatwebScriptTests(unittest.TestCase):
+    def test_lszd_pattern_compressor_example_compiles(self):
+        source = (ROOT / "examples" / "scripts" / "lszd_compressor.cat").read_text(
+            encoding="utf-8"
+        )
+        script = compile_script(source)[0]["children"][0]
+
+        self.assertEqual(len(script["content"]), 1)
+        self.assertTrue(script["content"][0]["actions"])
+        replace = next(
+            action for action in script["content"][0]["actions"]
+            if action["text"][0] == "Replace"
+        )
+        self.assertEqual(
+            [replace["text"][1]["value"], replace["text"][3]["value"], replace["text"][5]["value"]],
+            ["9", "lszd_compressed", "90"],
+        )
+
     def test_generic_blocks_cover_each_catalog_category(self):
         catalog = BlockCatalog()
         categories = set(catalog.sources) - {"catalog-index"}
