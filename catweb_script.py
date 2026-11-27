@@ -511,13 +511,15 @@ def _instantiate(template: Template, arguments: list[Any], metadata: dict[str, A
             field["value"] = value
     if template.scope == "top":
         node["actions"] = []
+        top_position = (metadata.pop("x", "0"), metadata.pop("y", "0"))
+    else:
+        top_position = None
     node["globalid"] = metadata.pop("globalid", None) or _gid()
     for key, value in metadata.items():
-        if key not in {"id", "text"} and not (template.scope == "top" and key in {"x", "y"}):
+        if key not in {"id", "text"}:
             node[key] = value
-    if template.scope == "top":
-        node["x"] = "0"
-        node["y"] = "0"
+    if top_position is not None:
+        node["x"], node["y"] = top_position
     return node
 
 
@@ -525,7 +527,7 @@ def _metadata_for(node: dict[str, Any], template: Template | None) -> dict[str, 
     meta: dict[str, Any] = {}
     baseline = template.node if template else {}
     for key, value in node.items():
-        if key in {"id", "text", "actions"} or (template and template.scope == "top" and key in {"x", "y"}):
+        if key in {"id", "text", "actions", "variable_scope"}:
             continue
         if key == "globalid" or key not in baseline or baseline.get(key) != value:
             meta[key] = value
@@ -635,8 +637,6 @@ def decompile_script(content: list[dict[str, Any]], catalog: BlockCatalog | None
             header += _metadata_suffix(metadata)
         else:
             raw_top = {key: value for key, value in node.items() if key != "actions"}
-            raw_top.pop("x", None)
-            raw_top.pop("y", None)
             sections.append(_raw_line("topraw", raw_top, 0))
             sections[-1] += "\n" + "\n".join(_decompile_actions(node.get("actions", []), catalog))
             continue
@@ -790,8 +790,8 @@ def compile_script(source: str, *, folder_alias: str = "CatWet Script Lab",
             if not isinstance(current_top, dict):
                 raise CompileError(f"line {line_number}: topraw must contain a JSON object")
             current_top.update(inline_metadata)
-            current_top["x"] = "0"
-            current_top["y"] = "0"
+            current_top.setdefault("x", "0")
+            current_top.setdefault("y", "0")
             if "actions" not in current_top:
                 current_top["actions"] = []
             elif not isinstance(current_top["actions"], list):
@@ -876,6 +876,23 @@ def compile_script(source: str, *, folder_alias: str = "CatWet Script Lab",
                 raise CompileError(f"line {line_number}: set requires a quoted string or Python literal") from exc
             template = catalog.get("block", "math-variables/11", line_number)
             append_action(template, [name, value], dict(inline_metadata), line_number, indent, "call")
+            previous_blank = False
+            continue
+
+        scoped_declaration = re.fullmatch(r"(local|global|obj)\s+([A-Za-z_]\w*)\s*=\s*(.+)", stripped)
+        if scoped_declaration:
+            scope, variable, raw_value = scoped_declaration.groups()
+            if scope != "global":
+                raise CompileError(
+                    f"line {line_number}: Catweb does not define {scope} variable declaration blocks; "
+                    "local/object variables are referenced through supported {l!name}/{o!name} fields"
+                )
+            try:
+                value = ast.literal_eval(raw_value)
+            except (SyntaxError, ValueError) as exc:
+                raise CompileError(f"line {line_number}: declaration value must be a Python literal") from exc
+            template = catalog.get("block", "math-variables/11", line_number)
+            append_action(template, [variable, value], dict(inline_metadata), line_number, indent, "call")
             previous_blank = False
             continue
 

@@ -31,6 +31,32 @@ an undefined value. Values are converted to the format expected by each
 template. For example, if a Catweb template defines a value as a string, `1` is
 stored as `"1"` to match that schema.
 
+## Variable Scope
+
+Plain assignments use Catweb's global variable behavior:
+
+```text
+visits = 1
+```
+
+The catalog contains no separate local/object declaration blocks, so CSL does
+not emit custom scope properties in Catweb JSON. Catweb's `{l!name}` and
+`{o!name}` references are used in supported fields for local and object values;
+they are not standalone assignment statements. `global name = value` is
+accepted as an explicit spelling of the ordinary assignment and decompiles to
+that native form.
+
+For Roblox-filtered or transmitted text, prefer compact numeric-pattern
+identifiers such as `v0`, `v1`, and `f0`; CSL identifiers must start with a
+letter or underscore. Keep the initial user input as the only unrestricted
+long text value, and use reversible numeric tokens for derived payloads where
+the algorithm supports it. Preserve Catweb-required API and object IDs exactly.
+The catalog does not document general character-code conversion, so arbitrary
+Unicode cannot be assumed to have a numeric-only encoding. For Python-side
+processing, [`catweb_text_codec.py`](catweb_text_codec.py) implements the
+repository's fixed Conn character table, but it is not an executable Catweb
+block and rejects characters outside that table.
+
 Control blocks with end markers in the catalog are written with indentation:
 
 ```text
@@ -55,8 +81,10 @@ order mappings.
 In CatWet Script Lab, you can import a complete Catweb project, a script, or a
 list of scripts. The explorer lets you select scripts and objects; selecting a
 script decompiles its content to CSL. When compiled, the result replaces that
-script's content in the imported project. Download exports the project as
-compact JSON, the reduced format accepted by Catweb.
+script's content in the imported project. **Export JSON** opens the final
+compact project JSON in a copyable modal; it does not download a file.
+Downloading `.cat` source is disabled while `.cat` compatibility remains a
+future prototype for the planned Script and 2D Viewer editor stages.
 Project objects retain their positions. `raw` actions and unknown data are
 preserved to prevent information loss.
 
@@ -74,7 +102,8 @@ the metadata can also preserve the identifier and extra properties of its
 implicit end block. They are not errors or text executed by Catweb. Keep them
 when editing imported scripts if you want to preserve those identifiers and
 properties. Positions do not need to be specified: top-level blocks are placed
-at `(0, 0)` when compiled.
+at `(0, 0)` when newly created. Imported top-level `x` and `y` coordinates are
+preserved through hidden metadata when the script is compiled.
 
 When a project is imported into CatWet Studio, metadata is separated from the
 editable source and kept internally by line. The code therefore contains no
@@ -86,7 +115,13 @@ comments for compatibility with Catweb and other CSL tools.
 Blocks without an interpretable name are represented as `raw` to preserve
 their data unchanged. An unrecognized top-level block is preserved as
 `topraw`. You can edit these forms directly to preserve a future or
-Catweb-specific template.
+Catweb-specific template. A named call is instantiated from the repository's
+current catalog, so it may produce a different block ID from an older imported
+template; keep `raw` or the legacy category/ID form when exact block identity
+matters. The project JSON remains unchanged until compilation replaces the
+script content. Top-level `x` and `y` are kept out of the editable CSL text,
+but appear in the hidden metadata indicator and are restored on compilation.
+Unrecognized `topraw` blocks retain their full original top-level fields.
 
 ## Function Return Values
 

@@ -1,0 +1,50 @@
+# ZUN - Catweb fixed-pattern dictionary compressor
+#
+# Connect a TextBox with globalid C" and a TextButton with globalid B0.
+# Change either ID below if your page uses different globalids.
+# To use a preset value instead, replace ui.get_text(...) with:
+#   v0 = "your text"
+#
+# This is reversible fixed-pattern substitution, not sliding-window LZSS.
+# Numeric markers use 9x; each source 9 is escaped as 90 first.
+# Unmatched source characters remain literal; this is not full numeric encoding.
+
+def f0():
+    text.replace("v0", "9", "90")
+    text.replace("v0", " que ", "91")
+    text.replace("v0", " para ", "92")
+    text.replace("v0", " con ", "93")
+    text.replace("v0", " los ", "94")
+    text.replace("v0", " las ", "95")
+    text.replace("v0", " una ", "96")
+    text.replace("v0", " del ", "97")
+    text.replace("v0", " por ", "98")
+    functions.return("{v0}")
+
+def f1():
+    v2 = "{v1}"
+    text.replace("v2", "91", " que ")
+    text.replace("v2", "92", " para ")
+    text.replace("v2", "93", " con ")
+    text.replace("v2", "94", " los ")
+    text.replace("v2", "95", " las ")
+    text.replace("v2", "96", " una ")
+    text.replace("v2", "97", " del ")
+    text.replace("v2", "98", " por ")
+    text.replace("v2", "90", "9")
+    functions.return("{v2}")
+
+on button_press("B0"):
+ui.get_text("C\"", "v0")
+text.length("{v0}", "v3")
+functions.run("f0", [], "v1")
+text.length("{v1}", "v4")
+functions.run("f1", [], "v2")
+console.log("0={v3}")
+console.log("1={v4}")
+console.log("2={v1}")
+ui.get_text("C\"", "v0")
+if logic.equals("{v0}", "{v2}"):
+    console.log("4=1")
+else:
+    console.error("4=0")

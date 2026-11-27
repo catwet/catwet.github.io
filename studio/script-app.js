@@ -1,5 +1,13 @@
 (() => {
   const $ = (selector) => document.querySelector(selector);
+  // .cat remains a future import/export format. It is intentionally disabled,
+  // while the JSON project format stays compatible and is exported explicitly.
+  const CAT_FORMAT_PROTOTYPE = Object.freeze({
+    enabled: false,
+    importEnabled: false,
+    exportEnabled: false,
+    futureSections: Object.freeze(['Script', 'Visor 2D']),
+  });
   const source = $('#source');
   const lineNumbers = $('#lineNumbers');
   const highlight = $('#highlight');
@@ -19,6 +27,10 @@
   const metadataDrafts = new Map();
   const dirtyUserScripts = new Set();
   const collapsed = new Set();
+  let projectTreeFilter = 'all';
+  let aiApiKey = '';
+  let aiRequestController = null;
+  let aiCompiledPreview = null;
   const appScriptUrl = document.currentScript && document.currentScript.src;
   const catalogBase = appScriptUrl
     ? new URL('../script/', appScriptUrl).toString()
@@ -127,6 +139,20 @@
   }[type] || '◇');
   const labelFor = (key) => key.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  const treeTypeLabel = (type) => ({
+    Folder: 'SITE',
+    script: 'SCRIPT',
+    Frame: 'FRAME',
+    TextLabel: 'TEXT',
+    TextButton: 'BUTTON',
+    'TextButton?link': 'LINK',
+    'TextButton?transfer': 'DONATE',
+    'TextButton?avataritem': 'ITEM',
+    ImageLabel: 'IMAGE',
+    ImageButton: 'IMAGE BTN',
+    TextBox: 'INPUT',
+    ScrollingFrame: 'SCROLL'
+  }[type] || 'OBJECT');
 
   function showToast(message) {
     const toast = $('#toast');
@@ -223,7 +249,10 @@
         continue;
       }
       if (!topCount) errors.push({ line, message: "Start with an event, for example 'on load:'." });
-      else if (!/^(?:(?:if|for)\s+.+\)\s*:|else:|(?:raw|block|scope|topraw|top)\s+|(?:log|warn|error)\s+|[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*\(|[A-Za-z_]\w*\s*(?:\+=|-=|\*=|\/=|=(?!=)))/i.test(trimmed)) {
+      else if (/^(?:local|obj)\s+[A-Za-z_]\w*\s*=/.test(trimmed)) {
+        errors.push({ line, message: 'Catweb has no local/object variable declaration block; use its scoped variable references in supported fields.' });
+      }
+      else if (!/^(?:(?:if|for)\s+.+\)\s*:|else:|(?:raw|block|scope|topraw|top)\s+|(?:log|warn|error)\s+|(?:local|global|obj)\s+[A-Za-z_]\w*\s*=.+|[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*\(|[A-Za-z_]\w*\s*(?:\+=|-=|\*=|\/=|=(?!=)))/i.test(trimmed)) {
         errors.push({ line, message: 'Unrecognized statement. Use named calls, assignments, or a raw JSON block.' });
       }
       previousLineBlank = false;
@@ -233,7 +262,7 @@
   }
 
   function highlightSource() {
-    const tokenPattern = /(#.*$|"(?:[^"\\]|\\.)*"|\b(?:on|load|def|topraw|top|raw|block|if|for|else|None|True|False)\b|\b[A-Za-z_][A-Za-z0-9_]*\b|[:=@])/gm;
+    const tokenPattern = /(#.*$|"(?:[^"\\]|\\.)*"|\b(?:on|load|def|topraw|top|raw|block|scope|if|for|else|local|global|obj|None|True|False)\b|\b[A-Za-z_][A-Za-z0-9_]*\b|[:=@])/gm;
     let output = '';
     let lastIndex = 0;
     let match;
@@ -242,7 +271,7 @@
       const token = match[0];
       const kind = token.startsWith('#') ? 'comment'
         : token.startsWith('"') ? 'string'
-          : /^(on|load|def|topraw|top|raw|block|if|for|else|None|True|False|:|=|@)$/.test(token) ? 'keyword' : 'variable';
+          : /^(on|load|def|topraw|top|raw|block|scope|if|for|else|local|global|obj|None|True|False|:|=|@)$/.test(token) ? 'keyword' : 'variable';
       output += `<span class="tok-${kind}">${escapeHtml(token)}</span>`;
       lastIndex = tokenPattern.lastIndex;
     }
@@ -300,49 +329,94 @@
 
   function renderProjectTree() {
     const tree = $('#projectTree');
+    const rootId = documentData[0].globalid;
+    const query = $('#projectSearch').value.trim().toLowerCase();
+    const allNodes = [];
+    const collect = (node) => {
+      allNodes.push(node);
+      (node.children || []).forEach(collect);
+    };
+    collect(documentData[0]);
+    const scripts = allNodes.filter((node) => node.class === 'script');
+    const uiObjects = allNodes.filter((node) => node.globalid !== rootId
+      && node.class !== 'script' && node.class !== 'Folder');
+    const itemCount = allNodes.length - 1;
+    $('#projectItemCount').textContent = String(itemCount);
+    $('#projectUiCount').textContent = String(uiObjects.length);
+    $('#projectScriptCount').textContent = String(scripts.length);
+    $('#treeAllCount').textContent = String(itemCount);
+    $('#treeUiCount').textContent = String(uiObjects.length);
+    $('#treeScriptCount').textContent = String(scripts.length);
+
+    const scriptNumbers = new Map(scripts.map((node, index) => [node.globalid, index + 1]));
+    const labelOf = (node) => node.text || node.alias
+      || (node.class === 'script' ? `Script ${scriptNumbers.get(node.globalid)}` : node.class);
+    const matchesOwnFilter = (node) => node.globalid === rootId
+      || projectTreeFilter === 'all'
+      || (projectTreeFilter === 'scripts' && node.class === 'script')
+      || (projectTreeFilter === 'ui' && node.class !== 'script' && node.class !== 'Folder');
+    const matchesQuery = (node) => !query
+      || `${labelOf(node)} ${node.class} ${node.globalid}`.toLowerCase().includes(query);
+    const visible = (node) => matchesOwnFilter(node) && matchesQuery(node)
+      || (node.children || []).some(visible);
     const addRows = (node, depth = 0) => {
       const children = node.children || [];
-      const hasChildren = children.length > 0;
+      const visibleChildren = children.filter(visible);
+      const hasChildren = visibleChildren.length > 0;
       const isCollapsed = collapsed.has(node.globalid);
       const row = document.createElement('div');
       row.className = `project-tree-row${node.globalid === selectedNodeId ? ' selected' : ''}`;
       row.setAttribute('role', 'treeitem');
+      row.setAttribute('aria-level', String(depth + 1));
       row.setAttribute('aria-selected', node.globalid === selectedNodeId ? 'true' : 'false');
       row.style.paddingLeft = `${8 + depth * 14}px`;
       row.innerHTML = `${hasChildren
         ? `<button class="tree-toggle" type="button" data-toggle-id="${escapeHtml(node.globalid)}" aria-label="${isCollapsed ? 'Expand' : 'Collapse'}" aria-expanded="${!isCollapsed}">${isCollapsed ? '▸' : '▾'}</button>`
-        : '<span class="tree-spacer"></span>'}<span class="tree-object-icon">${iconFor(node.class)}</span><span class="tree-object-name">${escapeHtml(node.text || node.alias || node.class)}</span><span class="tree-object-type">${escapeHtml(node.class)}</span>`;
+        : '<span class="tree-spacer"></span>'}<span class="tree-object-icon">${iconFor(node.class)}</span><span class="tree-object-name">${escapeHtml(labelOf(node))}</span><span class="tree-object-type">${escapeHtml(treeTypeLabel(node.class))}</span>`;
       row.dataset.nodeId = node.globalid;
       tree.append(row);
-      if (!isCollapsed) children.forEach((child) => addRows(child, depth + 1));
+      if (!isCollapsed || query) visibleChildren.forEach((child) => addRows(child, depth + 1));
     };
     tree.replaceChildren();
     addRows(documentData[0]);
+    const visibleItemCount = allNodes.slice(1).filter((node) => matchesOwnFilter(node) && matchesQuery(node)).length;
+    if (itemCount && !visibleItemCount) {
+      const empty = document.createElement('p');
+      empty.className = 'tree-empty';
+      empty.textContent = query ? 'No matching project items.' : 'No items in this view.';
+      tree.append(empty);
+    }
+    const selected = nodeById(selectedNodeId);
+    const target = selected && ['Folder', 'Frame', 'ScrollingFrame'].includes(selected.class)
+      ? selected
+      : selected && parentOf(selectedNodeId) || documentData[0];
+    $('#addTargetLabel').textContent = target.alias || target.text || (target.globalid === rootId ? 'Website root' : target.class);
   }
 
   function renderObjectProperties(node) {
-    const fields = Object.entries(node).filter(([key]) => key !== 'children' && key !== 'content');
+    const fields = Object.entries(node).filter(([key]) => key !== 'children' && key !== 'content'
+      && !(node.class === 'Folder' && key === 'alias'));
     const controls = fields.map(([key, value], index) => {
       const type = value === null ? 'null' : Array.isArray(value) || typeof value === 'object' ? 'json' : typeof value;
+      const readOnly = key === 'class' || key === 'globalid';
       const control = type === 'boolean'
         ? `<select id="object-property-${index}" class="property-input" data-property="${escapeHtml(key)}" data-type="boolean"><option value="true"${value ? ' selected' : ''}>Yes</option><option value="false"${value ? '' : ' selected'}>No</option></select>`
         : type === 'json' || type === 'null'
           ? `<textarea id="object-property-${index}" class="property-input property-json" data-property="${escapeHtml(key)}" data-type="json" rows="2">${escapeHtml(JSON.stringify(value))}</textarea>`
-          : `<input id="object-property-${index}" class="property-input" data-property="${escapeHtml(key)}" data-type="${type}" value="${escapeHtml(value)}">`;
+          : `<input id="object-property-${index}" class="property-input" data-property="${escapeHtml(key)}" data-type="${type}" value="${escapeHtml(value)}"${readOnly ? ' readonly aria-readonly="true"' : ''}>`;
       return `<div class="property-field"><label for="object-property-${index}">${escapeHtml(labelFor(key))}<small>${escapeHtml(key)}</small></label>${control}</div>`;
     }).join('');
-    return `<div class="inspector-heading">PROPERTIES <span>${escapeHtml(node.class)}</span></div><div class="property-grid">${controls}</div><details class="advanced-properties"><summary>Advanced JSON</summary><textarea id="objectPropertiesRaw" class="json-input" spellcheck="false"></textarea></details><button id="applyObjectProperties" class="tool-button apply-properties">Apply properties</button>`;
+    const deleteButton = node.class === 'Folder' ? '' : '<button id="deleteProjectObject" class="tool-button delete-project-object" type="button">Remove from project</button>';
+    return `<div class="inspector-heading">CATWEB PROPERTIES <span>${escapeHtml(node.class)}</span></div><div class="property-grid">${controls}</div><details class="advanced-properties"><summary>Advanced JSON</summary><textarea id="objectPropertiesRaw" class="json-input" spellcheck="false"></textarea></details><button id="applyObjectProperties" class="tool-button apply-properties" type="button">Apply properties</button>${deleteButton}`;
   }
 
   function renderInspector() {
     const selected = nodeById(selectedNodeId);
     const inspector = $('#objectInspector');
-    if (!selected) {
-      inspector.innerHTML = '<div class="inspector-placeholder">Select a project object.</div>';
-      return;
-    }
+    if (!selected) return;
     if (selected.class === 'script') {
-      inspector.replaceChildren();
+      const actions = (selected.content || []).reduce((count, block) => count + (block.actions || []).length, 0);
+      inspector.innerHTML = `<div class="inspector-heading">SCRIPT DETAILS <span>Catweb</span></div><p class="inspector-placeholder">${selected.content.length} top-level blocks · ${actions} actions. Edit in the script workspace. Existing block IDs and layout positions are preserved as metadata.</p><button id="deleteProjectObject" class="tool-button delete-project-object" type="button">Remove script</button>`;
       return;
     }
     inspector.innerHTML = renderObjectProperties(selected);
@@ -355,10 +429,6 @@
     $('#folderAlias').value = documentData[0].alias || '';
     $('#projectName').textContent = documentData[0].alias || projectLabelFallback;
     $('#breadcrumbProject').textContent = documentData[0].alias || projectLabelFallback;
-  }
-
-  function countObjects(node) {
-    return 1 + (node.children || []).reduce((sum, child) => sum + countObjects(child), 0);
   }
 
   function formatLiteral(value) {
@@ -414,10 +484,10 @@
 
   function refreshProjectJson(status = 'Project ready · compact') {
     lastJson = JSON.stringify(documentData);
-    $('#output').textContent = lastJson;
-    $('#outputStatus').textContent = sourceDirty ? 'Uncompiled code · saved JSON available' : status;
-    $('#download').disabled = false;
-    $('#copy').disabled = sourceDirty;
+    const statusElement = $('#outputStatus');
+    if (statusElement) statusElement.textContent = sourceDirty ? 'Uncompiled code · saved JSON available' : status;
+    const exportButton = $('#exportProject');
+    if (exportButton) exportButton.disabled = false;
   }
 
   function markSourceDirty() {
@@ -426,8 +496,8 @@
       dirtyUserScripts.add(activeScriptId);
     }
     sourceDirty = true;
-    $('#outputStatus').textContent = 'Uncompiled code · export to compile';
-    $('#copy').disabled = true;
+    const status = $('#outputStatus');
+    if (status) status.textContent = 'Uncompiled code · export to compile';
   }
 
   function updateEditor(markDirty = false) {
@@ -448,8 +518,8 @@
     activeMetadata = new Map();
     previousSourceValue = source.value;
     $('#scriptTitle').textContent = scriptNode.alias || scriptNode.name || 'script';
-    $('#breadcrumbScript').textContent = `${$('#scriptTitle').textContent}.cat`;
-    $('#windowTitle').textContent = `Script Lab — ${$('#scriptTitle').textContent}.cat`;
+    $('#breadcrumbScript').textContent = $('#scriptTitle').textContent;
+    $('#windowTitle').textContent = `Script Lab — ${$('#scriptTitle').textContent}`;
     catalogPromise.then((catalog) => {
       if (activeScriptId !== scriptNode.globalid) return;
       if (drafts.has(scriptNode.globalid)) {
@@ -482,6 +552,7 @@
     if (sourceDirty && activeScriptId) {
       drafts.set(activeScriptId, source.value);
       metadataDrafts.set(activeScriptId, new Map(activeMetadata));
+      dirtyUserScripts.add(activeScriptId);
     }
     selectedNodeId = id;
     renderProject();
@@ -516,15 +587,17 @@
       selectedNodeId = first.globalid;
       renderProject();
       loadScriptIntoEditor(first);
-      $('#saveSource').disabled = false;
+      const saveSourceButton = $('#saveSource');
+      if (saveSourceButton) saveSourceButton.disabled = false;
     } else {
       source.value = '';
       previousSourceValue = source.value;
       source.disabled = true;
       $('#scriptTitle').textContent = 'no_script';
-      $('#breadcrumbScript').textContent = 'no_script.cat';
+      $('#breadcrumbScript').textContent = 'no script';
       $('#windowTitle').textContent = 'Script Lab — no script';
-      $('#saveSource').disabled = true;
+      const saveSourceButton = $('#saveSource');
+      if (saveSourceButton) saveSourceButton.disabled = true;
       updateEditor(false);
       renderProject();
     }
@@ -597,6 +670,269 @@
     }
   }
 
+  async function compilePendingScripts() {
+    const pendingIds = [...new Set([
+      ...dirtyUserScripts,
+      ...(sourceDirty && activeScriptId ? [activeScriptId] : [])
+    ])];
+    if (!pendingIds.length) return true;
+    try {
+      const catalog = await catalogPromise;
+      for (const id of pendingIds) {
+        const target = nodeById(id);
+        if (!target || target.class !== 'script') {
+          drafts.delete(id);
+          metadataDrafts.delete(id);
+          dirtyUserScripts.delete(id);
+          continue;
+        }
+        const text = id === activeScriptId ? source.value : drafts.get(id) || '';
+        const metadata = id === activeScriptId ? activeMetadata : metadataDrafts.get(id) || new Map();
+        if (!text.trim()) {
+          target.content = [];
+        } else {
+          const errors = inspectSource(text);
+          if (errors.length) {
+            showToast(`Cannot export script ${scriptsInProject().indexOf(target) + 1}: ${errors[0].message}`);
+            return false;
+          }
+          const result = CatwebCSL.compileScript(text, {
+            catalog,
+            folderAlias: $('#folderAlias').value.trim() || 'CatWet Script Lab',
+            metadataByLine: metadata
+          });
+          target.content = result[0].children[0].content;
+        }
+        drafts.delete(id);
+        metadataDrafts.delete(id);
+        dirtyUserScripts.delete(id);
+      }
+      sourceDirty = false;
+      renderProject();
+      updateEditor(false);
+      refreshProjectJson('Project compiled · compact');
+      showToast(`${pendingIds.length} changed ${pendingIds.length === 1 ? 'script' : 'scripts'} compiled.`);
+      return true;
+    } catch (error) {
+      showToast(`Could not compile project scripts: ${error.message}`);
+      return false;
+    }
+  }
+
+  function setAIStatus(message, state = '') {
+    const status = $('#aiStatus');
+    status.textContent = message;
+    status.classList.toggle('error', state === 'error');
+    status.classList.toggle('success', state === 'success');
+  }
+
+  function invalidateAIPreview(message = 'Code changed · compile again before adding.') {
+    aiCompiledPreview = null;
+    $('#aiJsonPreview').value = '';
+    $('#aiJsonDetails').open = false;
+    $('#addAIScript').disabled = true;
+    if (message) setAIStatus(message);
+  }
+
+  async function buildAIContext(catalog) {
+    const documentationFiles = ['CATWEB_SCRIPT_LANGUAGE.md', 'AI_PROJECT_GUIDE.md'];
+    const documentation = await Promise.all(documentationFiles.map(async (path) => {
+      const response = await fetch(new URL(path, document.baseURI), { credentials: 'same-origin' });
+      if (!response.ok) throw new Error(`Could not load ${path} for the AI context (HTTP ${response.status}).`);
+      return `## ${path}\n${await response.text()}`;
+    }));
+    const calls = [...catalog.byKey.values()]
+      .filter((item) => item.callName)
+      .map((item) => {
+        const parameters = (item.node.text || [])
+          .filter((part) => part && typeof part === 'object' && !Array.isArray(part))
+          .map((part) => `${part.l || 'value'}:${part.t || 'any'}`);
+        return `- ${item.callName}(${parameters.join(', ')}) [${item.scope}; ${item.key}]`;
+      })
+      .join('\n');
+    return `${documentation.join('\n\n')}\n\n## Available catalog calls\n${calls}`;
+  }
+
+  function cleanAICode(text) {
+    const trimmed = text.replace(/^\uFEFF/, '').trim();
+    const fenced = trimmed.match(/^```(?:catweb|csl|cat|text)?\s*\n([\s\S]*?)\n```$/i);
+    return (fenced ? fenced[1] : trimmed).trim();
+  }
+
+  async function generateAICode() {
+    const endpoint = $('#aiEndpoint').value.trim();
+    const model = $('#aiModel').value.trim();
+    const prompt = $('#aiPrompt').value.trim();
+    aiApiKey = $('#aiApiKey').value.trim();
+    if (!endpoint) {
+      setAIStatus('Enter a provider endpoint URL.', 'error');
+      return;
+    }
+    if (!model) {
+      setAIStatus('Enter the model ID required by your provider.', 'error');
+      return;
+    }
+    if (!prompt) {
+      setAIStatus('Describe what the Catweb script should do.', 'error');
+      return;
+    }
+    if (!window.CatwebAI) {
+      setAIStatus('The provider adapter did not load. Reload the page and try again.', 'error');
+      return;
+    }
+    $('#generateAI').disabled = true;
+    $('#cancelAI').hidden = false;
+    setAIStatus('Preparing Catweb docs and catalog…');
+    aiRequestController = new AbortController();
+    try {
+      const catalog = await catalogPromise;
+      const context = await buildAIContext(catalog);
+      setAIStatus('Sending prompt and public Catweb references to your configured provider…');
+      const response = await window.CatwebAI.generateChatCompletion({
+        endpoint,
+        model,
+        apiKey: aiApiKey,
+        messages: [
+          {
+            role: 'system',
+            content: [
+              'Generate complete Catweb Script Language (CSL) source code, not Python, Luau, or JSON.',
+              'Follow the supplied CSL documentation and use only calls present in the supplied Catweb catalog.',
+              'Plain assignments are global. Do not invent local/object declaration syntax, functions, blocks, or properties.',
+              'Use valid top-level events/functions, correct indentation and blank lines between top-level sections.',
+              'Return only CSL source, with no prose or Markdown fences. If a requested behavior is unsupported, do not fake it.'
+            ].join(' ')
+          },
+          { role: 'user', content: `${context}\n\n## User request\n${prompt}` }
+        ],
+        signal: aiRequestController.signal
+      });
+      const code = cleanAICode(response);
+      if (!code) throw new Error('The provider returned an empty CSL response.');
+      $('#aiCode').value = code;
+      $('#compileAI').disabled = false;
+      invalidateAIPreview('CSL received · review it, then compile locally.');
+      setAIStatus('CSL received · review it, then compile locally.', 'success');
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        setAIStatus('Provider request cancelled.');
+      } else {
+        const detail = error instanceof TypeError
+          ? `${error.message} Check the endpoint, network, and provider CORS settings.`
+          : error.message;
+        setAIStatus(detail || 'Provider request failed.', 'error');
+      }
+    } finally {
+      aiRequestController = null;
+      $('#generateAI').disabled = false;
+      $('#cancelAI').hidden = true;
+    }
+  }
+
+  async function compileAICode() {
+    const code = $('#aiCode').value.trim();
+    if (!code) {
+      invalidateAIPreview('Generate or enter CSL source before compiling.');
+      return;
+    }
+    $('#compileAI').disabled = true;
+    $('#addAIScript').disabled = true;
+    setAIStatus('Compiling with the local Catweb catalog…');
+    try {
+      const errors = inspectSource(code);
+      if (errors.length) throw new Error(`Line ${errors[0].line}: ${errors[0].message}`);
+      const catalog = await catalogPromise;
+      const project = CatwebCSL.compileScript(code, {
+        catalog,
+        folderAlias: $('#folderAlias').value.trim() || 'CatWet Script Lab'
+      });
+      aiCompiledPreview = { code, project };
+      $('#aiJsonPreview').value = JSON.stringify(project);
+      $('#aiJsonDetails').open = true;
+      $('#addAIScript').disabled = false;
+      setAIStatus('Compile succeeded · JSON preview is local and ready to add.', 'success');
+    } catch (error) {
+      aiCompiledPreview = null;
+      $('#aiJsonPreview').value = '';
+      $('#aiJsonDetails').open = false;
+      setAIStatus(error.message || 'CSL compilation failed.', 'error');
+    } finally {
+      $('#compileAI').disabled = false;
+    }
+  }
+
+  async function addAICodeAsScript() {
+    if (!aiCompiledPreview || aiCompiledPreview.code !== $('#aiCode').value.trim()) {
+      invalidateAIPreview('Compile the current CSL source before adding it.');
+      return;
+    }
+    $('#addAIScript').disabled = true;
+    const root = aiCompiledPreview.project && aiCompiledPreview.project[0];
+    const previewScript = root && Array.isArray(root.children)
+      ? root.children.find((child) => child.class === 'script')
+      : null;
+    if (!previewScript || previewScript.class !== 'script') {
+      setAIStatus('Compiler output did not contain a Catweb script object.', 'error');
+      $('#addAIScript').disabled = false;
+      return;
+    }
+    try {
+      const catalog = await catalogPromise;
+      const extracted = extractMetadata(CatwebCSL.decompileScript(previewScript.content, catalog));
+      if (sourceDirty && activeScriptId) {
+        drafts.set(activeScriptId, source.value);
+        metadataDrafts.set(activeScriptId, new Map(activeMetadata));
+        dirtyUserScripts.add(activeScriptId);
+      }
+      const scriptNode = {
+        class: 'script',
+        globalid: uid(),
+        content: clone(previewScript.content)
+      };
+      documentData[0].children ||= [];
+      documentData[0].children.push(scriptNode);
+      selectedNodeId = scriptNode.globalid;
+      activeScriptId = scriptNode.globalid;
+      sourceDirty = false;
+      drafts.delete(scriptNode.globalid);
+      metadataDrafts.delete(scriptNode.globalid);
+      dirtyUserScripts.delete(scriptNode.globalid);
+      source.value = extracted.source;
+      previousSourceValue = source.value;
+      activeMetadata = extracted.metadata;
+      source.disabled = false;
+      $('#scriptTitle').textContent = 'script';
+      $('#breadcrumbScript').textContent = 'script';
+      $('#windowTitle').textContent = `Script Lab — ${documentData[0].alias || projectLabelFallback}`;
+      const saveSourceButton = $('#saveSource');
+      if (saveSourceButton) saveSourceButton.disabled = false;
+      renderProject();
+      updateEditor(false);
+      refreshProjectJson('AI script added · compact');
+      invalidateAIPreview('Script added · compile again before adding another copy.');
+      closeAIModal();
+      showToast('Compiled AI script added to the project. Test it in Catweb.');
+    } catch (error) {
+      setAIStatus(`Could not add compiled script: ${error.message}`, 'error');
+      $('#addAIScript').disabled = false;
+    }
+  }
+
+  function openAIModal() {
+    $('#aiModal').classList.add('open');
+    $('#aiModal').setAttribute('aria-hidden', 'false');
+    $('#aiPrompt').focus();
+  }
+
+  function closeAIModal() {
+    if (aiRequestController) aiRequestController.abort();
+    aiApiKey = '';
+    $('#aiApiKey').value = '';
+    $('#aiModal').classList.remove('open');
+    $('#aiModal').setAttribute('aria-hidden', 'true');
+    $('#openAI').focus();
+  }
+
   function replaceSelectedObject(edited) {
     const oldId = selectedNodeId;
     const candidate = clone(documentData);
@@ -646,6 +982,10 @@
   }
 
   function createScript() {
+    if (sourceDirty && activeScriptId) {
+      drafts.set(activeScriptId, source.value);
+      metadataDrafts.set(activeScriptId, new Map(activeMetadata));
+    }
     const scriptNode = { class: 'script', globalid: uid(), content: [] };
     documentData[0].children ||= [];
     documentData[0].children.push(scriptNode);
@@ -658,13 +998,77 @@
     activeMetadata = new Map();
     previousSourceValue = source.value;
     $('#scriptTitle').textContent = 'script';
-    $('#breadcrumbScript').textContent = 'script.cat';
-    $('#windowTitle').textContent = 'Script Lab — script.cat';
-    $('#saveSource').disabled = false;
+    $('#breadcrumbScript').textContent = 'script';
+    $('#windowTitle').textContent = 'Script Lab — script';
+    const saveSourceButton = $('#saveSource');
+    if (saveSourceButton) saveSourceButton.disabled = false;
     renderProject();
     updateEditor(false);
     refreshProjectJson('New script · compact project');
     showToast('New script created; start with on load:.');
+  }
+
+  function addProjectObject(type) {
+    if (type === 'script') {
+      createScript();
+      return;
+    }
+    const selected = nodeById(selectedNodeId);
+    const target = selected && ['Folder', 'Frame', 'ScrollingFrame'].includes(selected.class)
+      ? selected
+      : selected && parentOf(selectedNodeId) || documentData[0];
+    const node = { class: type, globalid: uid(), children: [] };
+    if (type === 'Frame') Object.assign(node, { size: '{1, 0},{0.25, 0}', background_color: '#f1f4f0' });
+    if (type === 'TextLabel') Object.assign(node, { text: 'New text', size: '{1, 0},{0.1, 0}', font_size: 'scaled', rich: 'false' });
+    if (type.startsWith('TextButton')) Object.assign(node, { text: 'New button', size: '{0.4, 0},{0.12, 0}', background_color: '#4e9bff', font_size: 'scaled', auto_color: 'true' });
+    if (type === 'ImageLabel' || type === 'ImageButton') Object.assign(node, { image: 'rbxassetid://', size: '{0.3, 0},{0.2, 0}' });
+    if (type === 'TextBox') Object.assign(node, { text: '', placeholder: 'Type here', editable: 'true', multiline: 'false', size: '{0.5, 0},{0.1, 0}' });
+    if (type === 'ScrollingFrame') Object.assign(node, { canvassize: '{0, 0},{2, 0}', size: '{1, 0},{0.5, 0}' });
+    target.children ||= [];
+    target.children.push(node);
+    selectedNodeId = node.globalid;
+    renderProject();
+    refreshProjectJson('Catweb object added · compact');
+    showToast(`${labelFor(type.split('?')[0])} added to ${target.alias || target.text || 'project'}.`);
+  }
+
+  function deleteSelectedProjectObject() {
+    const selected = nodeById(selectedNodeId);
+    const parent = selected && parentOf(selectedNodeId);
+    if (!selected || !parent) return;
+    const removedScripts = scriptsInProject(selected);
+    const hasUnsavedScript = removedScripts.some((scriptNode) => dirtyUserScripts.has(scriptNode.globalid));
+    if (hasUnsavedScript && !window.confirm('This object contains uncompiled script changes. Remove it anyway?')) return;
+    parent.children = (parent.children || []).filter((node) => node.globalid !== selected.globalid);
+    collapsed.delete(selected.globalid);
+    removedScripts.forEach((scriptNode) => {
+      drafts.delete(scriptNode.globalid);
+      metadataDrafts.delete(scriptNode.globalid);
+      dirtyUserScripts.delete(scriptNode.globalid);
+    });
+    const deletedActiveScript = removedScripts.some((scriptNode) => scriptNode.globalid === activeScriptId);
+    if (deletedActiveScript) {
+      activeScriptId = null;
+      sourceDirty = false;
+      activeMetadata = new Map();
+      source.value = '';
+      previousSourceValue = '';
+      source.disabled = true;
+      $('#scriptTitle').textContent = 'no script';
+      $('#breadcrumbScript').textContent = 'no script';
+      $('#windowTitle').textContent = `Script Lab — ${documentData[0].alias || projectLabelFallback}`;
+      const saveSourceButton = $('#saveSource');
+      if (saveSourceButton) saveSourceButton.disabled = true;
+    }
+    selectedNodeId = parent.globalid;
+    renderProject();
+    refreshProjectJson('Catweb object removed · compact');
+    if (deletedActiveScript) {
+      const nextScript = scriptsInProject()[0];
+      if (nextScript) selectNode(nextScript.globalid);
+      else updateEditor(false);
+    }
+    showToast(`${selected.class === 'script' ? 'Script' : labelFor(selected.class)} removed from project.`);
   }
 
   function downloadProject() {
@@ -680,14 +1084,7 @@
   }
 
   function saveSource() {
-    const blob = new Blob([sourceWithMetadata(source.value, activeMetadata) + '\n'], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const name = ($('#scriptTitle').textContent || 'my_site').replace(/[^\w-]+/g, '_');
-    link.href = url;
-    link.download = `${name || 'my_site'}.cat`;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('.cat import/export is reserved for a future editor stage.');
   }
 
   function clearOutput() {
@@ -733,23 +1130,55 @@
       updateEditor(true);
     }));
   $('#compile').addEventListener('click', compile);
-  $('#saveSource').addEventListener('click', saveSource);
-  $('#download').addEventListener('click', async () => {
-    if (sourceDirty && source.value.trim()) {
-      const saved = await compile();
+  const openJsonModal = (json) => {
+    $('#jsonModalContent').value = json;
+    $('#jsonCopyStatus').textContent = 'Ready to copy';
+    $('#jsonModal').classList.add('open');
+    $('#jsonModal').setAttribute('aria-hidden', 'false');
+    $('#jsonModalContent').focus();
+  };
+  const closeJsonModal = () => {
+    $('#jsonModal').classList.remove('open');
+    $('#jsonModal').setAttribute('aria-hidden', 'true');
+    $('#exportProject').focus();
+  };
+  $('#exportProject').addEventListener('click', async () => {
+    if (dirtyUserScripts.size || sourceDirty) {
+      const saved = await compilePendingScripts();
       if (!saved) return;
-    } else if (sourceDirty && activeScriptId) {
-      const scriptNode = nodeById(activeScriptId);
-      if (scriptNode) scriptNode.content = [];
-      sourceDirty = false;
-      drafts.delete(activeScriptId);
-      metadataDrafts.delete(activeScriptId);
-      activeMetadata = new Map();
-      dirtyUserScripts.delete(activeScriptId);
-      refreshProjectJson('Project ready · compact');
     }
     if (!lastJson) refreshProjectJson();
-    downloadProject();
+    openJsonModal(lastJson);
+  });
+  $('#openAI').addEventListener('click', openAIModal);
+  $('#closeAI').addEventListener('click', closeAIModal);
+  $('#aiModal [data-close-ai]').addEventListener('click', closeAIModal);
+  $('#generateAI').addEventListener('click', generateAICode);
+  $('#cancelAI').addEventListener('click', () => {
+    if (aiRequestController) aiRequestController.abort();
+  });
+  $('#aiCode').addEventListener('input', () => {
+    invalidateAIPreview();
+    $('#compileAI').disabled = !$('#aiCode').value.trim();
+  });
+  $('#compileAI').addEventListener('click', compileAICode);
+  $('#addAIScript').addEventListener('click', addAICodeAsScript);
+  $('#closeJsonModal').addEventListener('click', closeJsonModal);
+  $('[data-close-modal]').addEventListener('click', closeJsonModal);
+  $('#copyJson').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('#jsonModalContent').value);
+      $('#jsonCopyStatus').textContent = 'Copied successfully';
+      showToast('Project JSON copied.');
+    } catch {
+      $('#jsonModalContent').select();
+      $('#jsonCopyStatus').textContent = 'Text selected; press Ctrl+C';
+      showToast('Automatic copying is unavailable.');
+    }
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && $('#jsonModal').classList.contains('open')) closeJsonModal();
+    if (event.key === 'Escape' && $('#aiModal').classList.contains('open')) closeAIModal();
   });
   $('#openProject').addEventListener('click', () => $('#fileInput').click());
   $('#fileInput').addEventListener('change', async (event) => {
@@ -788,11 +1217,28 @@
     source.setSelectionRange(offset, offset);
   });
   $('#newScript').addEventListener('click', createScript);
+  $('.project-add').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-add-object]');
+    if (button) addProjectObject(button.dataset.addObject);
+  });
   $('#objectInspector').addEventListener('click', (event) => {
+    if (event.target.closest('#deleteProjectObject')) deleteSelectedProjectObject();
     if (event.target.closest('#applyObjectProperties')) {
       try { applyObjectProperties(); }
       catch (error) { showToast(`Could not apply properties: ${error.message}`); }
     }
+  });
+  $('#projectSearch').addEventListener('input', renderProjectTree);
+  $('.tree-filters').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-tree-filter]');
+    if (!button) return;
+    projectTreeFilter = button.dataset.treeFilter;
+    $('.tree-filters').querySelectorAll('[data-tree-filter]').forEach((filterButton) => {
+      const active = filterButton === button;
+      filterButton.classList.toggle('active', active);
+      filterButton.setAttribute('aria-pressed', String(active));
+    });
+    renderProjectTree();
   });
   $('#folderAlias').addEventListener('input', () => {
     documentData[0].alias = $('#folderAlias').value;
@@ -834,19 +1280,6 @@
   $('#activityEvents').addEventListener('click', () => {
     const firstEvent = $('#eventTree .event-node');
     if (firstEvent) firstEvent.click();
-  });
-  $('#copy').addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(lastJson);
-      showToast('Project JSON copied.');
-    } catch {
-      showToast('The browser did not allow automatic copying.');
-    }
-  });
-  $('#clearOutput').addEventListener('click', clearOutput);
-  $('#toggleOutput').addEventListener('click', () => {
-    const isOpen = $('#outputPanel').classList.toggle('open');
-    $('#toggleOutput').setAttribute('aria-expanded', String(isOpen));
   });
   $('#catalogSearch').addEventListener('input', (event) =>
     catalogPromise.then((catalog) => renderCatalog(catalog, event.target.value)));

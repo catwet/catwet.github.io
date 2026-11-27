@@ -174,10 +174,28 @@ Each property applies to its respective object and specific data type.
 - Wrap List
 - Wrap Text
 
-# Important: Roblox Filters Non-Numeric Data
-When sending data to another website, it may be censored and fail to arrive.
-For this, community-created functions convert letters into numbers.
-These functions are usually encoders/decoders, often called `e` and `d` when used in code.
+# Important: Roblox Text Filtering
+Some Catweb users have observed long text being censored when sent between
+websites. Roblox's [text-filtering documentation](https://create.roblox.com/docs/ui/text-filtering)
+describes filtering user-provided or displayed text, not JSON structure
+validation. The repository has no evidence that spaces in JSON, `raw` blocks,
+variable names, or coordinates alone trigger censorship; the exact Catweb
+runtime data flow needs to be tested.
+For scripts that transmit or derive long text, keep the original input as the
+only unrestricted text value and use compact, reversible numeric-token payloads
+for intermediate values. Prefer short numeric-pattern variable names such as
+`v0` and `v1` (CSL identifiers require a letter/underscore prefix), and avoid
+duplicating long text in variables, logs, or messages.
+
+Keep Catweb-required API names, object IDs, and schema strings unchanged.
+Numeric encodings must define escaping and be tested for spaces, digits,
+punctuation, empty text, and Unicode. The current catalog does not document a
+general character-to-number conversion, so do not claim arbitrary Unicode is
+fully numeric-encoded unless that mapping exists and is verified.
+[`catweb_text_codec.py`](catweb_text_codec.py) is a strict Python port of the
+Conn 00-96 character table; it rejects unsupported characters instead of
+silently converting them to the legacy fallback value. It is not a Catweb
+runtime function and does not provide general Unicode coverage.
 
 # Styling
 These are objects like Files, but nested inside other objects (including other styling objects); they add properties to the object they are in.

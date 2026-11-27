@@ -207,15 +207,21 @@
       } else field.value = value;
     });
     if (template.scope === 'top') node.actions = [];
+    const topPosition = template.scope === 'top'
+      ? {
+        x: Object.prototype.hasOwnProperty.call(metadata, 'x') ? metadata.x : '0',
+        y: Object.prototype.hasOwnProperty.call(metadata, 'y') ? metadata.y : '0'
+      }
+      : null;
     node.globalid = metadata.globalid || randomId();
     Object.entries(metadata).forEach(([key, value]) => {
-      if (!['globalid', 'id', 'text'].includes(key) && !(template.scope === 'top' && ['x', 'y'].includes(key))) {
+      if (!['globalid', 'id', 'text'].includes(key)) {
         node[key] = value;
       }
     });
-    if (template.scope === 'top') {
-      node.x = '0';
-      node.y = '0';
+    if (topPosition) {
+      node.x = topPosition.x;
+      node.y = topPosition.y;
     }
     return node;
   }
@@ -574,8 +580,8 @@
         catch { throw new Error(`Line ${line}: topraw must contain a JSON object.`); }
         if (!currentTop || Array.isArray(currentTop) || typeof currentTop !== 'object') throw new Error(`Line ${line}: topraw must contain a JSON object.`);
         Object.assign(currentTop, inlineMetadata);
-        currentTop.x = '0';
-        currentTop.y = '0';
+        if (!Object.prototype.hasOwnProperty.call(currentTop, 'x')) currentTop.x = '0';
+        if (!Object.prototype.hasOwnProperty.call(currentTop, 'y')) currentTop.y = '0';
         if (currentTop.actions === undefined) currentTop.actions = [];
         else if (!Array.isArray(currentTop.actions)) throw new Error(`Line ${line}: topraw actions must be an array.`);
         bodyIndent = null;
@@ -638,6 +644,20 @@
         appendAction(catalog.get('block', 'math-variables/11', line), [legacySet[1], value], inlineMetadata, line, indent, 'call');
         previousBlank = false; return;
       }
+      const scopedDeclaration = stripped.match(/^(local|global|obj)\s+([A-Za-z_]\w*)\s*=\s*(.+)$/);
+      if (scopedDeclaration) {
+        if (scopedDeclaration[1] !== 'global') {
+          throw new Error(`Line ${line}: Catweb does not define ${scopedDeclaration[1]} variable declaration blocks; use {l!name}/{o!name} in supported fields.`);
+        }
+        let value;
+        try { value = parseLiteral(scopedDeclaration[3], line); }
+        catch (error) {
+          throw new Error(`Line ${line}: the assigned value must be a simple Python literal. ${error.message}`);
+        }
+        appendAction(catalog.get('block', 'math-variables/11', line),
+          [scopedDeclaration[2], value], inlineMetadata, line, indent, 'call');
+        previousBlank = false; return;
+      }
       const assignment = stripped.match(/^([A-Za-z_]\w*)\s*(\+=|-=|\*=|\/=|=(?!=))\s*(.+)$/);
       if (assignment) {
         let value;
@@ -646,7 +666,8 @@
           throw new Error(`Line ${line}: the assigned value must be a simple Python literal. ${error.message}`);
         }
         const blockId = { '=':'11', '+=':'12', '-=':'13', '*=':'14', '/=':'15' }[assignment[2]];
-        appendAction(catalog.get('block', `math-variables/${blockId}`, line), [assignment[1], value], inlineMetadata, line, indent, 'call');
+        appendAction(catalog.get('block', `math-variables/${blockId}`, line), [assignment[1], value],
+          inlineMetadata, line, indent, 'call');
         previousBlank = false; return;
       }
       const call = readNamedCall(stripped, line);
@@ -684,8 +705,6 @@
       else if (template) header = `top ${template.key.replace('top/', '')} ${formatArguments(args)}${metadataFor(node, template)}`;
       else {
         const { actions, ...rawTop } = node;
-        delete rawTop.x;
-        delete rawTop.y;
         header = `topraw ${JSON.stringify(rawTop)}`;
       }
       const nested = decompileActions(Array.isArray(node.actions) ? node.actions : [], catalog);
@@ -701,8 +720,7 @@
   function metadataFor(node, template) {
     const metadata = {};
     Object.entries(node).forEach(([key, value]) => {
-      if (['id', 'text', 'actions'].includes(key)
-          || (template && template.scope === 'top' && ['x', 'y'].includes(key))) return;
+      if (['id', 'text', 'actions', 'variable_scope'].includes(key)) return;
       if (key === 'globalid' || !Object.prototype.hasOwnProperty.call(template.node, key) || JSON.stringify(template.node[key]) !== JSON.stringify(value)) {
         metadata[key] = value;
       }

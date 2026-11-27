@@ -13,8 +13,8 @@
 <body>
   <header class="titlebar">
     <a class="brand" href="./"><img class="brand-mark" src="icon.png" alt=""><span>CatWet Studio</span></a>
-    <span id="windowTitle" class="window-title">Script Lab — my_site.cat</span>
-    <div class="top-actions"><button id="openProject" class="tool-button">Import JSON</button><input id="fileInput" type="file" accept=".json,application/json" hidden><button id="saveSource" class="tool-button">Save .cat</button><button id="download" class="tool-button">Export project</button><button id="compile" class="compile-button"><span>▶</span> Compile script</button></div>
+    <span id="windowTitle" class="window-title">Script Lab — my_site</span>
+    <div class="top-actions"><button id="openProject" class="tool-button">Import JSON</button><input id="fileInput" type="file" accept=".json,application/json" hidden><button id="openAI" class="ai-open-button" type="button">✦ AI Builder</button><button id="exportProject" class="compile-button">Export JSON</button><button id="compile" class="tool-button"><span>▶</span> Compile</button></div>
   </header>
   <main class="workbench">
     <nav class="activity-bar" aria-label="Activity bar">
@@ -31,21 +31,63 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16"/><circle cx="8" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="10" cy="19" r="1.5"/></svg>
       </button>
     </nav>
-    <aside class="explorer file-explorer">
-      <div class="explorer-title"><span>EXPLORER</span><a href="README.md" title="Documentation" aria-label="Documentation">⋯</a></div>
-      <div class="project-heading"><span class="tree-chevron">⌄</span><span id="projectName">MY PROJECT</span><button id="newScript" class="project-action" title="Create script">＋ Script</button></div>
-      <div id="projectTree" class="project-tree" role="tree" aria-label="Project items"></div>
-      <label class="watermark-label" for="folderAlias">Folder name / brand</label>
-      <input id="folderAlias" class="watermark-input" value="CatWet Script Lab" maxlength="80" aria-label="Exported folder name">
+    <aside class="explorer file-explorer" aria-label="Catweb project files and objects">
+      <div class="explorer-title"><span>CATWEB WORKSPACE</span><a href="README.md" title="Project documentation" aria-label="Project documentation">?</a></div>
+      <section class="project-card" aria-label="Project overview">
+        <div class="project-card-heading"><span class="eyebrow">WEBSITE PROJECT</span><strong id="projectName">MY PROJECT</strong></div>
+        <div class="project-metrics" aria-live="polite">
+          <span><b id="projectItemCount">0</b> items</span>
+          <span><b id="projectUiCount">0</b> UI</span>
+          <span><b id="projectScriptCount">0</b> scripts</span>
+        </div>
+      </section>
+      <label class="project-search-wrap">
+        <span class="sr-only">Filter project items</span>
+        <input id="projectSearch" type="search" placeholder="Find an object or script…" autocomplete="off">
+      </label>
+      <div class="tree-filters" role="group" aria-label="Filter project items">
+        <button class="tree-filter active" type="button" data-tree-filter="all" aria-pressed="true">All <span id="treeAllCount">0</span></button>
+        <button class="tree-filter" type="button" data-tree-filter="ui" aria-pressed="false">UI <span id="treeUiCount">0</span></button>
+        <button class="tree-filter" type="button" data-tree-filter="scripts" aria-pressed="false">Scripts <span id="treeScriptCount">0</span></button>
+      </div>
+      <div id="projectTree" class="project-tree" role="tree" aria-label="Catweb project structure"></div>
+      <section class="project-add" aria-label="Add to project">
+        <div class="section-heading"><span>ADD TO</span><span id="addTargetLabel">Website root</span></div>
+        <button id="newScript" class="add-script-button" type="button"><span aria-hidden="true">＋</span><span><b>Script</b><small>Catweb logic and events</small></span></button>
+        <details class="add-ui-details">
+          <summary><span>Add visual object</span><small>Containers, text, media and input</small></summary>
+          <div class="add-object-grid">
+            <button type="button" data-add-object="Frame"><span>▧</span> Container</button>
+            <button type="button" data-add-object="TextLabel"><span>T</span> Text</button>
+            <button type="button" data-add-object="TextButton"><span>▰</span> Button</button>
+            <button type="button" data-add-object="ImageLabel"><span>▣</span> Image</button>
+            <button type="button" data-add-object="ImageButton"><span>▣</span> Image button</button>
+            <button type="button" data-add-object="TextBox"><span>▤</span> Input</button>
+            <button type="button" data-add-object="ScrollingFrame"><span>▤</span> Scroll area</button>
+          </div>
+          <details class="special-object-details">
+            <summary>Catweb action buttons</summary>
+            <div class="special-object-list">
+              <button type="button" data-add-object="TextButton?link">↗ Link</button>
+              <button type="button" data-add-object="TextButton?transfer">↗ Donation</button>
+              <button type="button" data-add-object="TextButton?avataritem">↗ Avatar item</button>
+            </div>
+          </details>
+        </details>
+      </section>
+      <details class="project-settings">
+        <summary>Website settings</summary>
+        <label class="watermark-label" for="folderAlias">Site / folder name</label>
+        <input id="folderAlias" class="watermark-input" value="CatWet Script Lab" maxlength="80" aria-label="Exported folder name">
+      </details>
       <section id="objectInspector" class="object-inspector" aria-live="polite"></section>
-      <div class="explorer-footer"><a href="CATWEB_SCRIPT_LANGUAGE.md">CSL syntax</a><span>v0.2</span></div>
+      <div class="explorer-footer"><a href="CATWEB_SCRIPT_LANGUAGE.md">CSL syntax</a><span>Catweb JSON · CSL</span></div>
     </aside>
     <section class="editor-column">
-      <div class="tabbar"><div class="active-tab"><svg class="tab-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5h6l4 4v7H3z"/><path d="M9 2.5v4h4"/></svg><span id="scriptTitle">my_site</span>.cat <span class="language-pill">CSL</span></div><div class="tab-tools"><button class="snippet" data-insert="log" title="Insert console.log">＋ console.log</button><button class="snippet" data-insert="set" title="Insert assignment">＋ assignment</button><a href="CATWEB_SCRIPT_LANGUAGE.md" target="_blank" rel="noreferrer">Syntax ↗</a></div></div>
-      <div class="breadcrumbs"><span id="breadcrumbProject">CatWet Script Lab</span><span class="breadcrumb-separator">›</span><span id="breadcrumbScript">my_site.cat</span><span class="breadcrumb-separator">›</span><span>CSL</span></div>
-      <div class="edit-area"><div id="lineNumbers" class="line-numbers" aria-hidden="true"></div><div class="code-stack"><div class="indent-guides" aria-hidden="true"><i></i><i></i><i></i><i></i></div><pre id="highlight" aria-hidden="true"></pre><textarea id="source" aria-label="Catweb code" autocomplete="off" autocapitalize="off" spellcheck="false" wrap="off"></textarea></div></div>
+      <div class="tabbar"><div class="active-tab"><svg class="tab-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5h6l4 4v7H3z"/><path d="M9 2.5v4h4"/></svg><span id="scriptTitle">my_site</span><span class="language-pill">CSL</span></div><div class="tab-tools"><button class="snippet" data-insert="log" title="Insert console.log">＋ console.log</button><button class="snippet" data-insert="set" title="Insert variable assignment">＋ variable</button><a href="CATWEB_SCRIPT_LANGUAGE.md" target="_blank" rel="noreferrer">Syntax ↗</a></div></div>
+      <div class="breadcrumbs"><span id="breadcrumbProject">CatWet Script Lab</span><span class="breadcrumb-separator">›</span><span id="breadcrumbScript">my_site</span><span class="breadcrumb-separator">›</span><span>CSL</span></div>
+      <div class="edit-area"><div id="lineNumbers" class="line-numbers" aria-hidden="true"></div><div class="code-stack"><pre id="highlight" aria-hidden="true"></pre><textarea id="source" aria-label="Catweb code" autocomplete="off" autocapitalize="off" spellcheck="false" wrap="off"></textarea></div></div>
       <div id="diagnostics" class="diagnostics" aria-live="polite"></div>
-      <section id="outputPanel" class="output-panel"><button id="toggleOutput" class="output-bar" aria-label="Toggle project JSON output" aria-expanded="false"><span>⌄</span> PROJECT JSON <small id="outputStatus">Project ready</small></button><div class="output-content"><pre id="output" class="output"><span class="output-placeholder">Compact project JSON will appear here.</span></pre><div class="output-buttons"><button id="copy" class="tool-button" disabled>Copy</button><button id="clearOutput" class="tool-button">Clear view</button></div></div></section>
     </section>
     <aside class="right-sidebar" aria-label="Catweb events and blocks">
       <section class="right-section event-section">
@@ -61,7 +103,59 @@
     </aside>
   </main>
   <footer class="statusbar"><span id="sourceStatus"><i></i> Syntax recognized</span><span id="lineStatus">Line 1, column 1</span><span>CSL · Ctrl+Enter to compile</span></footer>
+  <div id="jsonModal" class="json-modal" role="dialog" aria-modal="true" aria-labelledby="jsonModalTitle" aria-hidden="true">
+    <div class="json-modal-backdrop" data-close-modal></div>
+    <section class="json-modal-card">
+      <header class="json-modal-header"><div><span class="eyebrow">CATWEB PROJECT</span><h2 id="jsonModalTitle">Export JSON</h2></div><button id="closeJsonModal" class="modal-close" type="button" aria-label="Close">×</button></header>
+      <textarea id="jsonModalContent" class="json-modal-content" readonly spellcheck="false"></textarea>
+      <footer class="json-modal-actions"><span id="jsonCopyStatus" aria-live="polite">Ready to copy</span><button id="copyJson" class="compile-button" type="button">Copy JSON</button></footer>
+    </section>
+  </div>
+  <div id="aiModal" class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle" aria-hidden="true">
+    <div class="ai-modal-backdrop" data-close-ai></div>
+    <section class="ai-modal-card">
+      <header class="ai-modal-header">
+        <div><span class="eyebrow">CATWEB CODE ASSISTANT</span><h2 id="aiModalTitle">AI Builder</h2></div>
+        <button id="closeAI" class="modal-close" type="button" aria-label="Close AI Builder">×</button>
+      </header>
+      <div class="ai-modal-content">
+        <section class="ai-settings" aria-label="AI provider settings">
+          <h3>Provider connection</h3>
+          <label for="aiEndpoint">Chat Completions endpoint</label>
+          <input id="aiEndpoint" type="url" autocomplete="url" placeholder="https://provider.example/v1/chat/completions">
+          <label for="aiModel">Model ID</label>
+          <input id="aiModel" type="text" autocomplete="off" placeholder="provider-model-name">
+          <label for="aiApiKey">API key <span>(optional for local endpoints)</span></label>
+          <input id="aiApiKey" type="password" autocomplete="off" spellcheck="false">
+          <p class="ai-privacy">Your prompt, public Catweb guides, and catalog call names/signatures are sent only when you generate. Project JSON and the active script are not sent. The key stays in memory and clears when this panel closes.</p>
+          <p class="ai-connection-note">Use an OpenAI-compatible endpoint with browser CORS enabled. Other protocols can be added as provider adapters.</p>
+          <a href="AI_PROVIDER_GUIDE.md" target="_blank" rel="noreferrer">Provider setup guide ↗</a>
+        </section>
+        <section class="ai-workflow" aria-label="Generate and compile Catweb CSL">
+          <label for="aiPrompt">Describe the Catweb behavior</label>
+          <textarea id="aiPrompt" class="ai-prompt" placeholder="Example: When the site loads, show a greeting and initialize a visit counter."></textarea>
+          <div class="ai-request-actions">
+            <span id="aiStatus" role="status" aria-live="polite">Ready · nothing is sent until you generate.</span>
+            <button id="cancelAI" class="tool-button" type="button" hidden>Cancel request</button>
+            <button id="generateAI" class="compile-button" type="button">Generate CSL</button>
+          </div>
+          <label for="aiCode">Generated CSL source <span>Review or edit before compiling</span></label>
+          <textarea id="aiCode" class="ai-code" spellcheck="false" placeholder="The generated CSL source will appear here."></textarea>
+          <div class="ai-compile-actions">
+            <button id="compileAI" class="tool-button" type="button" disabled>Compile &amp; Preview JSON</button>
+            <button id="addAIScript" class="compile-button" type="button" disabled>Add as new script</button>
+          </div>
+          <details id="aiJsonDetails" class="ai-json-details">
+            <summary>Compiled Catweb JSON preview · local</summary>
+            <textarea id="aiJsonPreview" readonly spellcheck="false" aria-label="Compiled Catweb JSON preview"></textarea>
+          </details>
+          <p class="ai-runtime-note">Compilation creates a JSON preview; it does not run code in the game. Import the project into Catweb to verify runtime behavior.</p>
+        </section>
+      </div>
+    </section>
+  </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="studio/ai-provider.js"></script>
   <script src="studio/catweb-csl.js"></script>
   <script src="studio/script-app.js"></script>
 </body>

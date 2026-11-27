@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 from catweb_raw import folder, save, text_label
-from catweb_script import BlockCatalog, compile_script, decompile_script
+from catweb_script import BlockCatalog, CompileError, compile_script, decompile_script
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -76,8 +76,7 @@ class CatwebScriptTests(unittest.TestCase):
         }
         source = decompile_script([unknown])
         result = compile_script(source)[0]["children"][0]["content"]
-        expected = {**unknown, "x": "0", "y": "0"}
-        self.assertEqual(result, [expected])
+        self.assertEqual(result, [unknown])
 
     def test_nested_scope_decompiles_and_recompiles_with_metadata(self):
         source = (
@@ -167,6 +166,27 @@ class CatwebScriptTests(unittest.TestCase):
         self.assertEqual([action["id"] for action in content[0]["actions"]], ["11", "0"])
         self.assertIn('visitas = "1"', decompile_script(content))
 
+    def test_unqualified_assignment_defaults_to_global(self):
+        content = compile_script(
+            'on load:\n'
+            '    visitas = 1'
+        )[0]["children"][0]["content"]
+        action = content[0]["actions"][0]
+        self.assertNotIn("variable_scope", action)
+        self.assertIn("visitas =", decompile_script(content))
+
+    def test_explicit_global_is_native_but_unsupported_scope_declarations_fail(self):
+        content = compile_script('on load:\n    global y = 42')[0]["children"][0]["content"]
+        action = content[0]["actions"][0]
+        self.assertEqual(action["id"], "11")
+        self.assertNotIn("variable_scope", action)
+        self.assertIn('y = "42"', decompile_script(content))
+
+        for declaration in ('local x = "value"', "obj z = True"):
+            with self.subTest(declaration=declaration):
+                with self.assertRaisesRegex(CompileError, "does not define"):
+                    compile_script(f"on load:\n    {declaration}")
+
     def test_function_header_uses_python_definition_syntax(self):
         content = compile_script('def bienvenida():\n    console.log("Hola")')[0]["children"][0]["content"]
         self.assertIn("def bienvenida():", decompile_script(content))
@@ -190,14 +210,15 @@ class CatwebScriptTests(unittest.TestCase):
             'on button_press("boton"):', 'console.log("otro evento")',
         ])
 
-    def test_compiled_top_level_blocks_reset_positions_without_changing_actions(self):
+    def test_compiled_top_level_blocks_preserve_positions(self):
         content = compile_script(
             'on load:\nconsole.log("hola")'
         )[0]["children"][0]["content"]
+        self.assertEqual((content[0]["x"], content[0]["y"]), ("0", "0"))
         content[0]["x"], content[0]["y"] = "500", "700"
         content[0]["actions"][0]["x"], content[0]["actions"][0]["y"] = "35", "60"
         recompiled = compile_script(decompile_script(content))[0]["children"][0]["content"]
-        self.assertEqual((recompiled[0]["x"], recompiled[0]["y"]), ("0", "0"))
+        self.assertEqual((recompiled[0]["x"], recompiled[0]["y"]), ("500", "700"))
         self.assertEqual((recompiled[0]["actions"][0]["x"], recompiled[0]["actions"][0]["y"]), ("35", "60"))
 
     def test_cli_writes_compact_json_by_default(self):

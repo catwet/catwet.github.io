@@ -25,6 +25,7 @@ in Catweb.**
 | [`info.md`](info.md) | Original notes on variables, objects, events, properties, and known limitations. |
 | [`examples/`](examples/) | Python/CSL source files and sample JSON outputs. |
 | [`catweb_script.py`](catweb_script.py) | Python CSL compiler with generic blocks backed by the available catalog. |
+| [`catweb_text_codec.py`](catweb_text_codec.py) | Strict Python port of the fixed-width Catweb Conn character-number table. |
 | [`API_REFERENCE.json`](API_REFERENCE.json) | Shared API v2 names, signatures, aliases, and block argument mappings. |
 | [`API_V2.md`](API_V2.md) | Complete API v2 function, event, parameter, and example reference. |
 | [`API_MIGRATION.md`](API_MIGRATION.md) | Legacy-name and parameter-order migration table. |
@@ -34,6 +35,8 @@ in Catweb.**
 | [`studio/index.html`](studio/index.html) | Secondary visual editor for adding objects and editing project properties. |
 | [`studio/script.html`](studio/script.html) | Compatibility route that redirects to the main entry point. |
 | [`AI_PROJECT_GUIDE.md`](AI_PROJECT_GUIDE.md) | Contract and base prompt for generating websites with AI models. |
+| [`AI_PROVIDER_GUIDE.md`](AI_PROVIDER_GUIDE.md) | Configure an AI provider for local CSL generation and compilation. |
+| [`studio/ai-provider.js`](studio/ai-provider.js) | Browser adapter for OpenAI-compatible Chat Completions endpoints. |
 
 Script category names are: `audio`, `color`, `console`,
 `cookies`, `events`, `functions`, `hierarchy`, `input`, `logic`, `looks`,
@@ -60,6 +63,25 @@ output in the array format used by `files.json`. The Python example remains
 editable source; the generated JSON is the file to import and test in Catweb.
 For scripting, `script(*content)` accepts raw catalog JSON blocks and preserves
 their content and order; blocks should still be copied from verified references.
+
+## Numeric Text Codec (Python)
+
+[`catweb_text_codec.py`](catweb_text_codec.py) ports the character table from
+the Conn encoder as a strict, fixed-width codec:
+
+```python
+from catweb_text_codec import decode_text, encode_text
+
+payload = encode_text("Hello, Catweb!")
+original = decode_text(payload)
+```
+
+It emits two ASCII digits per character. The legacy table has 97 positions,
+96 unique characters, and a repeated `%`; encoding uses the first `%` entry.
+Unsupported characters raise `ValueError` rather than silently becoming the
+legacy fallback character. The codec is not Catweb/Luau code and does not
+support arbitrary Unicode (for example `ñ` or emoji); test the game-side port
+separately.
 
 ## Text-Based Script Language
 
@@ -112,9 +134,11 @@ Start a web server from the project root:
 python -m http.server 8000
 ```
 
-Open <http://localhost:8000/>. Write your code, use **Compile** or
-`Ctrl+Enter`, and download the compact JSON. You can also save the `.cat`
-source. The editable project name/brand is exported as the folder `alias`.
+Open <http://localhost:8000/>. Write your code and use **Compile** or
+`Ctrl+Enter` to compile it locally. **Export JSON** opens the compact project
+JSON in a modal for copying; it does not download automatically. `.cat` source
+downloads remain disabled. The editable project name/brand is exported as the
+folder `alias`.
 
 The project is static and requires no build step or web dependencies.
 For GitHub Pages, publish the project root and keep `index.html`, `studio/`, and
@@ -124,13 +148,14 @@ the browser from loading catalogs due to security restrictions.
 
 ## Generation with AI Models
 
-Use [`AI_PROJECT_GUIDE.md`](AI_PROJECT_GUIDE.md) as the base instructions and
-provide the model with relevant references. For behaviors represented in the
-catalog, request a small `.cat` file instead of expanded JSON; compile it and
-open the result in the Visual Editor. The editor can import JSON for an
-individual script or a complete project. Capabilities missing from the
-references should be listed as pending; do not invent their format. There is
-no direct connection to an AI provider.
+The **AI Builder** in the main Studio can connect directly to a user-configured,
+OpenAI-compatible Chat Completions endpoint. It generates CSL, compiles it in
+the browser using the local Catweb catalog, previews JSON, and can add the
+compiled result as a new script. See [`AI_PROVIDER_GUIDE.md`](AI_PROVIDER_GUIDE.md)
+for provider setup and privacy details. For external AI workflows, use
+[`AI_PROJECT_GUIDE.md`](AI_PROJECT_GUIDE.md) as base instructions and do not
+invent unsupported Catweb behavior. Generated scripts still need testing in
+Catweb.
 
 ## How to Read the JSON
 
@@ -334,11 +359,19 @@ permissions.
 
 ## Roblox, Messages, and Known Limitations
 
-`info.md` warns that Roblox may filter non-numeric data when sending
-information between sites and mentions community encoders/decoders. This
-repository contains no implementation, algorithm, or security guarantee for
-that mechanism. Do not invent an encoding or promise message delivery without
-testing it in the game.
+Some Catweb users have observed long text being censored, especially when
+transferred between sites. Roblox's
+[text-filtering documentation](https://create.roblox.com/docs/ui/text-filtering)
+describes filtering of user-provided or displayed text, not JSON structure
+validation. This repository has no evidence that JSON whitespace, block
+syntax, or coordinates alone cause censorship.
+AI-generated scripts should follow the numeric-first guidance in
+[`AI_PROJECT_GUIDE.md`](AI_PROJECT_GUIDE.md): retain the original input as the
+only unrestricted long text, use compact numeric-pattern identifiers and
+reversible tokens for derived payloads, and preserve catalog-required strings.
+The current catalog has no documented general character-to-number conversion,
+so do not claim a complete numeric encoding for arbitrary Unicode without
+implementing and testing one in Catweb.
 
 ## Guide for Building a Compatible Generator
 
