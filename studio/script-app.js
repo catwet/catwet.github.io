@@ -15,6 +15,10 @@
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const uid = () => crypto.getRandomValues(new Uint32Array(2)).join('').slice(0, 12);
   const sample = `# Welcome script\non load:\nconsole.log("Welcome to my site")\nvisits = 1`;
+  const PROJECT_LIBRARY_KEY = 'catweb.studio.projects.v1';
+  const AI_SETTINGS_KEY = 'catweb.studio.ai-settings.v1';
+  const PLUGIN_LIBRARY_KEY = 'catweb.studio.plugins.v1';
+  const MAX_PLUGIN_MANIFEST_SIZE = 1024 * 1024;
   let documentData = [{ class: 'Folder', globalid: uid(), alias: 'CatWet Script Lab', children: [] }];
   const firstScript = { class: 'script', globalid: uid(), content: [] };
   documentData[0].children.push(firstScript);
@@ -23,6 +27,7 @@
   let sourceDirty = true;
   let lastJson = '';
   let projectLabelFallback = 'MY PROJECT';
+  let activeProjectId = null;
   let toastTimer;
   const drafts = new Map([[firstScript.globalid, sample]]);
   const metadataDrafts = new Map();
@@ -32,6 +37,8 @@
   let aiApiKey = '';
   let aiRequestController = null;
   let aiCompiledPreview = null;
+  const aiConversation = [];
+  let lastProjectStorageError = '';
   const appScriptUrl = document.currentScript && document.currentScript.src;
   const catalogBase = appScriptUrl
     ? new URL('../data/catalog/', appScriptUrl).toString()
@@ -905,6 +912,7 @@
     if (statusElement) statusElement.textContent = sourceDirty ? 'Uncompiled code · saved JSON available' : status;
     const exportButton = $('#exportProject');
     if (exportButton) exportButton.disabled = false;
+    persistActiveProject();
   }
 
   function markSourceDirty() {
@@ -915,6 +923,7 @@
     sourceDirty = true;
     const status = $('#outputStatus');
     if (status) status.textContent = 'Uncompiled code · compile to include in export';
+    persistActiveProject();
   }
 
   function updateEditor(markDirty = false) {
@@ -974,6 +983,7 @@
     selectedNodeId = id;
     renderProject();
     if (selected.class === 'script') loadScriptIntoEditor(selected);
+    persistActiveProject();
   }
 
   function findFirstScript(node = documentData[0]) {
@@ -985,25 +995,204 @@
     return null;
   }
 
-  function setProject(project, filename = 'Catweb') {
+  function readProjectLibrary() {
+    let raw;
+    try {
+      raw = localStorage.getItem(PROJECT_LIBRARY_KEY);
+    } catch (error) {
+      throw new Error(`Browser storage is unavailable: ${error.message}`);
+    }
+    if (!raw) return [];
+    let projects;
+    try {
+      projects = JSON.parse(raw);
+    } catch (error) {
+      throw new Error(`Saved project list is invalid JSON: ${error.message}`);
+    }
+    if (!Array.isArray(projects) || projects.some((project) =>
+      !project || typeof project.id !== 'string' || typeof project.name !== 'string'
+      || !Array.isArray(project.project))) {
+      throw new Error('Saved project list has an unsupported format.');
+    }
+    return projects;
+  }
+
+  function writeProjectLibrary(projects) {
+    try {
+      localStorage.setItem(PROJECT_LIBRARY_KEY, JSON.stringify(projects));
+    } catch (error) {
+      throw new Error(`Could not save projects in this browser: ${error.message}`);
+    }
+  }
+
+  function setProjectStorageStatus(message, isError = false) {
+    const status = $('#projectStorageStatus');
+    status.textContent = message;
+    status.classList.toggle('error', isError);
+  }
+
+  function currentProjectRecord() {
+    if (sourceDirty && activeScriptId) {
+      drafts.set(activeScriptId, source.value);
+      metadataDrafts.set(activeScriptId, new Map(activeMetadata));
+    }
+    return {
+      id: activeProjectId,
+      name: documentData[0].alias || projectLabelFallback,
+      updatedAt: new Date().toISOString(),
+      project: clone(documentData),
+      activeScriptId,
+      selectedNodeId,
+      sourceDirty,
+      drafts: Array.from(drafts.entries()),
+      metadataDrafts: Array.from(metadataDrafts.entries(), ([id, values]) => [id, Array.from(values.entries())]),
+      dirtyUserScripts: Array.from(dirtyUserScripts),
+    };
+  }
+
+  function persistActiveProject() {
+    if (!activeProjectId) return false;
+    try {
+      const projects = readProjectLibrary();
+      const index = projects.findIndex((project) => project.id === activeProjectId);
+      if (index < 0) throw new Error('The active project is missing from local storage.');
+      projects[index] = currentProjectRecord();
+      writeProjectLibrary(projects);
+      lastProjectStorageError = '';
+      setProjectStorageStatus('Changes saved on this device');
+      return true;
+    } catch (error) {
+      const message = error.message || 'Could not save the active project.';
+      setProjectStorageStatus(message, true);
+      if (message !== lastProjectStorageError) showToast(message);
+      lastProjectStorageError = message;
+      return false;
+    }
+  }
+
+  function renderProjectHome() {
+    const cards = $('#projectCards');
+    try {
+      const projects = readProjectLibrary().sort((left, right) =>
+        String(right.updatedAt || '').localeCompare(String(left.updatedAt || '')));
+      cards.innerHTML = projects.map((project) => {
+        const updated = project.updatedAt
+          ? new Date(project.updatedAt).toLocaleString()
+          : 'Saved locally';
+        return `<article class="project-card-row">
+          <button class="project-open" type="button" data-open-project="${escapeHtml(project.id)}">
+            <strong>${escapeHtml(project.name)}</strong><small>Updated ${escapeHtml(updated)}</small>
+          </button>
+          <div class="project-card-actions">
+            <button type="button" data-rename-project="${escapeHtml(project.id)}">Rename</button>
+            <button type="button" data-delete-project="${escapeHtml(project.id)}" aria-label="Delete ${escapeHtml(project.name)}">Delete</button>
+          </div>
+        </article>`;
+      }).join('') || '<p class="project-empty">No saved projects yet. Create one to get started.</p>';
+      setProjectStorageStatus('Projects are saved in this browser');
+    } catch (error) {
+      cards.innerHTML = `<p class="project-empty error">${escapeHtml(error.message)}</p>`;
+      setProjectStorageStatus(error.message, true);
+    }
+  }
+
+  function showProjectHome() {
+    if (activeProjectId && !persistActiveProject()) return;
+    renderProjectHome();
+    $('#projectHome').hidden = false;
+    closeAIModal();
+  }
+
+  function makeProjectRecord(name, project, scriptSource = '') {
+    const first = findFirstScript(project[0]);
+    return {
+      id: uid(),
+      name,
+      updatedAt: new Date().toISOString(),
+      project,
+      activeScriptId: first ? first.globalid : null,
+      selectedNodeId: first ? first.globalid : project[0].globalid,
+      sourceDirty: Boolean(first && scriptSource),
+      drafts: first && scriptSource ? [[first.globalid, scriptSource]] : [],
+      metadataDrafts: [],
+      dirtyUserScripts: first && scriptSource ? [first.globalid] : [],
+    };
+  }
+
+  function createProjectFromForm(event) {
+    event.preventDefault();
+    const name = $('#newProjectName').value.trim();
+    if (!name) {
+      $('#newProjectName').focus();
+      return;
+    }
+    const scriptNode = { class: 'script', globalid: uid(), alias: 'main', content: [] };
+    const project = [{ class: 'Folder', globalid: uid(), alias: name, children: [scriptNode] }];
+    const record = makeProjectRecord(name, project, sample);
+    try {
+      writeProjectLibrary([...readProjectLibrary(), record]);
+      $('#createProjectForm').hidden = true;
+      $('#newProjectName').value = '';
+      openProjectRecord(record.id);
+    } catch (error) {
+      setProjectStorageStatus(error.message, true);
+      showToast(error.message);
+    }
+  }
+
+  function openProjectRecord(id) {
+    try {
+      const record = readProjectLibrary().find((project) => project.id === id);
+      if (!record) throw new Error('That project is no longer available in this browser.');
+      if (activeProjectId && !persistActiveProject()) {
+        throw new Error('The current project could not be saved. Resolve the storage error before switching projects.');
+      }
+      setProject(record.project, record.name, record);
+      $('#projectHome').hidden = true;
+    } catch (error) {
+      showToast(`Could not open project: ${error.message}`);
+    }
+  }
+
+  function importProjectRecord(project, name) {
+    const record = makeProjectRecord(name, project);
+    try {
+      writeProjectLibrary([...readProjectLibrary(), record]);
+      openProjectRecord(record.id);
+    } catch (error) {
+      showToast(error.message);
+    }
+  }
+
+  function setProject(project, filename = 'Catweb', record = null) {
     validateProject(project);
     documentData = project;
-    projectLabelFallback = filename || 'MY PROJECT';
+    activeProjectId = record ? record.id : null;
+    projectLabelFallback = record ? record.name : filename || 'MY PROJECT';
     collapsed.clear();
     drafts.clear();
     metadataDrafts.clear();
     dirtyUserScripts.clear();
-    selectedNodeId = documentData[0].globalid;
+    for (const [id, text] of record && record.drafts || []) drafts.set(id, text);
+    for (const [id, entries] of record && record.metadataDrafts || []) {
+      metadataDrafts.set(id, new Map(entries));
+    }
+    for (const id of record && record.dirtyUserScripts || []) dirtyUserScripts.add(id);
     const first = findFirstScript();
-    activeScriptId = first ? first.globalid : null;
-    sourceDirty = false;
+    const preferredScript = record && nodeById(record.activeScriptId);
+    activeScriptId = preferredScript && preferredScript.class === 'script'
+      ? preferredScript.globalid : first ? first.globalid : null;
+    const preferredNode = record && nodeById(record.selectedNodeId);
+    selectedNodeId = preferredNode ? preferredNode.globalid
+      : activeScriptId || documentData[0].globalid;
+    sourceDirty = Boolean(activeScriptId && drafts.has(activeScriptId));
     activeMetadata = new Map();
     $('#folderAlias').value = documentData[0].alias || '';
     $('#projectName').textContent = documentData[0].alias || projectLabelFallback;
-    if (first) {
-      selectedNodeId = first.globalid;
+    const activeScript = activeScriptId ? nodeById(activeScriptId) : null;
+    if (activeScript && activeScript.class === 'script') {
       renderProject();
-      loadScriptIntoEditor(first);
+      loadScriptIntoEditor(activeScript);
       const saveSourceButton = $('#saveSource');
       if (saveSourceButton) saveSourceButton.disabled = false;
     } else {
@@ -1017,9 +1206,161 @@
       if (saveSourceButton) saveSourceButton.disabled = true;
       updateEditor(false);
       renderProject();
+      refreshProjectJson('Project imported · compact');
     }
-    refreshProjectJson('Project imported · compact');
-    showToast(first ? 'Project imported. Select a script to edit it.' : 'Project imported; create a script to get started.');
+    showToast(record ? 'Project opened.' : first ? 'Project imported.' : 'Project imported; create a script to get started.');
+  }
+
+  function validatePluginManifest(value) {
+    const allowedKeys = new Set(['id', 'name', 'version', 'author', 'description', 'snippets']);
+    if (!value || Array.isArray(value) || typeof value !== 'object'
+        || Object.keys(value).some((key) => !allowedKeys.has(key))) {
+      throw new Error('Plugin manifest must be an object with only the documented fields.');
+    }
+    if (typeof value.id !== 'string' || !/^[a-z0-9][a-z0-9._-]{1,63}$/i.test(value.id)) {
+      throw new Error('Plugin id must be 2–64 letters, numbers, dots, underscores, or hyphens.');
+    }
+    for (const field of ['name', 'version', 'author', 'description']) {
+      if (typeof value[field] !== 'string' || !value[field].trim()) {
+        throw new Error(`Plugin ${field} must be a non-empty string.`);
+      }
+      if (value[field].length > (field === 'description' ? 280 : 100)) {
+        throw new Error(`Plugin ${field} is too long.`);
+      }
+    }
+    if (!Array.isArray(value.snippets) || value.snippets.length < 1 || value.snippets.length > 30) {
+      throw new Error('Plugin must provide between 1 and 30 CSL snippets.');
+    }
+    const snippets = value.snippets.map((snippet, index) => {
+      if (!snippet || Array.isArray(snippet) || typeof snippet !== 'object'
+          || Object.keys(snippet).some((key) => !['label', 'code'].includes(key))) {
+        throw new Error(`Snippet ${index + 1} must contain only label and code.`);
+      }
+      if (typeof snippet.label !== 'string' || !snippet.label.trim() || snippet.label.length > 80) {
+        throw new Error(`Snippet ${index + 1} needs a label of at most 80 characters.`);
+      }
+      if (typeof snippet.code !== 'string' || !snippet.code.trim() || snippet.code.length > 5000) {
+        throw new Error(`Snippet ${index + 1} needs CSL source of at most 5,000 characters.`);
+      }
+      return { label: snippet.label.trim(), code: snippet.code.trim() };
+    });
+    return {
+      id: value.id,
+      name: value.name.trim(),
+      version: value.version.trim(),
+      author: value.author.trim(),
+      description: value.description.trim(),
+      snippets,
+    };
+  }
+
+  function readPluginLibrary() {
+    let raw;
+    try {
+      raw = localStorage.getItem(PLUGIN_LIBRARY_KEY);
+    } catch (error) {
+      throw new Error(`Browser storage is unavailable: ${error.message}`);
+    }
+    if (!raw) return [];
+    let stored;
+    try {
+      stored = JSON.parse(raw);
+    } catch (error) {
+      throw new Error(`Saved plugin library is invalid JSON: ${error.message}`);
+    }
+    if (!Array.isArray(stored)) throw new Error('Saved plugin library has an unsupported format.');
+    return stored.map((item) => {
+      if (!item || !item.manifest) throw new Error('Saved plugin record is invalid.');
+      return {
+        manifest: validatePluginManifest(item.manifest),
+        installedAt: typeof item.installedAt === 'string' ? item.installedAt : '',
+      };
+    });
+  }
+
+  function renderPluginList() {
+    const list = $('#pluginList');
+    try {
+      const plugins = readPluginLibrary();
+      list.innerHTML = plugins.map(({ manifest }) => `
+        <article class="installed-plugin">
+          <div class="installed-plugin-heading"><div><strong>${escapeHtml(manifest.name)}</strong><small>by ${escapeHtml(manifest.author)} · v${escapeHtml(manifest.version)}</small></div>
+            <button type="button" data-remove-plugin="${escapeHtml(manifest.id)}">Remove</button>
+          </div>
+          <p>${escapeHtml(manifest.description)}</p>
+          <div class="plugin-snippets">${manifest.snippets.map((snippet, index) =>
+    `<button type="button" data-plugin-id="${escapeHtml(manifest.id)}" data-snippet-index="${index}">${escapeHtml(snippet.label)}</button>`).join('')}</div>
+        </article>`).join('') || '<p class="plugin-empty">No plugins installed. Import a JSON manifest to add one.</p>';
+      $('#pluginStatus').textContent = `${plugins.length} plugin${plugins.length === 1 ? '' : 's'} stored on this device.`;
+      $('#pluginStatus').classList.remove('error');
+    } catch (error) {
+      list.innerHTML = `<p class="plugin-empty error">${escapeHtml(error.message)}</p>`;
+      $('#pluginStatus').textContent = 'Could not load installed plugins.';
+      $('#pluginStatus').classList.add('error');
+    }
+  }
+
+  function installPluginText(text) {
+    if (new Blob([text]).size > MAX_PLUGIN_MANIFEST_SIZE) {
+      throw new Error('Plugin manifest exceeds the 1 MB limit.');
+    }
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (error) {
+      throw new Error(`Plugin manifest is not valid JSON: ${error.message}`);
+    }
+    const manifest = validatePluginManifest(parsed);
+    const plugins = readPluginLibrary().filter((item) => item.manifest.id !== manifest.id);
+    plugins.push({ manifest, installedAt: new Date().toISOString() });
+    try {
+      localStorage.setItem(PLUGIN_LIBRARY_KEY, JSON.stringify(plugins));
+    } catch (error) {
+      throw new Error(`Could not cache this plugin in the browser: ${error.message}`);
+    }
+    $('#pluginStatus').textContent = `${manifest.name} installed by ${manifest.author}.`;
+    $('#pluginStatus').classList.remove('error');
+    renderPluginList();
+  }
+
+  function openPluginManager() {
+    renderPluginList();
+    $('#pluginModal').classList.add('open');
+    $('#pluginModal').setAttribute('aria-hidden', 'false');
+    $('#importPluginFile').focus();
+  }
+
+  function closePluginManager() {
+    $('#pluginModal').classList.remove('open');
+    $('#pluginModal').setAttribute('aria-hidden', 'true');
+    ($('#projectHome').hidden ? $('#openPlugins') : $('#managePluginsHome')).focus();
+  }
+
+  function insertPluginSnippet(pluginId, snippetIndex) {
+    if (!activeProjectId || !activeScriptId || source.disabled) {
+      closePluginManager();
+      showToast('Open a project and select a script before inserting a plugin snippet.');
+      return;
+    }
+    try {
+      const plugin = readPluginLibrary().find((item) => item.manifest.id === pluginId);
+      const snippet = plugin && plugin.manifest.snippets[snippetIndex];
+      if (!snippet) throw new Error('That plugin snippet is no longer installed.');
+      const start = source.selectionStart;
+      const end = source.selectionEnd;
+      const before = source.value.slice(0, start);
+      const after = source.value.slice(end);
+      const prefix = !before ? '' : before.endsWith('\n\n') ? '' : before.endsWith('\n') ? '\n' : '\n\n';
+      const suffix = !after ? '\n\n' : after.startsWith('\n\n') ? '' : after.startsWith('\n') ? '\n' : '\n\n';
+      source.setRangeText(`${prefix}${snippet.code}${suffix}`, start, end, 'end');
+      updateEditor(true);
+      closePluginManager();
+      source.focus();
+      showToast(`${plugin.manifest.name} snippet inserted. Review it before compiling.`);
+    } catch (error) {
+      $('#pluginStatus').textContent = error.message;
+      $('#pluginStatus').classList.add('error');
+    }
   }
 
   function insertCatalogCall(button) {
@@ -1094,6 +1435,75 @@
     status.classList.toggle('success', state === 'success');
   }
 
+  function appendAIMessage(role, text) {
+    const message = document.createElement('article');
+    message.className = `ai-message ${role === 'user' ? 'user-message' : role === 'system' ? 'system-message' : 'assistant-message'}`;
+    const label = document.createElement('span');
+    label.textContent = role === 'user' ? 'You' : role === 'system' ? 'Notice' : 'Catweb assistant';
+    message.append(label);
+    const body = document.createElement('div');
+    body.className = 'ai-message-body';
+    const fence = /```(?:csl|catweb|cat|text)?[ \t]*\r?\n([\s\S]*?)```/gi;
+    let cursor = 0;
+    let match;
+    while ((match = fence.exec(text))) {
+      if (match.index > cursor) {
+        const paragraph = document.createElement('p');
+        paragraph.textContent = text.slice(cursor, match.index).trim();
+        if (paragraph.textContent) body.append(paragraph);
+      }
+      const pre = document.createElement('pre');
+      const code = document.createElement('code');
+      code.textContent = match[1].trimEnd();
+      pre.append(code);
+      body.append(pre);
+      cursor = fence.lastIndex;
+    }
+    if (cursor < text.length || !body.childElementCount) {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = text.slice(cursor).trim() || text;
+      body.append(paragraph);
+    }
+    message.append(body);
+    $('#aiMessages').append(message);
+    $('#aiMessages').scrollTop = $('#aiMessages').scrollHeight;
+  }
+
+  function loadAISettings() {
+    try {
+      const saved = localStorage.getItem(AI_SETTINGS_KEY);
+      if (!saved) return;
+      const settings = JSON.parse(saved);
+      if (!settings || typeof settings.endpoint !== 'string' || typeof settings.model !== 'string') {
+        throw new Error('Saved provider settings have an unsupported format.');
+      }
+      $('#aiEndpoint').value = settings.endpoint;
+      $('#aiModel').value = settings.model;
+    } catch (error) {
+      setAIStatus(`Could not load saved provider settings: ${error.message}`, 'error');
+    }
+  }
+
+  function saveAISettings() {
+    const endpoint = $('#aiEndpoint').value.trim();
+    const model = $('#aiModel').value.trim();
+    if (!endpoint || !model) {
+      setAIStatus('Enter both a provider endpoint and model ID.', 'error');
+      $('#aiSettingsDetails').open = true;
+      return false;
+    }
+    try {
+      const url = new URL(endpoint);
+      if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Use an HTTP or HTTPS provider URL.');
+      localStorage.setItem(AI_SETTINGS_KEY, JSON.stringify({ endpoint, model }));
+      setAIStatus('Provider settings saved on this device. Your API key was not saved.', 'success');
+      return true;
+    } catch (error) {
+      setAIStatus(`Could not save provider settings: ${error.message}`, 'error');
+      return false;
+    }
+  }
+
   function invalidateAIPreview(message = 'Code changed · compile again before adding.') {
     aiCompiledPreview = null;
     $('#aiJsonPreview').value = '';
@@ -1121,10 +1531,11 @@
     return `${documentation.join('\n\n')}\n\n## Available catalog calls\n${calls}`;
   }
 
-  function cleanAICode(text) {
+  function extractAICode(text) {
+    const fenced = text.match(/```(?:catweb|csl|cat|text)?[ \t]*\r?\n([\s\S]*?)```/i);
+    if (fenced) return fenced[1].trim();
     const trimmed = text.replace(/^\uFEFF/, '').trim();
-    const fenced = trimmed.match(/^```(?:catweb|csl|cat|text)?\s*\n([\s\S]*?)\n```$/i);
-    return (fenced ? fenced[1] : trimmed).trim();
+    return /^(?:on|def|top|block|raw|global|local|obj)\b/m.test(trimmed) ? trimmed : '';
   }
 
   async function generateAICode() {
@@ -1132,12 +1543,9 @@
     const model = $('#aiModel').value.trim();
     const prompt = $('#aiPrompt').value.trim();
     aiApiKey = $('#aiApiKey').value.trim();
-    if (!endpoint) {
-      setAIStatus('Enter a provider endpoint URL.', 'error');
-      return;
-    }
-    if (!model) {
-      setAIStatus('Enter the model ID required by your provider.', 'error');
+    if (!endpoint || !model) {
+      $('#aiSettingsDetails').open = true;
+      setAIStatus('Connect a provider and model here, then send your message again.', 'error');
       return;
     }
     if (!prompt) {
@@ -1148,6 +1556,9 @@
       setAIStatus('The provider adapter did not load. Reload the page and try again.', 'error');
       return;
     }
+    aiConversation.push({ role: 'user', content: prompt });
+    appendAIMessage('user', prompt);
+    $('#aiPrompt').value = '';
     $('#generateAI').disabled = true;
     $('#cancelAI').hidden = false;
     setAIStatus('Preparing Catweb docs and catalog…');
@@ -1156,31 +1567,36 @@
       const catalog = await catalogPromise;
       const context = await buildAIContext(catalog);
       setAIStatus('Sending prompt and public Catweb references to your configured provider…');
+      const systemPrompt = [
+        'You are a helpful Catweb coding chat assistant. Reply naturally in the user’s language and use earlier turns as context.',
+        'When you provide or change source, include the complete Catweb Script Language (CSL) inside a fenced ```csl``` block and explain briefly outside it.',
+        'Follow the supplied CSL documentation and use only calls present in the supplied Catweb catalog.',
+        'Plain assignments are global. Do not invent unsupported declarations, blocks, or properties.',
+        'Project JSON and the active script are private and are not included. If a request is unsupported, say so instead of pretending it works.',
+        `\n\n## Public Catweb documentation and catalog\n${context}`
+      ].join(' ');
       const response = await window.CatwebAI.generateChatCompletion({
         endpoint,
         model,
         apiKey: aiApiKey,
         messages: [
-          {
-            role: 'system',
-            content: [
-              'Generate complete Catweb Script Language (CSL) source code, not Python, Luau, or JSON.',
-              'Follow the supplied CSL documentation and use only calls present in the supplied Catweb catalog.',
-              'Plain assignments are global. Do not invent local/object declaration syntax, functions, blocks, or properties.',
-              'Use valid top-level events/functions, correct indentation and blank lines between top-level sections.',
-              'Return only CSL source, with no prose or Markdown fences. If a requested behavior is unsupported, do not fake it.'
-            ].join(' ')
-          },
-          { role: 'user', content: `${context}\n\n## User request\n${prompt}` }
+          { role: 'system', content: systemPrompt },
+          ...aiConversation.slice(-24)
         ],
         signal: aiRequestController.signal
       });
-      const code = cleanAICode(response);
-      if (!code) throw new Error('The provider returned an empty CSL response.');
+      aiConversation.push({ role: 'assistant', content: response });
+      appendAIMessage('assistant', response);
+      const code = extractAICode(response);
       $('#aiCode').value = code;
-      $('#compileAI').disabled = false;
-      invalidateAIPreview('CSL received · review it, then compile locally.');
-      setAIStatus('CSL received · review it, then compile locally.', 'success');
+      $('#aiCodeDetails').hidden = !code;
+      $('#aiCodeDetails').open = Boolean(code);
+      $('#compileAI').disabled = !code;
+      invalidateAIPreview(code ? 'CSL received · review it, then compile locally.' : null);
+      setAIStatus(
+        code ? 'Reply ready · review the CSL, then compile locally.' : 'Reply ready · continue the conversation.',
+        'success'
+      );
     } catch (error) {
       if (error.name === 'AbortError') {
         setAIStatus('Provider request cancelled.');
@@ -1189,6 +1605,7 @@
           ? `${error.message} Check the endpoint, network, and provider CORS settings.`
           : error.message;
         setAIStatus(detail || 'Provider request failed.', 'error');
+        appendAIMessage('system', detail || 'Provider request failed.');
       }
     } finally {
       aiRequestController = null;
@@ -1294,15 +1711,21 @@
   function openAIModal() {
     $('#aiModal').classList.add('open');
     $('#aiModal').setAttribute('aria-hidden', 'false');
-    $('#aiPrompt').focus();
+    $('.workbench').classList.add('ai-open');
+    const needsProvider = !$('#aiEndpoint').value.trim() || !$('#aiModel').value.trim();
+    $('#aiSettingsDetails').open = needsProvider;
+    (needsProvider ? $('#aiEndpoint') : $('#aiPrompt')).focus();
   }
 
   function closeAIModal() {
+    const wasOpen = $('#aiModal').classList.contains('open');
     if (aiRequestController) aiRequestController.abort();
+    if (!wasOpen) return;
     aiApiKey = '';
     $('#aiApiKey').value = '';
     $('#aiModal').classList.remove('open');
     $('#aiModal').setAttribute('aria-hidden', 'true');
+    $('.workbench').classList.remove('ai-open');
     $('#openAI').focus();
   }
 
@@ -1558,8 +1981,14 @@
   });
   $('#openAI').addEventListener('click', openAIModal);
   $('#closeAI').addEventListener('click', closeAIModal);
-  $('#aiModal [data-close-ai]').addEventListener('click', closeAIModal);
+  $('#saveAISettings').addEventListener('click', saveAISettings);
   $('#generateAI').addEventListener('click', generateAICode);
+  $('#aiPrompt').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      generateAICode();
+    }
+  });
   $('#cancelAI').addEventListener('click', () => {
     if (aiRequestController) aiRequestController.abort();
   });
@@ -1588,23 +2017,133 @@
     if (event.key === 'Escape' && $('#jsonModal').classList.contains('open')) closeJsonModal();
     if (event.key === 'Escape' && $('#compileDiagnosticsModal').classList.contains('open')) closeCompileDiagnostics();
     if (event.key === 'Escape' && $('#aiModal').classList.contains('open')) closeAIModal();
+    if (event.key === 'Escape' && $('#pluginModal').classList.contains('open')) closePluginManager();
   });
+  $('#manageProjects').addEventListener('click', showProjectHome);
+  $('#createProjectCard').addEventListener('click', () => {
+    $('#createProjectForm').hidden = false;
+    $('#newProjectName').focus();
+  });
+  $('#createProjectForm').addEventListener('submit', createProjectFromForm);
+  $('#cancelCreateProject').addEventListener('click', () => {
+    $('#createProjectForm').hidden = true;
+    $('#newProjectName').value = '';
+  });
+  $('#projectCards').addEventListener('click', (event) => {
+    const open = event.target.closest('[data-open-project]');
+    if (open) {
+      openProjectRecord(open.dataset.openProject);
+      return;
+    }
+    const rename = event.target.closest('[data-rename-project]');
+    if (rename) {
+      try {
+        persistActiveProject();
+        const projects = readProjectLibrary();
+        const project = projects.find((item) => item.id === rename.dataset.renameProject);
+        if (!project) throw new Error('That project is no longer available.');
+        const name = window.prompt('Project name:', project.name);
+        if (name === null) return;
+        if (!name.trim()) throw new Error('Project name cannot be empty.');
+        project.name = name.trim();
+        if (project.project[0]) project.project[0].alias = project.name;
+        if (project.id === activeProjectId) {
+          documentData[0].alias = project.name;
+          projectLabelFallback = project.name;
+          $('#folderAlias').value = project.name;
+          $('#projectName').textContent = project.name;
+          $('#breadcrumbProject').textContent = project.name;
+          refreshProjectJson('Project renamed · saved locally');
+        }
+        writeProjectLibrary(projects);
+        renderProjectHome();
+      } catch (error) {
+        setProjectStorageStatus(error.message, true);
+        showToast(error.message);
+      }
+      return;
+    }
+    const remove = event.target.closest('[data-delete-project]');
+    if (remove) {
+      const id = remove.dataset.deleteProject;
+      if (!window.confirm('Delete this project from this browser? This cannot be undone.')) return;
+      try {
+        writeProjectLibrary(readProjectLibrary().filter((project) => project.id !== id));
+        if (activeProjectId === id) activeProjectId = null;
+        renderProjectHome();
+      } catch (error) {
+        setProjectStorageStatus(error.message, true);
+        showToast(error.message);
+      }
+    }
+  });
+  $('#homeImportProject').addEventListener('click', () => $('#fileInput').click());
   $('#openProject').addEventListener('click', () => $('#fileInput').click());
   $('#fileInput').addEventListener('change', async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    if (dirtyUserScripts.size && !window.confirm('There are unsaved code changes. Do you want to replace the current project?')) {
-      event.target.value = '';
-      return;
-    }
     try {
       const [catalog, codec] = await Promise.all([catalogPromise, codecPromise]);
       const imported = normalizeImport(JSON.parse(await file.text()));
-      setProject(codec.decodeProject(imported, catalog), file.name.replace(/\.json$/i, ''));
+      importProjectRecord(codec.decodeProject(imported, catalog), file.name.replace(/\.json$/i, '') || 'Imported project');
     } catch (error) {
       showToast(`Could not import project: ${error.message}`);
     }
     event.target.value = '';
+  });
+  $('#openPlugins').addEventListener('click', openPluginManager);
+  $('#managePluginsHome').addEventListener('click', openPluginManager);
+  $('#closePlugins').addEventListener('click', closePluginManager);
+  $('[data-close-plugins]').addEventListener('click', closePluginManager);
+  $('#importPluginFile').addEventListener('click', () => $('#pluginFileInput').click());
+  $('#pluginFileInput').addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+      if (file.size > MAX_PLUGIN_MANIFEST_SIZE) throw new Error('Plugin manifest exceeds the 1 MB limit.');
+      installPluginText(await file.text());
+    } catch (error) {
+      $('#pluginStatus').textContent = error.message || 'Could not install plugin.';
+      $('#pluginStatus').classList.add('error');
+    }
+    event.target.value = '';
+  });
+  $('#installPluginUrl').addEventListener('click', async () => {
+    try {
+      const url = new URL($('#pluginUrl').value.trim());
+      if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Plugin URL must use HTTP or HTTPS.');
+      const response = await fetch(url, {
+        credentials: 'omit',
+        redirect: 'error',
+        referrerPolicy: 'no-referrer'
+      });
+      if (!response.ok) throw new Error(`Plugin host returned HTTP ${response.status}.`);
+      const size = Number(response.headers.get('content-length'));
+      if (Number.isFinite(size) && size > MAX_PLUGIN_MANIFEST_SIZE) {
+        throw new Error('Plugin manifest exceeds the 1 MB limit.');
+      }
+      installPluginText(await response.text());
+    } catch (error) {
+      $('#pluginStatus').textContent = error.message || 'Could not install plugin URL.';
+      $('#pluginStatus').classList.add('error');
+    }
+  });
+  $('#pluginList').addEventListener('click', (event) => {
+    const insert = event.target.closest('[data-plugin-id]');
+    if (insert) {
+      insertPluginSnippet(insert.dataset.pluginId, Number(insert.dataset.snippetIndex));
+      return;
+    }
+    const remove = event.target.closest('[data-remove-plugin]');
+    if (!remove || !window.confirm('Remove this plugin from this browser?')) return;
+    try {
+      const updated = readPluginLibrary().filter((item) => item.manifest.id !== remove.dataset.removePlugin);
+      localStorage.setItem(PLUGIN_LIBRARY_KEY, JSON.stringify(updated));
+      renderPluginList();
+    } catch (error) {
+      $('#pluginStatus').textContent = error.message;
+      $('#pluginStatus').classList.add('error');
+    }
   });
   $('#projectTree').addEventListener('click', (event) => {
     const toggle = event.target.closest('[data-toggle-id]');
@@ -1713,6 +2252,8 @@
     showToast(error.message);
   });
 
+  loadAISettings();
+  renderProjectHome();
   renderProject();
   updateEditor(false);
   refreshProjectJson();

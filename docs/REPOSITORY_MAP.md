@@ -8,7 +8,7 @@ are separate; they share the catalog and API data.
 
 | Path | Responsibility |
 | --- | --- |
-| `index.html` | Public entry point for CatWet Script Lab. Keep at the repository root. |
+| `index.html` | Public entry point for CatWet Script Lab and its browser-local project picker. Keep at the repository root. |
 | `studio/` | Browser editor, visual editor, JavaScript CSL compiler/decompiler, codecs, styles, and AI provider adapter. |
 | `catweb/` | Maintained Python package: CSL compiler, project codecs, numeric codec, and raw project helpers. |
 | `data/catalog/` | Block templates by category plus `catalog-index.json`. This is the source of block IDs and field shapes. |
@@ -18,7 +18,7 @@ are separate; they share the catalog and API data.
 | `examples/scripts/` | Editable `.cat` source and Python example generator. |
 | `examples/reference/` | Legacy reference inputs retained for compatibility work. |
 | `tests/` | Python tests for compiler, serialization, and text-codec behavior. |
-| `docs/` | Language, project format, API, migration, and AI workflow references. |
+| `docs/` | Language, project format, API, migration, AI provider, and plugin manifest references. |
 | `catweb_*.py` | Root compatibility wrappers for earlier Python imports and CLI usage. |
 
 ## Runtime data flow
@@ -30,6 +30,9 @@ templates from `data/catalog/`, the semantic API from `data/API_REFERENCE.json`,
 and the string map from `data/ENCODE.json`. `studio/catweb-csl.js` compiles and
 decompiles CSL; `studio/catweb-codec.js` transforms project JSON fields.
 `studio/studio.js` uses the same catalog/compiler for the Visual Editor.
+The Script Lab stores project records, provider endpoint/model settings, and
+declarative plugin manifests in browser local storage. Provider API keys and
+chat history are memory-only; plugin JavaScript is never executed.
 
 Keep URLs relative to the application entry points so GitHub Pages subpath
 deployments continue to work. A site change that moves public assets must update

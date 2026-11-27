@@ -11,10 +11,40 @@
   <link rel="stylesheet" href="studio/script-app.css">
 </head>
 <body>
+  <section id="projectHome" class="project-home" aria-labelledby="projectHomeTitle">
+    <div class="project-home-shell">
+      <header class="project-home-header">
+        <a class="brand" href="./"><img class="brand-mark" src="icon.png" alt=""><span>CatWet Studio</span></a>
+        <div class="project-home-actions">
+          <button id="managePluginsHome" class="tool-button" type="button">Plugins</button>
+          <button id="homeImportProject" class="tool-button" type="button">Import JSON</button>
+        </div>
+      </header>
+      <main class="project-home-main">
+        <div class="project-home-heading">
+          <div><span class="eyebrow">LOCAL WORKSPACE</span><h1 id="projectHomeTitle">Your projects</h1><p>Projects are saved in this browser.</p></div>
+          <span id="projectStorageStatus" class="project-storage-status" role="status" aria-live="polite">Local storage ready</span>
+        </div>
+        <div class="project-home-grid">
+          <button id="createProjectCard" class="project-create-card" type="button">
+            <span class="project-create-plus" aria-hidden="true">+</span><strong>New project</strong><small>Start a Catweb project</small>
+          </button>
+          <div id="projectCards" class="project-cards" aria-label="Saved projects"></div>
+        </div>
+        <form id="createProjectForm" class="create-project-form" hidden>
+          <label for="newProjectName">Project name</label>
+          <input id="newProjectName" maxlength="80" required placeholder="My Catweb project" autocomplete="off">
+          <button class="compile-button" type="submit">Create project</button>
+          <button id="cancelCreateProject" class="tool-button" type="button">Cancel</button>
+        </form>
+        <p class="project-home-note">Your projects stay on this device. Export JSON to share or back them up.</p>
+      </main>
+    </div>
+  </section>
   <header class="titlebar">
     <a class="brand" href="./"><img class="brand-mark" src="icon.png" alt=""><span>CatWet Studio</span></a>
     <span id="windowTitle" class="window-title">Script Lab — my_site</span>
-    <div class="top-actions"><button id="openProject" class="tool-button">Import JSON</button><input id="fileInput" type="file" accept=".json,application/json" hidden><button id="openAI" class="ai-open-button" type="button">✦ AI Builder</button><button id="exportProject" class="compile-button">Export JSON</button><button id="compile" class="tool-button"><span>▶</span> Compile</button></div>
+    <div class="top-actions"><button id="manageProjects" class="tool-button" type="button">Projects</button><button id="openProject" class="tool-button">Import JSON</button><input id="fileInput" type="file" accept=".json,application/json" hidden><button id="openPlugins" class="tool-button" type="button">Plugins</button><button id="openAI" class="ai-open-button" type="button">✦ AI Chat</button><button id="exportProject" class="compile-button">Export JSON</button><button id="compile" class="tool-button"><span>▶</span> Compile</button></div>
   </header>
   <main class="workbench hide-explorer hide-catalog">
     <nav class="activity-bar" aria-label="Activity bar">
@@ -123,46 +153,66 @@
       <div id="compileDiagnosticList" class="compile-diagnostic-list"></div>
     </section>
   </div>
-  <div id="aiModal" class="ai-modal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle" aria-hidden="true">
-    <div class="ai-modal-backdrop" data-close-ai></div>
+  <div id="pluginModal" class="plugin-modal" role="dialog" aria-modal="true" aria-labelledby="pluginModalTitle" aria-hidden="true">
+    <div class="plugin-modal-backdrop" data-close-plugins></div>
+    <section class="plugin-modal-card">
+      <header class="plugin-modal-header">
+        <div><span class="eyebrow">LOCAL EXTENSIONS</span><h2 id="pluginModalTitle">Plugins</h2></div>
+        <button id="closePlugins" class="modal-close" type="button" aria-label="Close plugins">×</button>
+      </header>
+      <p class="plugin-safety-note">Plugins are JSON manifests. Their snippets are only inserted into your editor when you choose them; plugin JavaScript is never executed.</p>
+      <div class="plugin-install">
+        <button id="importPluginFile" class="tool-button" type="button">Install from file</button>
+        <input id="pluginFileInput" type="file" accept=".json,application/json" hidden>
+        <label for="pluginUrl">Manifest URL</label>
+        <div class="plugin-url-row"><input id="pluginUrl" type="url" placeholder="https://example.com/plugin.json" autocomplete="url"><button id="installPluginUrl" class="compile-button" type="button">Install URL</button></div>
+        <span id="pluginStatus" role="status" aria-live="polite"></span>
+      </div>
+      <div id="pluginList" class="plugin-list" aria-label="Installed plugins"></div>
+      <a class="plugin-format-link" href="docs/PLUGIN_FORMAT.md" target="_blank" rel="noreferrer">Plugin manifest format ↗</a>
+    </section>
+  </div>
+  <div id="aiModal" class="ai-modal" role="dialog" aria-modal="false" aria-labelledby="aiModalTitle" aria-hidden="true">
     <section class="ai-modal-card">
       <header class="ai-modal-header">
-        <div><span class="eyebrow">CATWEB CODE ASSISTANT</span><h2 id="aiModalTitle">AI Builder</h2></div>
-        <button id="closeAI" class="modal-close" type="button" aria-label="Close AI Builder">×</button>
+        <div><span class="eyebrow">CATWEB CODE ASSISTANT</span><h2 id="aiModalTitle">AI Chat</h2></div>
+        <button id="closeAI" class="modal-close" type="button" aria-label="Close AI chat">×</button>
       </header>
-      <div class="ai-modal-content">
+      <div id="aiStatus" class="ai-chat-status" role="status" aria-live="polite">Ready · nothing is sent until you send a message.</div>
+      <details id="aiSettingsDetails" class="ai-settings-details">
+        <summary>Connect or change model</summary>
         <section class="ai-settings" aria-label="AI provider settings">
           <h3>Provider connection</h3>
           <label for="aiEndpoint">Chat Completions endpoint</label>
           <input id="aiEndpoint" type="url" autocomplete="url" placeholder="https://provider.example/v1/chat/completions">
           <label for="aiModel">Model ID</label>
           <input id="aiModel" type="text" autocomplete="off" placeholder="provider-model-name">
-          <label for="aiApiKey">API key <span>(optional for local endpoints)</span></label>
+          <label for="aiApiKey">API key <span>(optional for local endpoints; never saved)</span></label>
           <input id="aiApiKey" type="password" autocomplete="off" spellcheck="false">
-          <p class="ai-privacy">Your prompt, public Catweb guides, and catalog call names/signatures are sent only when you generate. Project JSON and the active script are not sent. The key stays in memory and clears when this panel closes.</p>
+          <div class="ai-settings-actions"><button id="saveAISettings" class="tool-button" type="button">Save connection</button><a href="docs/AI_PROVIDER_GUIDE.md" target="_blank" rel="noreferrer">Provider guide ↗</a></div>
+          <p class="ai-privacy">The endpoint and model are saved on this device. The API key stays in memory and clears when this panel closes. Chat messages and project contents are not saved or sent automatically after a page reload.</p>
           <p class="ai-connection-note">Use an OpenAI-compatible endpoint with browser CORS enabled. Other protocols can be added as provider adapters.</p>
-          <a href="docs/AI_PROVIDER_GUIDE.md" target="_blank" rel="noreferrer">Provider setup guide ↗</a>
         </section>
-        <section class="ai-workflow" aria-label="Generate and compile Catweb CSL">
-          <label for="aiPrompt">Describe the Catweb behavior</label>
-          <textarea id="aiPrompt" class="ai-prompt" placeholder="Example: When the site loads, show a greeting and initialize a visit counter."></textarea>
-          <div class="ai-request-actions">
-            <span id="aiStatus" role="status" aria-live="polite">Ready · nothing is sent until you generate.</span>
-            <button id="cancelAI" class="tool-button" type="button" hidden>Cancel request</button>
-            <button id="generateAI" class="compile-button" type="button">Generate CSL</button>
-          </div>
-          <label for="aiCode">Generated CSL source <span>Review or edit before compiling</span></label>
-          <textarea id="aiCode" class="ai-code" spellcheck="false" placeholder="The generated CSL source will appear here."></textarea>
-          <div class="ai-compile-actions">
-            <button id="compileAI" class="tool-button" type="button" disabled>Compile &amp; Preview JSON</button>
-            <button id="addAIScript" class="compile-button" type="button" disabled>Add as new script</button>
-          </div>
-          <details id="aiJsonDetails" class="ai-json-details">
-            <summary>Compiled Catweb JSON preview · local</summary>
-            <textarea id="aiJsonPreview" readonly spellcheck="false" aria-label="Compiled Catweb JSON preview"></textarea>
-          </details>
-          <p class="ai-runtime-note">Compilation creates a JSON preview; it does not run code in the game. Import the project into Catweb to verify runtime behavior.</p>
-        </section>
+      </details>
+      <div id="aiMessages" class="ai-messages" role="log" aria-live="polite" aria-label="AI conversation">
+        <article class="ai-message assistant-message"><span>Catweb assistant</span><div class="ai-message-body"><p>Hi. Describe what you want to build. Configure a compatible model above if you have not connected one yet.</p></div></article>
+      </div>
+      <details id="aiCodeDetails" class="ai-code-details" hidden>
+        <summary>Generated CSL · review before compiling</summary>
+        <textarea id="aiCode" class="ai-code" spellcheck="false" placeholder="Generated CSL source appears here."></textarea>
+        <div class="ai-compile-actions">
+          <button id="compileAI" class="tool-button" type="button" disabled>Compile &amp; Preview JSON</button>
+          <button id="addAIScript" class="compile-button" type="button" disabled>Add as new script</button>
+        </div>
+        <details id="aiJsonDetails" class="ai-json-details">
+          <summary>Compiled Catweb JSON preview · local</summary>
+          <textarea id="aiJsonPreview" readonly spellcheck="false" aria-label="Compiled Catweb JSON preview"></textarea>
+        </details>
+        <p class="ai-runtime-note">Compilation creates a JSON preview; it does not run code in the game. Import the project into Catweb to verify runtime behavior.</p>
+      </details>
+      <div class="ai-chat-composer">
+        <textarea id="aiPrompt" class="ai-prompt" placeholder="Message Catweb assistant…" aria-label="Message Catweb assistant"></textarea>
+        <div class="ai-chat-actions"><span>Enter to send · Shift+Enter for a new line</span><button id="cancelAI" class="tool-button" type="button" hidden>Stop</button><button id="generateAI" class="compile-button" type="button">Send</button></div>
       </div>
     </section>
   </div>

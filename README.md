@@ -144,7 +144,13 @@ confirm permissions or acceptance/execution by Catweb.
 ## Web Studio
 
 The main entry point is [`index.html`](index.html), which opens CatWet Script
-Lab. To work with an object preview, open the secondary CatWet Visual Editor at
+Lab's local project picker. Projects are stored in the browser's local storage;
+export Catweb JSON to share or back them up. The optional AI chat uses a
+user-configured compatible provider, and plugins are local JSON manifests that
+insert CSL snippets only when selected. See the [AI provider guide](docs/AI_PROVIDER_GUIDE.md)
+and [plugin manifest format](docs/PLUGIN_FORMAT.md).
+
+To work with an object preview, open the secondary CatWet Visual Editor at
 [`studio/index.html`](studio/index.html). Both editors import JSON projects; the
 Visual Editor lets you add objects, navigate the tree, and edit properties.
 The preview is approximate and does not execute scripts.
