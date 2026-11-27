@@ -11,6 +11,7 @@
   const source = $('#source');
   const lineNumbers = $('#lineNumbers');
   const highlight = $('#highlight');
+  const variableSuggestions = $('#variableSuggestions');
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const uid = () => crypto.getRandomValues(new Uint32Array(2)).join('').slice(0, 12);
   const sample = `# Welcome script\non load:\nconsole.log("Welcome to my site")\nvisits = 1`;
@@ -35,7 +36,12 @@
   const catalogBase = appScriptUrl
     ? new URL('../script/', appScriptUrl).toString()
     : new URL('./script/', document.baseURI).toString();
+  const codecUrl = appScriptUrl
+    ? new URL('../ENCODE.json', appScriptUrl).toString()
+    : new URL('./ENCODE.json', document.baseURI).toString();
   const catalogPromise = CatwebCSL.loadCatalog(catalogBase);
+  const codecPromise = CatwebCodec.load(codecUrl);
+  let activeCatalog = null;
   source.value = sample;
   let activeMetadata = new Map();
   let previousSourceValue = source.value;
@@ -261,8 +267,22 @@
     return errors;
   }
 
+  function highlightStringToken(token) {
+    const referencePattern = /\{(?:(?:l|o)![A-Za-z_]\w*|[A-Za-z_]\w*)\}/g;
+    let output = '<span class="tok-string">';
+    let lastIndex = 0;
+    let match;
+    while ((match = referencePattern.exec(token)) !== null) {
+      output += escapeHtml(token.slice(lastIndex, match.index));
+      output += `<span class="tok-variable-reference">${escapeHtml(match[0])}</span>`;
+      lastIndex = referencePattern.lastIndex;
+    }
+    output += `${escapeHtml(token.slice(lastIndex))}</span>`;
+    return output;
+  }
+
   function highlightSource() {
-    const tokenPattern = /(#.*$|"(?:[^"\\]|\\.)*"|\b(?:on|load|def|topraw|top|raw|block|scope|if|for|else|local|global|obj|None|True|False)\b|\b[A-Za-z_][A-Za-z0-9_]*\b|[:=@])/gm;
+    const tokenPattern = /(#.*$|"(?:[^"\\\n]|\\.)*(?:"|(?=\n|$))|'(?:[^'\\\n]|\\.)*(?:'|(?=\n|$))|\b(?:on|load|def|topraw|top|raw|block|scope|if|for|else|local|global|obj|None|True|False)\b|\b[A-Za-z_][A-Za-z0-9_]*\b|[:=@])/gm;
     let output = '';
     let lastIndex = 0;
     let match;
@@ -270,9 +290,9 @@
       output += escapeHtml(source.value.slice(lastIndex, match.index));
       const token = match[0];
       const kind = token.startsWith('#') ? 'comment'
-        : token.startsWith('"') ? 'string'
+        : token.startsWith('"') || token.startsWith("'") ? 'string'
           : /^(on|load|def|topraw|top|raw|block|scope|if|for|else|local|global|obj|None|True|False|:|=|@)$/.test(token) ? 'keyword' : 'variable';
-      output += `<span class="tok-${kind}">${escapeHtml(token)}</span>`;
+      output += kind === 'string' ? highlightStringToken(token) : `<span class="tok-${kind}">${escapeHtml(token)}</span>`;
       lastIndex = tokenPattern.lastIndex;
     }
     output += escapeHtml(source.value.slice(lastIndex));
@@ -294,6 +314,330 @@
     lineNumbers.scrollTop = source.scrollTop;
     const beforeCaret = source.value.slice(0, source.selectionStart).split('\n');
     $('#lineStatus').textContent = `Line ${beforeCaret.length}, column ${beforeCaret[beforeCaret.length - 1].length + 1}`;
+    updateVariableSuggestions();
+  }
+
+  function assignedVariables() {
+    const names = new Set();
+    source.value.split('\n').forEach((line) => {
+      const code = splitInlineComment(line).code.trim();
+      const assignment = code.match(/^(?:global\s+)?([A-Za-z_]\w*)\s*(?:\+=|-=|\*=|\/=|=(?!=))/);
+      const legacySet = code.match(/^set\s+([A-Za-z_]\w*)\s*=/i);
+      const name = assignment ? assignment[1] : legacySet ? legacySet[1] : null;
+      if (name) names.add(name);
+    });
+    return [...names];
+  }
+
+  function variableReferenceContext() {
+    if (source.selectionStart !== source.selectionEnd || source.disabled) return null;
+    const caret = source.selectionStart;
+    let quote = null;
+    let escaped = false;
+    let comment = false;
+    let openingBrace = -1;
+    for (let index = 0; index < caret; index += 1) {
+      const character = source.value[index];
+      if (comment) {
+        if (character === '\n') comment = false;
+      } else if (quote) {
+        if (escaped) escaped = false;
+        else if (character === '\\') escaped = true;
+        else if (character === quote) {
+          quote = null;
+          openingBrace = -1;
+        } else if (character === '{') openingBrace = index;
+        else if (character === '}') openingBrace = -1;
+      } else if (character === '#') comment = true;
+      else if (character === '"' || character === "'") quote = character;
+    }
+    if (!quote || openingBrace < 0) return null;
+
+    const prefix = source.value.slice(openingBrace + 1, caret);
+    const suffix = (source.value.slice(caret).match(/^[A-Za-z_]\w*/) || [''])[0];
+    if (prefix && !/^[A-Za-z_]\w*$/.test(prefix)) return null;
+    const query = prefix + suffix;
+    return {
+      start: openingBrace + 1,
+      end: openingBrace + 1 + query.length,
+      query,
+      hasClosingBrace: source.value[openingBrace + 1 + query.length] === '}',
+    };
+  }
+
+  function codeStateAtCursor(caret) {
+    let quote = null;
+    let escaped = false;
+    let comment = false;
+    for (let index = 0; index < caret; index += 1) {
+      const character = source.value[index];
+      if (comment) {
+        if (character === '\n') comment = false;
+      } else if (quote) {
+        if (escaped) escaped = false;
+        else if (character === '\\') escaped = true;
+        else if (character === quote) quote = null;
+      } else if (character === '#') comment = true;
+      else if (character === '"' || character === "'") quote = character;
+    }
+    return { quote, comment };
+  }
+
+  function callArgumentContext() {
+    if (!activeCatalog || source.disabled) return null;
+    const caret = source.selectionStart;
+    let quote = null;
+    let escaped = false;
+    let comment = false;
+    const stack = [];
+    for (let index = 0; index < caret; index += 1) {
+      const character = source.value[index];
+      if (comment) {
+        if (character === '\n') comment = false;
+      } else if (quote) {
+        if (escaped) escaped = false;
+        else if (character === '\\') escaped = true;
+        else if (character === quote) quote = null;
+      } else if (character === '#') comment = true;
+      else if (character === '"' || character === "'") quote = character;
+      else if (character === '(' || character === '[' || character === '{') {
+        const callName = character === '('
+          ? (source.value.slice(0, index).match(/([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\s*$/) || [null, null])[1]
+          : null;
+        stack.push({ character, index, callName, commas: 0 });
+      } else if (character === ')' || character === ']' || character === '}') {
+        const matching = { ')': '(', ']': '[', '}': '{' }[character];
+        if (stack.length && stack[stack.length - 1].character === matching) stack.pop();
+      } else if (character === ',' && stack.length && stack[stack.length - 1].character === '(') {
+        stack[stack.length - 1].commas += 1;
+      }
+    }
+    const frame = [...stack].reverse().find((entry) => entry.character === '(' && entry.callName);
+    if (!frame) return null;
+    const item = activeCatalog.byCall.get(`block/${frame.callName}`)
+      || activeCatalog.byCall.get(`top/${frame.callName}`);
+    if (!item || !Array.isArray(item.parameters) || !item.parameters.length) return null;
+    return { item, parameterIndex: frame.commas, callStart: frame.index };
+  }
+
+  function callableReferenceContext() {
+    if (!activeCatalog || source.disabled || source.selectionStart !== source.selectionEnd) return null;
+    const caret = source.selectionStart;
+    const state = codeStateAtCursor(caret);
+    if (state.quote || state.comment) return null;
+    const lineStart = source.value.lastIndexOf('\n', caret - 1) + 1;
+    const before = source.value.slice(lineStart, caret);
+    const prefix = (before.match(/[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/) || [''])[0];
+    if (!prefix) return null;
+    const suffix = (source.value.slice(caret).match(/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*/) || [''])[0];
+    const query = prefix + suffix;
+    return { start: caret - prefix.length, end: caret + suffix.length, query };
+  }
+
+  function positionVariableSuggestions() {
+    const style = getComputedStyle(source);
+    const stack = $('.code-stack');
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = style.font;
+    const charWidth = context.measureText('M').width;
+    const beforeCaret = source.value.slice(0, source.selectionStart).split('\n');
+    const line = beforeCaret.length - 1;
+    const column = beforeCaret[beforeCaret.length - 1].length;
+    const paddingLeft = parseFloat(style.paddingLeft) || 0;
+    const paddingTop = parseFloat(style.paddingTop) || 0;
+    const lineHeight = parseFloat(style.lineHeight) || 23;
+    let left = paddingLeft + column * charWidth - source.scrollLeft;
+    let top = paddingTop + (line + 1) * lineHeight - source.scrollTop;
+    const maxLeft = Math.max(8, stack.clientWidth - variableSuggestions.offsetWidth - 8);
+    left = Math.max(8, Math.min(left, maxLeft));
+    if (top + variableSuggestions.offsetHeight > stack.clientHeight - 8) {
+      top = Math.max(8, top - variableSuggestions.offsetHeight - lineHeight);
+    }
+    variableSuggestions.style.left = `${left}px`;
+    variableSuggestions.style.top = `${top}px`;
+  }
+
+  let editorSuggestionMode = null;
+  let editorSuggestionContext = null;
+  let editorSuggestionContextKey = '';
+  let editorSuggestionOptions = [];
+  let selectedVariableSuggestion = 0;
+  let parameterSuggestionContext = null;
+  let dismissedSuggestionSnapshot = null;
+
+  function hideVariableSuggestions() {
+    variableSuggestions.hidden = true;
+    variableSuggestions.replaceChildren();
+    variableSuggestions.removeAttribute('aria-activedescendant');
+    variableSuggestions.setAttribute('aria-expanded', 'false');
+    editorSuggestionMode = null;
+    editorSuggestionContext = null;
+    editorSuggestionContextKey = '';
+    editorSuggestionOptions = [];
+    selectedVariableSuggestion = 0;
+    parameterSuggestionContext = null;
+  }
+
+  function parameterDetailMarkup(context) {
+    const { item, parameterIndex, completion } = context;
+    const parameters = item.parameters || [];
+    const blockLabel = (item.node.text || []).filter((part) => typeof part === 'string').join('').trim()
+      || 'unnamed block';
+    const argumentLabel = completion
+      ? `${parameters.length} catalog argument${parameters.length === 1 ? '' : 's'}`
+      : `Argument ${parameterIndex + 1} of ${parameters.length}`;
+    const rows = parameters.map((parameter, index) => {
+      const direction = parameter.direction === 'output' ? 'output' : 'input';
+      const label = parameter.catalogLabel || 'unnamed field';
+      const type = parameter.type || 'unspecified type';
+      return `<div class="suggestion-parameter${index === parameterIndex ? ' active' : ''}"><strong>${index + 1}. ${escapeHtml(parameter.name || `value_${index + 1}`)}</strong><span>Catweb field: ${escapeHtml(label)} · ${escapeHtml(type)} · ${escapeHtml(direction)}</span></div>`;
+    }).join('');
+    return `<section class="suggestion-detail"><div class="suggestion-detail-heading"><code>${escapeHtml(item.callName)}</code><span>${escapeHtml(blockLabel)} · ${escapeHtml(argumentLabel)}</span></div><div class="suggestion-parameters">${rows}</div><div class="suggestion-detail-note">Parameter names, field labels, types, and direction come from the Catweb API/catalog metadata.</div></section>`;
+  }
+
+  function renderVariableSuggestions() {
+    const suggestions = editorSuggestionOptions.length
+      ? editorSuggestionOptions.map((option, index) => {
+        const label = option.kind === 'variable' ? `{${option.name}}` : option.item.callName;
+        const detail = option.kind === 'variable'
+          ? 'Catweb variable'
+          : `${option.item.category} · ${option.item.parameters.length} arguments`;
+        return `<button id="editor-suggestion-${index}" class="variable-suggestion${index === selectedVariableSuggestion ? ' selected' : ''}" type="button" role="option" aria-selected="${index === selectedVariableSuggestion}" data-suggestion-index="${index}"><code>${escapeHtml(label)}</code><small>${escapeHtml(detail)}</small></button>`;
+      }).join('')
+      : '<div class="variable-suggestion-empty">No matching variable yet. Assign one first, for example <code>visits = 0</code>.</div>';
+    const selectedOption = editorSuggestionOptions[selectedVariableSuggestion];
+    const parameterContext = parameterSuggestionContext
+      || (selectedOption && selectedOption.kind === 'call'
+        ? { item: selectedOption.item, parameterIndex: 0, completion: true }
+        : null);
+    const details = parameterContext ? parameterDetailMarkup(parameterContext) : '';
+    const hint = editorSuggestionMode === 'variable'
+      ? 'Catweb reference · {name} · ↑↓ then Enter'
+      : editorSuggestionMode === 'call'
+        ? 'Catalog completion · ↑↓ then Enter'
+        : 'Catweb parameter help · Esc to close';
+    const list = editorSuggestionMode === 'parameter' ? '' : `<div class="variable-suggestion-list">${suggestions}</div>`;
+    variableSuggestions.innerHTML = `${details}${list}<div class="variable-suggestion-help">${hint}</div>`;
+    variableSuggestions.hidden = false;
+    variableSuggestions.setAttribute('aria-expanded', 'true');
+    if (editorSuggestionOptions.length) {
+      variableSuggestions.setAttribute('aria-activedescendant', `editor-suggestion-${selectedVariableSuggestion}`);
+    } else variableSuggestions.removeAttribute('aria-activedescendant');
+    variableSuggestions.querySelectorAll('[data-suggestion-index]').forEach((button) => {
+      button.addEventListener('mousedown', (event) => event.preventDefault());
+      button.addEventListener('click', () => acceptEditorSuggestion(Number(button.dataset.suggestionIndex)));
+    });
+    positionVariableSuggestions();
+  }
+
+  function suggestionOptionKey(option) {
+    return option.kind === 'variable' ? `variable:${option.name}` : `call:${option.item.callName}`;
+  }
+
+  function updateVariableSuggestions() {
+    const snapshot = `${source.value}\u0000${source.selectionStart}\u0000${source.selectionEnd}`;
+    if (dismissedSuggestionSnapshot === snapshot) {
+      hideVariableSuggestions();
+      return;
+    }
+    dismissedSuggestionSnapshot = null;
+
+    const variableContext = variableReferenceContext();
+    const callContext = callArgumentContext();
+    let mode;
+    let context = null;
+    let contextKey = '';
+    let options = [];
+    if (variableContext) {
+      mode = 'variable';
+      context = variableContext;
+      contextKey = `variable:${variableContext.start}:${variableContext.end}:${variableContext.query}`;
+      options = assignedVariables()
+        .filter((name) => name.startsWith(variableContext.query))
+        .slice(0, 6)
+        .map((name) => ({ kind: 'variable', name }));
+    } else if (callContext) {
+      mode = 'parameter';
+      contextKey = `parameter:${callContext.callStart}:${callContext.item.callName}:${callContext.parameterIndex}`;
+    } else {
+      const reference = callableReferenceContext();
+      if (!reference) {
+        hideVariableSuggestions();
+        return;
+      }
+      mode = 'call';
+      context = reference;
+      contextKey = `call:${reference.start}:${reference.end}:${reference.query}`;
+      options = [...activeCatalog.byKey.values()]
+        .filter((item) => item.scope === 'block' && item.callName && Array.isArray(item.parameters)
+          && !item.opensScope && item.category !== 'math-variables')
+        .filter((item) => item.callName.toLowerCase().startsWith(reference.query.toLowerCase()))
+        .slice(0, 6)
+        .map((item) => ({ kind: 'call', item }));
+      if (!options.length) {
+        hideVariableSuggestions();
+        return;
+      }
+    }
+    const sameContext = contextKey === editorSuggestionContextKey;
+    const optionKeys = options.map(suggestionOptionKey);
+    const previousOptionKeys = editorSuggestionOptions.map(suggestionOptionKey);
+    const sameOptions = optionKeys.length === previousOptionKeys.length
+      && optionKeys.every((key, index) => key === previousOptionKeys[index]);
+    if (!sameContext || !sameOptions) selectedVariableSuggestion = 0;
+    else selectedVariableSuggestion %= Math.max(1, options.length);
+    editorSuggestionMode = mode;
+    editorSuggestionContext = context;
+    editorSuggestionContextKey = contextKey;
+    editorSuggestionOptions = options;
+    parameterSuggestionContext = variableContext ? callContext : mode === 'parameter' ? callContext : null;
+    renderVariableSuggestions();
+  }
+
+  function acceptEditorSuggestion(index) {
+    const option = editorSuggestionOptions[index];
+    if (!option || !editorSuggestionContext) return;
+    const { start, end } = editorSuggestionContext;
+    if (option.kind === 'variable') {
+      const { hasClosingBrace } = editorSuggestionContext;
+      source.setRangeText(`${option.name}${hasClosingBrace ? '' : '}'}`, start, end, 'end');
+      source.focus();
+      hideVariableSuggestions();
+      updateEditor(true);
+      return;
+    }
+    const call = callForTemplate(option.item, activeCatalog);
+    source.setRangeText(call, start, end, 'end');
+    const placeholder = call.indexOf('...');
+    if (placeholder >= 0) source.setSelectionRange(start + placeholder, start + placeholder + 3);
+    source.focus();
+    updateEditor(true);
+  }
+
+  function handleVariableSuggestionKeydown(event) {
+    if (variableSuggestions.hidden) return false;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      dismissedSuggestionSnapshot = `${source.value}\u0000${source.selectionStart}\u0000${source.selectionEnd}`;
+      hideVariableSuggestions();
+      return true;
+    }
+    if (!editorSuggestionOptions.length) return false;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const direction = event.key === 'ArrowDown' ? 1 : -1;
+      selectedVariableSuggestion = (selectedVariableSuggestion + direction + editorSuggestionOptions.length)
+        % editorSuggestionOptions.length;
+      renderVariableSuggestions();
+      return true;
+    }
+    if (event.key === 'Enter' || event.key === 'Tab') {
+      event.preventDefault();
+      acceptEditorSuggestion(selectedVariableSuggestion);
+      return true;
+    }
+    return false;
   }
 
   function renderStructure() {
@@ -841,13 +1185,13 @@
     try {
       const errors = inspectSource(code);
       if (errors.length) throw new Error(`Line ${errors[0].line}: ${errors[0].message}`);
-      const catalog = await catalogPromise;
+      const [catalog, codec] = await Promise.all([catalogPromise, codecPromise]);
       const project = CatwebCSL.compileScript(code, {
         catalog,
         folderAlias: $('#folderAlias').value.trim() || 'CatWet Script Lab'
       });
       aiCompiledPreview = { code, project };
-      $('#aiJsonPreview').value = JSON.stringify(project);
+      $('#aiJsonPreview').value = JSON.stringify(codec.encodeProject(project, catalog));
       $('#aiJsonDetails').open = true;
       $('#addAIScript').disabled = false;
       setAIStatus('Compile succeeded · JSON preview is local and ready to add.', 'success');
@@ -1095,22 +1439,26 @@
 
   source.addEventListener('input', () => updateEditor(true));
   source.addEventListener('click', syncScroll);
+  source.addEventListener('focus', syncScroll);
   source.addEventListener('keyup', syncScroll);
+  source.addEventListener('select', syncScroll);
   source.addEventListener('scroll', syncScroll);
+  source.addEventListener('blur', hideVariableSuggestions);
   lineNumbers.addEventListener('click', (event) => {
     const marker = event.target.closest('.metadata-indicator');
     if (marker) showToast(marker.dataset.metadata);
   });
   source.addEventListener('keydown', (event) => {
-    if (event.key === 'Tab') {
-      event.preventDefault();
-      source.setRangeText('    ', source.selectionStart, source.selectionEnd, 'end');
-      updateEditor(true);
-    }
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
       event.preventDefault();
       compile();
       return;
+    }
+    if (handleVariableSuggestionKeydown(event)) return;
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      source.setRangeText('    ', source.selectionStart, source.selectionEnd, 'end');
+      updateEditor(true);
     }
     if (event.key === 'Enter') {
       const lineStart = source.value.lastIndexOf('\n', source.selectionStart - 1) + 1;
@@ -1147,8 +1495,13 @@
       const saved = await compilePendingScripts();
       if (!saved) return;
     }
-    if (!lastJson) refreshProjectJson();
-    openJsonModal(lastJson);
+    try {
+      const [catalog, codec] = await Promise.all([catalogPromise, codecPromise]);
+      lastJson = JSON.stringify(codec.encodeProject(documentData, catalog));
+      openJsonModal(lastJson);
+    } catch (error) {
+      showToast(`Could not encode project: ${error.message}`);
+    }
   });
   $('#openAI').addEventListener('click', openAIModal);
   $('#closeAI').addEventListener('click', closeAIModal);
@@ -1189,8 +1542,9 @@
       return;
     }
     try {
+      const [catalog, codec] = await Promise.all([catalogPromise, codecPromise]);
       const imported = normalizeImport(JSON.parse(await file.text()));
-      setProject(imported, file.name.replace(/\.json$/i, ''));
+      setProject(codec.decodeProject(imported, catalog), file.name.replace(/\.json$/i, ''));
     } catch (error) {
       showToast(`Could not import project: ${error.message}`);
     }
@@ -1288,7 +1642,8 @@
     if (button && !source.disabled) insertCatalogCall(button);
   });
 
-  catalogPromise.then((catalog) => {
+  Promise.all([catalogPromise, codecPromise]).then(([catalog]) => {
+    activeCatalog = catalog;
     const categories = [...new Set([...catalog.byKey.values()].map((item) => item.category))].sort();
     $('#catalogSummary').textContent = `${categories.length} categories · ${catalog.byKey.size} catalog forms`;
     renderCatalog(catalog);

@@ -181,21 +181,17 @@ describes filtering user-provided or displayed text, not JSON structure
 validation. The repository has no evidence that spaces in JSON, `raw` blocks,
 variable names, or coordinates alone trigger censorship; the exact Catweb
 runtime data flow needs to be tested.
-For scripts that transmit or derive long text, keep the original input as the
-only unrestricted text value and use compact, reversible numeric-token payloads
-for intermediate values. Prefer short numeric-pattern variable names such as
-`v0` and `v1` (CSL identifiers require a letter/underscore prefix), and avoid
-duplicating long text in variables, logs, or messages.
+The editor serializes variable fields with the numeric identifier codec and
+other string-valued Catweb arguments with the separate `ENCODE.json` map.
+Readable CSL is decoded on import. Catweb block IDs, object properties, and
+unknown raw blocks are preserved. Unsupported characters cause an explicit
+export error. Auto-detection on import can interpret a pre-existing numeric
+identifier or literal `{index}` string as encoded when it matches the format.
 
-Keep Catweb-required API names, object IDs, and schema strings unchanged.
-Numeric encodings must define escaping and be tested for spaces, digits,
-punctuation, empty text, and Unicode. The current catalog does not document a
-general character-to-number conversion, so do not claim arbitrary Unicode is
-fully numeric-encoded unless that mapping exists and is verified.
-[`catweb_text_codec.py`](catweb_text_codec.py) is a strict Python port of the
-Conn 00-96 character table; it rejects unsupported characters instead of
-silently converting them to the legacy fallback value. It is not a Catweb
-runtime function and does not provide general Unicode coverage.
+This serialization is not a substitute for Roblox text filtering on
+user-visible text. Preserve Catweb-required API names, object IDs, and schema
+strings, and do not claim arbitrary Unicode coverage beyond the implemented
+tables.
 
 # Styling
 These are objects like Files, but nested inside other objects (including other styling objects); they add properties to the object they are in.

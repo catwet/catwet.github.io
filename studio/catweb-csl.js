@@ -16,9 +16,9 @@
     return value;
   }
 
-  function signature(node) {
+  function signature(node, blankLabels = false) {
     return JSON.stringify((node.text || []).map((part) => {
-      if (typeof part === 'string') return ['text', part];
+      if (typeof part === 'string') return ['text', blankLabels ? '' : part];
       if (part && typeof part === 'object' && !Array.isArray(part)) {
         const field = clone(part);
         delete field.value;
@@ -51,6 +51,7 @@
     const byKey = new Map();
     const byBase = new Map();
     const bySignature = new Map();
+    const byBlankedSignature = new Map();
     groups.forEach((variants, groupKey) => {
       const [scope, category, id] = groupKey.split('/');
       const base = `${scope}/${category}/${id}`;
@@ -63,6 +64,10 @@
         const matches = bySignature.get(signatureKey) || [];
         matches.push(item);
         bySignature.set(signatureKey, matches);
+        const blankedSignatureKey = `${scope}/${id}/${signature(item.node, true)}`;
+        const blankedMatches = byBlankedSignature.get(blankedSignatureKey) || [];
+        blankedMatches.push(item);
+        byBlankedSignature.set(blankedSignatureKey, blankedMatches);
         return item;
       });
       byBase.set(base, entries);
@@ -97,6 +102,13 @@
         throw new Error(`The API reference signature does not match ${name}.`);
       }
       item.callName = name;
+      item.parameters = entry.parameters.map((parameter) => {
+        const sourceField = fields[(parameter.sourcePosition || parameter.position) - 1];
+        return {
+          ...clone(parameter),
+          catalogLabel: parameter.catalogLabel || sourceField && (sourceField.l || sourceField.t) || ''
+        };
+      });
       byCall.set(callKey, item);
       argumentOrders.set(callKey, order);
       registered.add(callKey);
@@ -140,7 +152,11 @@
     }
 
     function matchExisting(scope, node) {
-      const found = bySignature.get(`${scope}/${node.id}/${signature(node)}`) || [];
+      let found = bySignature.get(`${scope}/${node.id}/${signature(node)}`) || [];
+      const labels = (node.text || []).filter((part) => typeof part === 'string');
+      if (!found.length && labels.length && labels.every((label) => label === '')) {
+        found = byBlankedSignature.get(`${scope}/${node.id}/${signature(node, true)}`) || [];
+      }
       const preference = { events: 0, functions: 1, console: 2, logic: 3 };
       return found.sort((a, b) => (preference[a.category] ?? 10) - (preference[b.category] ?? 10)
         || a.category.localeCompare(b.category))[0] || null;

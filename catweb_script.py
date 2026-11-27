@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from catweb_codec import CatwebCodecError, decode_content, encode_project
+
 ROOT = Path(__file__).resolve().parent
 CATALOG = ROOT / "script"
 MISSING = {"$missing": True}
@@ -47,11 +49,11 @@ def _stable(value: Any) -> Any:
     return value
 
 
-def _text_signature(node: dict[str, Any]) -> tuple[Any, ...]:
+def _text_signature(node: dict[str, Any], *, blank_labels: bool = False) -> tuple[Any, ...]:
     result = []
     for part in node.get("text", []):
         if isinstance(part, str):
-            result.append(("text", part))
+            result.append(("text", "" if blank_labels else part))
         elif isinstance(part, dict):
             field = {key: value for key, value in part.items() if key != "value"}
             result.append(("field", _stable(field)))
@@ -177,6 +179,7 @@ class BlockCatalog:
         self.by_key: dict[str, Template] = {}
         self.by_base: dict[tuple[str, str, str], list[Template]] = {}
         self.by_signature: dict[tuple[str, str, tuple[Any, ...]], list[Template]] = {}
+        self.by_blanked_signature: dict[tuple[str, str, tuple[Any, ...]], list[Template]] = {}
         for (scope, category, block_id), variants in grouped.items():
             entries = self.by_base.setdefault((scope, category, block_id), [])
             for index, (signature, node) in enumerate(variants, 1):
@@ -185,6 +188,10 @@ class BlockCatalog:
                 entries.append(item)
                 self.by_key[f"{scope}/{key}"] = item
                 self.by_signature.setdefault((scope, block_id, signature), []).append(item)
+                blanked_signature = _text_signature(node, blank_labels=True)
+                self.by_blanked_signature.setdefault(
+                    (scope, block_id, blanked_signature), []
+                ).append(item)
 
         self._link_scopes()
         self.by_call: dict[tuple[str, str], Template] = {}
@@ -359,6 +366,11 @@ class BlockCatalog:
     def match_existing(self, scope: str, node: dict[str, Any]) -> Template | None:
         block_id = str(node.get("id", ""))
         matches = self.by_signature.get((scope, block_id, _text_signature(node)), [])
+        labels = [part for part in node.get("text", []) if isinstance(part, str)]
+        if not matches and labels and all(not label for label in labels):
+            matches = self.by_blanked_signature.get(
+                (scope, block_id, _text_signature(node, blank_labels=True)), []
+            )
         if not matches:
             return None
         preference = {"events": 0, "functions": 1, "console": 2, "logic": 3}
@@ -617,6 +629,7 @@ def _decompile_actions(actions: list[dict[str, Any]], catalog: BlockCatalog,
 def decompile_script(content: list[dict[str, Any]], catalog: BlockCatalog | None = None) -> str:
     """Convert a script content list to CSL, retaining unknown blocks as raw lines."""
     catalog = catalog or BlockCatalog()
+    content = decode_content(content, catalog)
     sections: list[str] = []
     for node in content:
         template = catalog.match_existing("top", node)
@@ -653,7 +666,7 @@ def _indent_of(line: str) -> int:
 
 
 def compile_script(source: str, *, folder_alias: str = "CatWet Script Lab",
-                   catalog: BlockCatalog | None = None) -> list[dict[str, Any]]:
+                   catalog: BlockCatalog | None = None, encoded: bool = False) -> list[dict[str, Any]]:
     """Compile readable Python-like Catweb calls into an importable project.
 
     Named calls are preferred; legacy ``top``/``block`` catalog calls remain accepted.
@@ -927,7 +940,8 @@ def compile_script(source: str, *, folder_alias: str = "CatWet Script Lab",
         raise CompileError("no top-level event or function was found")
     script = {"class": "script", "globalid": _gid(), "content": content}
     root = {"class": "Folder", "globalid": _gid(), "alias": folder_alias, "children": [script]}
-    return [root]
+    project = [root]
+    return encode_project(project, catalog) if encoded else project
 
 
 def main() -> int:
@@ -936,17 +950,22 @@ def main() -> int:
     parser.add_argument("-o", "--output", type=Path, help="Output JSON path (default: source with .json extension)")
     parser.add_argument("--name", default="CatWet Script Lab", help="Folder alias/mark in the generated document")
     parser.add_argument("--pretty", action="store_true", help="Write readable indented JSON instead of compact JSON")
+    parser.add_argument("--plain", action="store_true", help="Do not encode string values or variable identifiers")
     args = parser.parse_args()
     output = args.output or args.source.with_suffix(".json")
     try:
-        result = compile_script(args.source.read_text(encoding="utf-8"), folder_alias=args.name)
+        result = compile_script(
+            args.source.read_text(encoding="utf-8"),
+            folder_alias=args.name,
+            encoded=not args.plain,
+        )
         if args.pretty:
             serialized = json.dumps(result, ensure_ascii=False, indent=4)
         else:
             serialized = json.dumps(result, ensure_ascii=False, separators=(",", ":"))
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(serialized + "\n", encoding="utf-8")
-    except (OSError, CompileError, RuntimeError) as exc:
+    except (OSError, CompileError, RuntimeError, CatwebCodecError) as exc:
         parser.error(str(exc))
     print(f"Created {output}")
     return 0

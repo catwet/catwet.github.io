@@ -604,8 +604,62 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .code-stack textarea::selection { background: #264f7880; color: transparent; }
 .tok-keyword { color: #c586c0; }
 .tok-string { color: #ce9178; }
+.tok-string .tok-variable-reference {
+  border-radius: 2px;
+  background: #163d52;
+  color: #4fc1ff;
+  font-weight: 600;
+}
 .tok-comment { color: #6a9955; font-style: italic; }
 .tok-variable { color: #9cdcfe; }
+.variable-suggestions {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  width: max-content;
+  min-width: 210px;
+  max-width: min(340px, calc(100% - 16px));
+  max-height: 300px;
+  flex-direction: column;
+  overflow: auto;
+  border: 1px solid #454545;
+  border-radius: 4px;
+  background: #252526;
+  box-shadow: 0 8px 22px #0008;
+  color: #cccccc;
+  font: 10px/1.45 var(--mono);
+}
+.variable-suggestions[hidden] { display: none; }
+.variable-suggestion-list { max-height: 145px; overflow: auto; padding: 3px; }
+.variable-suggestion {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: #cccccc;
+  text-align: left;
+  cursor: pointer;
+}
+.variable-suggestion small { color: #858585; font: 9px/1.35 var(--mono); text-align: right; }
+.variable-suggestion:hover, .variable-suggestion.selected { background: #094771; color: #ffffff; }
+.variable-suggestion code, .variable-suggestion-empty code { color: #4fc1ff; font: inherit; }
+.variable-suggestion-empty { padding: 7px; color: #bbbbbb; }
+.variable-suggestion-help { padding: 5px 8px; border-top: 1px solid #3c3c3c; color: #858585; font-size: 9px; }
+.suggestion-detail { padding: 7px 8px; border-bottom: 1px solid #3c3c3c; }
+.suggestion-detail-heading { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
+.suggestion-detail-heading code { color: #4fc1ff; font: inherit; }
+.suggestion-detail-heading span { color: #858585; font-size: 9px; }
+.suggestion-parameters { display: grid; gap: 2px; }
+.suggestion-parameter { display: grid; grid-template-columns: minmax(52px, auto) 1fr; gap: 8px; padding: 3px 4px; color: #bbbbbb; }
+.suggestion-parameter.active { background: #333333; color: #ffffff; }
+.suggestion-parameter strong { color: #dcdcaa; font-weight: 500; }
+.suggestion-parameter span { color: #9d9d9d; overflow-wrap: anywhere; }
+.suggestion-detail-note { margin-top: 5px; color: #858585; font-size: 9px; }
 
 .diagnostics {
   display: none;

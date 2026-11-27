@@ -35,14 +35,15 @@ Copy this block and fill in the details in brackets:
 > If a capability is missing from the catalog, list it separately and do not
 > pretend it has been implemented.
 > Keep the source short and easy to modify. Separate code from any explanation.
-> When Roblox text filtering is a risk, keep only the original user input as
-> unrestricted text; encode derived/transmitted payloads with a documented,
-> reversible numeric-token format. Use compact numeric-pattern identifiers
-> such as `v0`, `v1`, and `f0` for variables/functions (CSL identifiers must
-> still start with a letter or underscore). Avoid spaces and repeated copies
-> of long text in intermediate values and logs. Preserve catalog-required
-> names, IDs, labels, and types exactly; do not assume arbitrary Unicode can
-> be converted to numbers unless the encoding is implemented and tested.
+> Keep readable names and strings in generated CSL. Project export applies two
+> separate codecs: variable fields (`l: variable`/`variable?`) use the numeric
+> identifier encoder, while string-valued `string`/`any` fields use
+> `ENCODE.json`. Export only blanks the confirmed nonessential
+> `When website loaded...` event label; preserve action/control labels. Do not
+> mix the tables or encode Catweb block IDs, object properties, or unknown raw
+> blocks.
+> Unsupported characters must be reported, not dropped or replaced. Numeric
+> serialization does not replace Roblox text filtering for user-visible text.
 
 If the request also includes a visual interface, ask for JSON backed by
 `files.json` and `styling.json`. The Visual Editor can import a complete project
@@ -77,10 +78,10 @@ For AI-generated scripts that process or transmit user text:
   code actually maps every supported character and passes round-trip tests.
   The current catalog does not document a general character-to-number or
   Unicode-codepoint operation; list that as a limitation when relevant.
-- For Python tooling, use [`catweb_text_codec.py`](catweb_text_codec.py) as the
-  reference implementation for the Conn character table. It supports only its
-  explicit character set; it does not prove that the same algorithm is
-  executable with Catweb blocks.
+- For Python tooling, use [`catweb_codec.py`](catweb_codec.py) for the
+  field-aware transformation and [`catweb_encoder_v2py.py`](catweb_encoder_v2py.py)
+  for numeric variable identifiers. String payloads use `ENCODE.json`, not the
+  identifier table.
 
 ## Current Contract Limitations
 

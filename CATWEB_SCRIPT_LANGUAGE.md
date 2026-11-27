@@ -31,6 +31,27 @@ an undefined value. Values are converted to the format expected by each
 template. For example, if a Catweb template defines a value as a string, `1` is
 stored as `"1"` to match that schema.
 
+## Variable References in Strings
+
+Use Catweb's native brace form to insert a variable into a string:
+
+```text
+visits = 1
+console.log("Visits: {visits}")
+```
+
+The editor highlights `{name}` references (and `{l!name}` / `{o!name}` scoped
+references) inside strings. When typing after `{`, its compact suggestion menu
+offers assigned variables; select one, press Enter/Tab, or use the arrow keys.
+The editor inserts the closing brace when needed.
+
+Outside strings, typing a catalog call prefix such as `col` suggests matching
+CSL calls. Selecting one inserts its call template and focuses the first
+placeholder. While the cursor is inside a known call, the suggestion panel
+shows each argument's API name, position, template type, Catweb field label,
+and input/output direction. These details come from `API_REFERENCE.json` and
+the block catalog.
+
 ## Variable Scope
 
 Plain assignments use Catweb's global variable behavior:
@@ -46,16 +67,22 @@ they are not standalone assignment statements. `global name = value` is
 accepted as an explicit spelling of the ordinary assignment and decompiles to
 that native form.
 
-For Roblox-filtered or transmitted text, prefer compact numeric-pattern
-identifiers such as `v0`, `v1`, and `f0`; CSL identifiers must start with a
-letter or underscore. Keep the initial user input as the only unrestricted
-long text value, and use reversible numeric tokens for derived payloads where
-the algorithm supports it. Preserve Catweb-required API and object IDs exactly.
-The catalog does not document general character-code conversion, so arbitrary
-Unicode cannot be assumed to have a numeric-only encoding. For Python-side
-processing, [`catweb_text_codec.py`](catweb_text_codec.py) implements the
-repository's fixed Conn character table, but it is not an executable Catweb
-block and rejects characters outside that table.
+The editor uses two separate project-serialization codecs. Variable fields
+(`l: variable` and `l: variable?`) are encoded using the fixed-width numeric
+identifier table from [`catweb_encoder_v2py.py`](catweb_encoder_v2py.py).
+Other string argument fields use [`ENCODE.json`](ENCODE.json), producing
+tokens such as `{7}{14}{11}{0}` for `hola`. The editor decodes these fields
+when importing so CSL remains readable. Static text labels on known blocks are
+only blanked when confirmed nonessential: currently the `When website loaded...`
+event label. Action and control-block labels stay unchanged. Block IDs, object
+properties, and unknown raw blocks are not transformed.
+
+The codecs support only their documented character tables. Export fails with
+the field path when a string contains unsupported characters rather than
+silently dropping or replacing text. Import auto-detects canonical numeric
+identifiers and complete `{index}` token sequences. As a result, pre-existing
+numeric names or literal strings matching those patterns can be interpreted as
+encoded; use readable identifiers and ordinary strings for unencoded projects.
 
 Control blocks with end markers in the catalog are written with indentation:
 

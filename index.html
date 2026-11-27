@@ -86,7 +86,7 @@
     <section class="editor-column">
       <div class="tabbar"><div class="active-tab"><svg class="tab-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5h6l4 4v7H3z"/><path d="M9 2.5v4h4"/></svg><span id="scriptTitle">my_site</span><span class="language-pill">CSL</span></div><div class="tab-tools"><button class="snippet" data-insert="log" title="Insert console.log">＋ console.log</button><button class="snippet" data-insert="set" title="Insert variable assignment">＋ variable</button><a href="CATWEB_SCRIPT_LANGUAGE.md" target="_blank" rel="noreferrer">Syntax ↗</a></div></div>
       <div class="breadcrumbs"><span id="breadcrumbProject">CatWet Script Lab</span><span class="breadcrumb-separator">›</span><span id="breadcrumbScript">my_site</span><span class="breadcrumb-separator">›</span><span>CSL</span></div>
-      <div class="edit-area"><div id="lineNumbers" class="line-numbers" aria-hidden="true"></div><div class="code-stack"><pre id="highlight" aria-hidden="true"></pre><textarea id="source" aria-label="Catweb code" autocomplete="off" autocapitalize="off" spellcheck="false" wrap="off"></textarea></div></div>
+      <div class="edit-area"><div id="lineNumbers" class="line-numbers" aria-hidden="true"></div><div class="code-stack"><pre id="highlight" aria-hidden="true"></pre><textarea id="source" aria-label="Catweb code" aria-autocomplete="list" aria-controls="variableSuggestions" autocomplete="off" autocapitalize="off" spellcheck="false" wrap="off"></textarea><div id="variableSuggestions" class="variable-suggestions" role="listbox" aria-label="Catweb code, variable, and parameter suggestions" hidden></div></div></div>
       <div id="diagnostics" class="diagnostics" aria-live="polite"></div>
     </section>
     <aside class="right-sidebar" aria-label="Catweb events and blocks">
@@ -156,6 +156,7 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="studio/ai-provider.js"></script>
+  <script src="studio/catweb-codec.js"></script>
   <script src="studio/catweb-csl.js"></script>
   <script src="studio/script-app.js"></script>
 </body>

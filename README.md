@@ -25,7 +25,9 @@ in Catweb.**
 | [`info.md`](info.md) | Original notes on variables, objects, events, properties, and known limitations. |
 | [`examples/`](examples/) | Python/CSL source files and sample JSON outputs. |
 | [`catweb_script.py`](catweb_script.py) | Python CSL compiler with generic blocks backed by the available catalog. |
-| [`catweb_text_codec.py`](catweb_text_codec.py) | Strict Python port of the fixed-width Catweb Conn character-number table. |
+| [`catweb_encoder_v2py.py`](catweb_encoder_v2py.py) | Fixed-width numeric encoder for Catweb variable identifiers. |
+| [`catweb_codec.py`](catweb_codec.py) | Field-aware project serialization using separate identifier and string codecs. |
+| [`studio/catweb-codec.js`](studio/catweb-codec.js) | Browser-side codec matching Python project import/export behavior. |
 | [`API_REFERENCE.json`](API_REFERENCE.json) | Shared API v2 names, signatures, aliases, and block argument mappings. |
 | [`API_V2.md`](API_V2.md) | Complete API v2 function, event, parameter, and example reference. |
 | [`API_MIGRATION.md`](API_MIGRATION.md) | Legacy-name and parameter-order migration table. |
@@ -64,24 +66,36 @@ editable source; the generated JSON is the file to import and test in Catweb.
 For scripting, `script(*content)` accepts raw catalog JSON blocks and preserves
 their content and order; blocks should still be copied from verified references.
 
-## Numeric Text Codec (Python)
+## Numeric Catweb Project Encoding
 
-[`catweb_text_codec.py`](catweb_text_codec.py) ports the character table from
-the Conn encoder as a strict, fixed-width codec:
+The project compiler and browser editor keep readable CSL internally and encode
+Catweb argument fields only when producing JSON. Variable fields (`l: variable`
+or `variable?`) use the fixed-width identifier codec in
+[`catweb_encoder_v2py.py`](catweb_encoder_v2py.py). Other string arguments use
+the character map in [`ENCODE.json`](ENCODE.json), serialized as tokens such as
+`{7}{14}{11}{0}`. The confirmed nonessential `When website loaded...` label is
+blanked on export; action and control-block labels remain intact. Matching
+numeric identifiers and token-only string values are decoded automatically;
+unrelated object properties, block IDs, and unknown blocks remain unchanged.
+
+The two codecs are intentionally separate. The identifier codec emits two
+ASCII digits per character and retains the legacy alphabet's duplicate `%`;
+`ENCODE.json` uses its own numeric indices. Unsupported characters cause an
+explicit encoding error instead of being silently replaced. Automatic import
+decoding can reinterpret a pre-existing numeric variable name or literal string
+that exactly matches one of these encoded patterns.
+
+The legacy text-codec import remains available as a compatibility module:
 
 ```python
 from catweb_text_codec import decode_text, encode_text
 
-payload = encode_text("Hello, Catweb!")
+payload = encode_text("variable_name")
 original = decode_text(payload)
 ```
 
-It emits two ASCII digits per character. The legacy table has 97 positions,
-96 unique characters, and a repeated `%`; encoding uses the first `%` entry.
-Unsupported characters raise `ValueError` rather than silently becoming the
-legacy fallback character. The codec is not Catweb/Luau code and does not
-support arbitrary Unicode (for example `ñ` or emoji); test the game-side port
-separately.
+The compiler CLI emits encoded JSON by default; pass `--plain` to preserve
+readable argument values in its output.
 
 ## Text-Based Script Language
 

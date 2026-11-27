@@ -234,6 +234,24 @@ class CatwebScriptTests(unittest.TestCase):
             )
             text = output.read_text(encoding="utf-8")
             self.assertEqual(text, json.dumps(json.loads(text), ensure_ascii=False, separators=(",", ":")) + "\n")
+            log_field = next(
+                field for field in json.loads(text)[0]["children"][0]["content"][0]["actions"][0]["text"]
+                if isinstance(field, dict)
+            )
+            self.assertEqual(log_field["value"], "{2}{14}{12}{15}{0}{2}{19}")
+
+            plain_output = Path(directory) / "plain.json"
+            subprocess.run(
+                [sys.executable, str(ROOT / "catweb_script.py"), str(source), "-o", str(plain_output), "--plain"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            plain_field = next(
+                field for field in json.loads(plain_output.read_text(encoding="utf-8"))[0]["children"][0]["content"][0]["actions"][0]["text"]
+                if isinstance(field, dict)
+            )
+            self.assertEqual(plain_field["value"], "compact")
 
     def test_raw_api_writes_compact_json_by_default(self):
         project = [folder(text_label("Catweb", globalid="label01"), globalid="root01")]
