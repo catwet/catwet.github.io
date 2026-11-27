@@ -2,7 +2,7 @@ CATWEB - INVENTARIO DE FUNCIONES EJECUTABLES
 Auditoría estática de los catálogos de este repositorio; no es una especificación oficial de runtime.
 
 ALCANCE Y MÉTODO
-- Fuente primaria: 17 categorías JSON enumeradas en script/catalog-index.json, procesadas con BlockCatalog de catweb_script.py.
+- Fuente primaria: 17 categorías JSON enumeradas en data/catalog/catalog-index.json, procesadas con BlockCatalog de catweb/script.py.
 - Inventario: 138 entradas con nombre CSL único, contando eventos, acciones, condiciones, ciclos y declaración/retorno de funciones.
 - Los nombres exactos son los nombres canónicos que expone el compilador CSL del proyecto. Los ejemplos se validan sintácticamente contra ese catálogo; no se ejecutaron dentro del juego Catweb.
 - El repositorio contiene plantillas de referencia, no el runtime de Catweb. Donde no hay especificación adicional, el comportamiento se limita a la etiqueta visible y se indica expresamente.

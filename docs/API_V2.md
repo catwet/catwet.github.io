@@ -3452,9 +3452,9 @@ on donation_complete:
 
 ## Language declaration
 
-### `def <function_name>():`
+### `def <function_name>([<parameter_name>, ...]):`
 
-This maps to the catalog block `functions/6`. It declares a custom function and is not a callable function. Legacy generic form `functions.define_function` / `top functions/6 [...]` remains supported.
+This maps to the catalog block `functions/6`. It declares a custom function and is not a callable function. Use `def name():` for a function without parameters; parameter names appear directly in the header and correspond to Catweb's function arguments. Legacy generic form `functions.define_function` / `top functions/6 [...]` remains supported.
 
 **Example:**
 

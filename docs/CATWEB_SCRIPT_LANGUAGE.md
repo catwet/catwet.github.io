@@ -3,8 +3,8 @@
 CSL provides a Python-like way to write Catweb scripts. The compiler resolves
 names against the actual catalog templates and preserves the structure required
 by Catweb. The Python compiler is in
-[`catweb_script.py`](catweb_script.py); the browser compiler is in
-[`studio/catweb-csl.js`](studio/catweb-csl.js).
+[`catweb/script.py`](../catweb/script.py); the browser compiler is in
+[`studio/catweb-csl.js`](../studio/catweb-csl.js).
 
 ## Events and Actions
 
@@ -21,8 +21,8 @@ on button_press("main-button"):
 console.warn("Button pressed")
 ```
 
-`API_REFERENCE.json` maps API v2 names onto the unchanged templates in
-`script/catalog-index.json`. Every previous function and event name remains a
+`../data/API_REFERENCE.json` maps API v2 names onto the unchanged templates in
+`../data/catalog/catalog-index.json`. Every previous function and event name remains a
 legacy alias and keeps its original argument order. The Script Lab block panel
 shows the canonical calls and their arguments; click one to insert it.
 Arguments use simple literals:
@@ -63,26 +63,30 @@ visits = 1
 The catalog contains no separate local/object declaration blocks, so CSL does
 not emit custom scope properties in Catweb JSON. Catweb's `{l!name}` and
 `{o!name}` references are used in supported fields for local and object values;
-they are not standalone assignment statements. `global name = value` is
+they are not standalone assignment statements. Scoped references are also
+accepted in numeric-typed fields such as `loops.repeat("{l!count}")`; ordinary
+non-numeric strings are still rejected there. `global name = value` is
 accepted as an explicit spelling of the ordinary assignment and decompiles to
 that native form.
 
 The editor uses two separate project-serialization codecs. Variable fields
 (`l: variable` and `l: variable?`) are encoded using the fixed-width numeric
-identifier table from [`catweb_encoder_v2py.py`](catweb_encoder_v2py.py).
-Other string argument fields use [`ENCODE.json`](ENCODE.json), producing
+identifier table from [`catweb/encoder_v2py.py`](../catweb/encoder_v2py.py).
+Other string argument fields use [`data/ENCODE.json`](../data/ENCODE.json), producing
 tokens such as `{7}{14}{11}{0}` for `hola`. The editor decodes these fields
-when importing so CSL remains readable. Static text labels on known blocks are
-only blanked when confirmed nonessential: currently the `When website loaded...`
-event label. Action and control-block labels stay unchanged. Block IDs, object
-properties, and unknown raw blocks are not transformed.
+when importing so CSL remains readable. Catweb comment fields remain plain
+text, matching their native JSON representation. Static text labels on known
+blocks are only blanked when confirmed nonessential (the `When website loaded...`
+event label). Action and control-block labels stay unchanged. Block IDs,
+object properties, and unknown raw blocks are not transformed.
 
-The codecs support only their documented character tables. Export fails with
-the field path when a string contains unsupported characters rather than
-silently dropping or replacing text. Import auto-detects canonical numeric
-identifiers and complete `{index}` token sequences. As a result, pre-existing
-numeric names or literal strings matching those patterns can be interpreted as
-encoded; use readable identifiers and ordinary strings for unencoded projects.
+The codecs support only their documented character tables. If a string contains
+unsupported characters, the complete value is preserved literally and export
+shows a warning with the field path; it is never partially encoded or replaced.
+Import auto-detects canonical numeric identifiers and complete `{index}` token
+sequences. As a result, pre-existing numeric names or literal strings matching
+those patterns can be interpreted as encoded; use readable identifiers and
+ordinary strings for unencoded projects.
 
 Control blocks with end markers in the catalog are written with indentation:
 
@@ -109,7 +113,11 @@ In CatWet Script Lab, you can import a complete Catweb project, a script, or a
 list of scripts. The explorer lets you select scripts and objects; selecting a
 script decompiles its content to CSL. When compiled, the result replaces that
 script's content in the imported project. **Export JSON** opens the final
-compact project JSON in a copyable modal; it does not download a file.
+compact project JSON in a copyable modal; it does not download a file or compile
+source implicitly. If a script has uncompiled edits, a notice explains that
+the export contains its last compiled blocks. Compile the script first to
+include those edits. Script and object aliases can be edited in the inspector
+and are preserved in project JSON.
 Downloading `.cat` source is disabled while `.cat` compatibility remains a
 future prototype for the planned Script and 2D Viewer editor stages.
 Project objects retain their positions. `raw` actions and unknown data are
@@ -136,8 +144,8 @@ When a project is imported into CatWet Studio, metadata is separated from the
 editable source and kept internally by line. The code therefore contains no
 visible `# @...` comments, while an `i` in the line-number gutter indicates
 preserved metadata; hover over it or click it to inspect the fields. Compilation
-uses that metadata, and saving a `.cat` source file writes it back as inline
-comments for compatibility with Catweb and other CSL tools.
+uses that metadata. `.cat` import/export remains disabled; the stored metadata
+prototype is intended to support it when that format is re-enabled.
 
 Blocks without an interpretable name are represented as `raw` to preserve
 their data unchanged. An unrecognized top-level block is preserved as
@@ -150,27 +158,31 @@ script content. Top-level `x` and `y` are kept out of the editable CSL text,
 but appear in the hidden metadata indicator and are restored on compilation.
 Unrecognized `topraw` blocks retain their full original top-level fields.
 
-## Function Return Values
+## Function Results
 
-Use `functions.return(value)` inside a function to return a value. To capture
-that value, pass the destination variable name to the `functions.run_function`
-block:
+Blocks with output fields put their destinations after the call, using `=`.
+Their output fields are omitted from the parentheses; multiple outputs follow
+the catalog's output order:
 
 ```text
-def valor_fijo():
-    functions.return(10)
-
 on load:
-functions.run("valor_fijo", [], "resultado")
+text.split("hola", "") = partes
+functions.run("sumar", 5, 5) = resultado
 console.log("Resultado: {resultado}")
 ```
 
-The third argument, `"resultado"`, is the output variable. The empty list means
-the function takes no arguments. The current CSL compiler accepts literals in
-arguments and assignments; it does not support a nested call such as
-`resultado = sumar(5 + 5)`. Use the catalog's blocks and output-variable field
-instead. Confirm the result in Catweb, since this repository only documents
-the observed block format.
+`functions.run` takes the function name first. The remaining call arguments are
+packed into Catweb's argument tuple. To call a function without arguments, use
+`functions.run("valor_fijo") = resultado`. A block with multiple outputs can
+assign each one in order, for example
+`functions.run_protected("procesar", "dato") = exito, resultado`.
+
+The same suffix applies to any named catalog block whose API metadata marks
+fields as outputs. Existing calls that still include output fields inside the
+parentheses remain importable; the editor decompiles them to the suffix form.
+This is a CSL notation change only: compilation still fills the original
+Catweb output fields, and `functions.return(value)` continues to return from
+inside a function.
 
 ## Compatibility and Compilation
 
@@ -180,12 +192,12 @@ syntax for known templates. Comments start with `#`; a blank line separates
 top-level events.
 
 ```console
-python catweb_script.py examples/welcome.cat
+python -m catweb.script examples/scripts/welcome.cat
 ```
 
 Output is compact by default; use `--pretty` for indented JSON.
 `-o path.json` chooses a different destination, and `--name "My Brand"` sets
-the generated folder alias. Script Lab also downloads compact JSON.
+the generated folder alias.
 
 The app must be served over HTTP to load the catalogs:
 

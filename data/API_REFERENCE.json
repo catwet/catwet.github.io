@@ -5072,7 +5072,7 @@
   "languageConstructs": [
     {
       "name": "def",
-      "canonicalSyntax": "def <function_name>():",
+      "canonicalSyntax": "def <function_name>([<parameter_name>, ...]):",
       "legacyName": "functions.define_function",
       "source": {
         "scope": "top",
@@ -5090,7 +5090,7 @@
           "sourcePosition": 1
         }
       ],
-      "notes": "Language declaration syntax, not a callable function. Legacy top functions/6 remains supported."
+      "notes": "Language declaration syntax, not a callable function. Parameters are declared as identifiers in the header and map to Catweb variable_overrides. Legacy top functions/6 remains supported."
     }
   ],
   "extraAliases": [

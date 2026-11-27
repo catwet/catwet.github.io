@@ -72,6 +72,8 @@
       });
       byBase.set(base, entries);
     });
+    const commentTemplate = [...byKey.values()].find((item) => item.scope === 'block'
+      && fieldValues(item.node).some((field) => field.l === 'comment')) || null;
 
     byKey.forEach((item) => {
       if (item.scope !== 'block') return;
@@ -153,6 +155,9 @@
 
     function matchExisting(scope, node) {
       let found = bySignature.get(`${scope}/${node.id}/${signature(node)}`) || [];
+      if (!found.length && scope === 'block' && String(node.id) === '87') {
+        found = bySignature.get(`block/132/${signature(node)}`) || [];
+      }
       const labels = (node.text || []).filter((part) => typeof part === 'string');
       if (!found.length && labels.length && labels.every((label) => label === '')) {
         found = byBlankedSignature.get(`${scope}/${node.id}/${signature(node, true)}`) || [];
@@ -187,18 +192,18 @@
       return canonical;
     }
 
-    return { byKey, byBase, byCall, named, get, getNamed, resolveNamed, canonicalArguments, matchExisting };
+    return { byKey, byBase, byCall, named, commentTemplate, get, getNamed, resolveNamed, canonicalArguments, matchExisting };
   }
 
-  async function loadCatalog(base = '../script/') {
+  async function loadCatalog(base = '../data/catalog/') {
     const catalogUrl = new URL(base, document.baseURI);
     const indexResponse = await fetch(new URL('catalog-index.json', catalogUrl));
-    if (!indexResponse.ok) throw new Error('Could not load script/catalog-index.json.');
+    if (!indexResponse.ok) throw new Error('Could not load data/catalog/catalog-index.json.');
     const index = await indexResponse.json();
     if (!index || !Array.isArray(index.categories)) throw new Error('The catalog index does not contain valid categories.');
     const pairs = await Promise.all(index.categories.map(async (category) => {
       const response = await fetch(new URL(`${encodeURIComponent(category)}.json`, catalogUrl));
-      if (!response.ok) throw new Error(`Could not load script/${category}.json.`);
+      if (!response.ok) throw new Error(`Could not load data/catalog/${category}.json.`);
       return [category, await response.json()];
     }));
     const referenceResponse = await fetch(new URL('../API_REFERENCE.json', catalogUrl));
@@ -216,7 +221,8 @@
         delete field.value;
       } else if (field.t === 'string' && ['number', 'boolean'].includes(typeof value)) {
         field.value = String(value);
-      } else if (field.t === 'number' && typeof value === 'string') {
+      } else if (field.t === 'number' && typeof value === 'string'
+          && !/^\{[lo]![A-Za-z_][\w-]*\}$/.test(value)) {
         const number = Number(value);
         if (!Number.isFinite(number)) throw new Error(`Line ${line}: ${value} is not a number.`);
         field.value = number;
@@ -414,6 +420,28 @@
     return { name:match[1], args:args ? splitTopLevel(args, line).map((part) => parseLiteral(part, line)) : [] };
   }
 
+  function splitOutputAssignment(source) {
+    let quote = null;
+    let escaped = false;
+    let depth = 0;
+    for (let index = 0; index < source.length; index += 1) {
+      const character = source[index];
+      if (quote) {
+        if (escaped) escaped = false;
+        else if (character === '\\') escaped = true;
+        else if (character === quote) quote = null;
+      } else if (character === '"' || character === "'") quote = character;
+      else if (character === '(' || character === '[' || character === '{') depth += 1;
+      else if (character === ')' || character === ']' || character === '}') depth -= 1;
+      else if (character === '=' && depth === 0) {
+        const call = source.slice(0, index).trim();
+        const targets = source.slice(index + 1).trim();
+        if (call.endsWith(')') && targets) return { call, targets };
+      }
+    }
+    return null;
+  }
+
   function readMetadataComment(source, line) {
     let quote = null;
     let escaped = false;
@@ -469,6 +497,79 @@
     return `(${values.map(formatLiteral).join(', ')})`;
   }
 
+  function orderedParameters(item, legacyOrder = false) {
+    const positionKey = legacyOrder ? 'sourcePosition' : 'position';
+    return (item.parameters || []).map((parameter, index) => ({
+      parameter,
+      position: Number(parameter[positionKey]) || index + 1
+    })).sort((left, right) => left.position - right.position);
+  }
+
+  function readOutputTargets(source, line) {
+    return splitTopLevel(source, line).map((part) => {
+      if (/^[A-Za-z_]\w*$/.test(part)) return part;
+      const value = parseLiteral(part, line);
+      if (value !== MISSING && typeof value !== 'string') {
+        throw new Error(`Line ${line}: output targets must be variable names or ...`);
+      }
+      return value;
+    });
+  }
+
+  function argumentsWithOutputs(item, inputArguments, targets, line, legacyOrder = false) {
+    const parameters = orderedParameters(item, legacyOrder);
+    const outputs = parameters.filter(({ parameter }) => parameter.direction === 'output');
+    const inputs = parameters.filter(({ parameter }) => parameter.direction !== 'output');
+    if (!outputs.length) throw new Error(`Line ${line}: ${item.callName} has no output parameter.`);
+    if (targets.length !== outputs.length) {
+      throw new Error(`Line ${line}: ${item.callName} needs ${outputs.length} output target${outputs.length === 1 ? '' : 's'} after "="; received ${targets.length}.`);
+    }
+
+    let values = inputArguments;
+    const tupleIndex = inputs.length - 1;
+    if (inputs.length > 1 && inputs[tupleIndex].parameter.type === 'tuple') {
+      if (inputArguments.length === tupleIndex) values = [...inputArguments, []];
+      else if (inputArguments.length === inputs.length
+          && (Array.isArray(inputArguments[tupleIndex]) || inputArguments[tupleIndex] === MISSING)) values = inputArguments;
+      else if (inputArguments.length > tupleIndex) {
+        values = [...inputArguments.slice(0, tupleIndex), inputArguments.slice(tupleIndex)];
+      }
+    }
+    if (values.length !== inputs.length) {
+      throw new Error(`Line ${line}: ${item.callName} expects ${inputs.length} input argument${inputs.length === 1 ? '' : 's'} before "="; received ${values.length}.`);
+    }
+
+    const result = new Array(parameters.length);
+    let inputIndex = 0;
+    let outputIndex = 0;
+    parameters.forEach(({ parameter, position }) => {
+      if (!Number.isInteger(position) || position < 1 || position > result.length) {
+        throw new Error(`Line ${line}: invalid API parameter position for ${item.callName}.`);
+      }
+      result[position - 1] = parameter.direction === 'output'
+        ? targets[outputIndex++]
+        : values[inputIndex++];
+    });
+    return result;
+  }
+
+  function namedCallSource(item, argumentsList) {
+    const parameters = orderedParameters(item);
+    const outputs = parameters.filter(({ parameter }) => parameter.direction === 'output');
+    if (!outputs.length) return `${item.callName}${formatArguments(argumentsList)}`;
+    const inputs = parameters.filter(({ parameter }) => parameter.direction !== 'output');
+    const callArguments = inputs.map(({ position }) => argumentsList[position - 1]);
+    if (inputs.length && inputs[inputs.length - 1].parameter.type === 'tuple') {
+      const tuple = callArguments[callArguments.length - 1];
+      if (Array.isArray(tuple)) callArguments.splice(-1, 1, ...tuple);
+    }
+    const outputTargets = outputs.map(({ position }) => {
+      const value = argumentsList[position - 1];
+      return typeof value === 'string' && /^[A-Za-z_]\w*$/.test(value) ? value : formatLiteral(value);
+    });
+    return `${item.callName}${formatArguments(callArguments)} = ${outputTargets.join(', ')}`;
+  }
+
   function compileScript(source, options = {}) {
     const catalog = options.catalog;
     if (!catalog) throw new Error('The block catalog is unavailable.');
@@ -495,7 +596,11 @@
         finishScopes(0);
         content.push(currentTop);
       }
+      const hasFunctionOverrides = Object.prototype.hasOwnProperty.call(metadata, 'variable_overrides');
       currentTop = instantiate(template, args, metadata, line);
+      if (template.category === 'functions' && template.id === '6' && !hasFunctionOverrides) {
+        currentTop.variable_overrides = [];
+      }
       bodyIndent = null;
     };
     const appendAction = (template, args, metadata, line, indent, mode, explicitScope = false) => {
@@ -549,11 +654,18 @@
         ...(savedMetadata && typeof savedMetadata === 'object' && !Array.isArray(savedMetadata) ? savedMetadata : {}),
         ...parsedLine.metadata
       };
+      const indent = (original.match(/^[ \t]*/) || [''])[0].replace(/\t/g, '    ').length;
       if (!stripped) {
-        if (!original.trim().startsWith('#')) previousBlank = true;
+        const commentSource = original.replace(/^[ \t]*/, '');
+        if (commentSource.startsWith('#') && !Object.keys(parsedLine.metadata).length && currentTop) {
+          if (!catalog.commentTemplate) throw new Error(`Line ${line}: the catalog does not contain a comment block.`);
+          let commentText = commentSource.slice(1);
+          if (commentText.startsWith(' ')) commentText = commentText.slice(1);
+          appendAction(catalog.commentTemplate, [commentText], {}, line, indent, 'call');
+          previousBlank = false;
+        } else if (!original.trim().startsWith('#')) previousBlank = true;
         return;
       }
-      const indent = (original.match(/^[ \t]*/) || [''])[0].replace(/\t/g, '    ').length;
 
       const loadHeader = stripped.match(/^on\s+load\s*:\s*(?:@(\{.*\}))?$/i);
       if (!indent && loadHeader) {
@@ -576,9 +688,21 @@
         startTop(template, resolved.args, inlineMetadata, line);
         previousBlank = false; return;
       }
-      const functionHeader = stripped.match(/^def\s+([A-Za-z_]\w*)\s*(?:\(\s*\))?\s*:/);
+      const functionHeader = stripped.match(/^def\s+([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\s*(?:\(([^()]*)\))?\s*:/);
       if (!indent && functionHeader) {
+        const parameterSource = functionHeader[2] || '';
+        const parameters = parameterSource.trim()
+          ? parameterSource.split(',').map((parameter) => parameter.trim()) : [];
+        if (parameters.some((parameter) => !/^[A-Za-z_]\w*$/.test(parameter))) {
+          throw new Error(`Line ${line}: function parameters must be simple variable names.`);
+        }
+        if (new Set(parameters).size !== parameters.length) {
+          throw new Error(`Line ${line}: function parameter names must be unique.`);
+        }
         startTop(catalog.get('top', 'functions/6', line), [functionHeader[1]], inlineMetadata, line);
+        if (!Object.prototype.hasOwnProperty.call(inlineMetadata, 'variable_overrides')) {
+          currentTop.variable_overrides = parameters.map((parameter) => ({ value: parameter }));
+        }
         previousBlank = false; return;
       }
       if (!indent && stripped.startsWith('top ')) {
@@ -674,6 +798,17 @@
           [scopedDeclaration[2], value], inlineMetadata, line, indent, 'call');
         previousBlank = false; return;
       }
+      const outputAssignment = splitOutputAssignment(stripped);
+      if (outputAssignment) {
+        const call = readNamedCall(outputAssignment.call, line);
+        const template = catalog.getNamed('block', call.name, line);
+        const legacyOrder = !catalog.byCall.has(`block/${call.name}`);
+        const targets = readOutputTargets(outputAssignment.targets, line);
+        const args = argumentsWithOutputs(template, call.args, targets, line, legacyOrder);
+        const resolved = catalog.resolveNamed('block', call.name, args, line);
+        appendAction(resolved.item, resolved.args, inlineMetadata, line, indent, 'call');
+        previousBlank = false; return;
+      }
       const assignment = stripped.match(/^([A-Za-z_]\w*)\s*(\+=|-=|\*=|\/=|=(?!=))\s*(.+)$/);
       if (assignment) {
         let value;
@@ -715,8 +850,11 @@
         header += metadataFor(node, template);
       }
       else if (template && template.category === 'functions' && template.id === '6'
-          && typeof args[0] === 'string' && /^[A-Za-z_]\w*$/.test(args[0])) {
-        header = `def ${args[0]}():${metadataFor(node, template)}`;
+          && typeof args[0] === 'string' && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(args[0])) {
+        const parameters = functionParameterNames(node, template);
+        header = parameters === null
+          ? `top ${template.key.replace('top/', '')} ${formatArguments(args)}${metadataFor(node, template)}`
+          : `def ${args[0]}(${parameters.join(', ')}):${metadataFor(node, template, ['variable_overrides'])}`;
       }
       else if (template) header = `top ${template.key.replace('top/', '')} ${formatArguments(args)}${metadataFor(node, template)}`;
       else {
@@ -733,10 +871,24 @@
     return fieldValues(node).map((field) => Object.prototype.hasOwnProperty.call(field, 'value') ? field.value : MISSING);
   }
 
-  function metadataFor(node, template) {
+  function functionParameterNames(node, template) {
+    const overrides = node.variable_overrides === undefined ? [] : node.variable_overrides;
+    if (JSON.stringify(overrides) === JSON.stringify(template.node.variable_overrides || []) || Array.isArray(overrides) && !overrides.length) return [];
+    if (!Array.isArray(overrides)) return null;
+    const names = [];
+    for (const override of overrides) {
+      if (!override || Array.isArray(override) || typeof override !== 'object'
+          || Object.keys(override).length !== 1 || typeof override.value !== 'string'
+          || !/^[A-Za-z_]\w*$/.test(override.value)) return null;
+      names.push(override.value);
+    }
+    return new Set(names).size === names.length ? names : null;
+  }
+
+  function metadataFor(node, template, ignoredKeys = []) {
     const metadata = {};
     Object.entries(node).forEach(([key, value]) => {
-      if (['id', 'text', 'actions', 'variable_scope'].includes(key)) return;
+      if (['id', 'text', 'actions', 'variable_scope', ...ignoredKeys].includes(key)) return;
       if (key === 'globalid' || !Object.prototype.hasOwnProperty.call(template.node, key) || JSON.stringify(template.node[key]) !== JSON.stringify(value)) {
         metadata[key] = value;
       }
@@ -750,6 +902,12 @@
     let indent = 0;
     for (const action of actions) {
       const template = catalog.matchExisting('block', action);
+      const commentField = template && fieldValues(action).find((field) => field.l === 'comment');
+      if (commentField && typeof commentField.value === 'string'
+          && !/[\r\n]/.test(commentField.value)) {
+        lines.push(`${'    '.repeat(indent)}# ${commentField.value}`);
+        continue;
+      }
       const label = template ? labelOf(action).toLowerCase() : '';
       if (template && label === 'end' && scopes.length) {
         indent = Math.max(0, indent - 1);
@@ -781,7 +939,7 @@
       const args = catalog.canonicalArguments(template, argsFor(action));
       const metadata = metadataFor(action, template);
       const isScope = template.opensScope && template.endTemplate;
-      const call = `${template.callName}${formatArguments(args)}`;
+      const call = namedCallSource(template, args);
       const assignmentOperators = { '11':'=', '12':'+=', '13':'-=', '14':'*=', '15':'/=' };
       const operator = template.category === 'math-variables' ? assignmentOperators[template.id] : null;
       const statement = operator && args.length === 2 && typeof args[0] === 'string' && /^[A-Za-z_]\w*$/.test(args[0])

@@ -2,16 +2,16 @@
   color-scheme: dark;
   font-family: "Segoe UI", Arial, sans-serif;
   font-synthesis: none;
-  --bg: #1e1e1e;
-  --title: #181818;
-  --side: #252526;
-  --panel: #1e1e1e;
-  --tab: #252526;
-  --line: #3c3c3c;
-  --muted: #858585;
-  --text: #cccccc;
-  --blue: #007acc;
-  --blue-hover: #1683c7;
+  --bg: #101116;
+  --title: #090a0d;
+  --side: #15171d;
+  --panel: #12141a;
+  --tab: #171920;
+  --line: #282b35;
+  --muted: #858a98;
+  --text: #d0d2db;
+  --blue: #344b94;
+  --blue-hover: #4663b5;
   --mono: Consolas, "Cascadia Code", "Courier New", monospace;
 }
 
@@ -619,7 +619,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   width: max-content;
   min-width: 210px;
   max-width: min(340px, calc(100% - 16px));
-  max-height: 300px;
+  max-height: 190px;
   flex-direction: column;
   overflow: auto;
   border: 1px solid #454545;
@@ -847,7 +847,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   display: grid;
   width: min(820px, calc(100vw - 48px));
   height: min(680px, calc(100vh - 48px));
-  grid-template-rows: 58px minmax(0, 1fr) 54px;
+  grid-template-rows: 58px auto minmax(0, 1fr) 54px;
   border: 1px solid #4a4a4a;
   border-radius: 6px;
   background: #252526;
@@ -885,6 +885,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   resize: none;
   white-space: pre;
 }
+.json-export-notice {
+  margin: 10px 12px 0;
+  padding: 9px 11px;
+  border: 1px solid #6d5627;
+  border-radius: 3px;
+  background: #302817;
+  color: #e6c982;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.json-export-notice[hidden] { display: none; }
 .json-modal-content:focus { border-color: var(--blue); }
 .json-modal-actions {
   display: flex;
@@ -895,6 +906,55 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   border-top: 1px solid #3c3c3c;
 }
 #jsonCopyStatus { margin-right: auto; color: #9d9d9d; font-size: 10px; }
+.diagnostics-modal {
+  position: fixed;
+  z-index: 32;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.diagnostics-modal.open { display: flex; }
+.diagnostics-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .76);
+  backdrop-filter: blur(3px);
+}
+.diagnostics-modal-card {
+  position: relative;
+  display: grid;
+  width: min(700px, calc(100vw - 48px));
+  max-height: min(640px, calc(100vh - 48px));
+  grid-template-rows: 58px auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #4a4a4a;
+  border-radius: 6px;
+  background: #252526;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, .55);
+}
+.diagnostics-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 8px 16px;
+  border-bottom: 1px solid #3c3c3c;
+}
+.diagnostics-modal-header h2 { margin: 2px 0 0; color: #eeeeee; font-size: 15px; }
+.diagnostics-modal-summary { margin: 0; padding: 12px 16px; color: #bbbbbb; font-size: 11px; }
+.compile-diagnostic-list { min-height: 0; overflow: auto; padding: 0 16px 14px; }
+.compile-diagnostic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-top: 1px solid #383838;
+}
+.compile-diagnostic strong { color: #e6c982; font-size: 11px; }
+.compile-diagnostic p { margin: 4px 0 0; color: #d4d4d4; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.compile-diagnostic .tool-button { flex: 0 0 auto; }
 .ai-modal {
   position: fixed;
   z-index: 31;
@@ -1088,3 +1148,57 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .tab-tools { padding: 0 3px; }
   .snippet { padding: 4px; }
 }
+
+.titlebar { border-bottom-color: #20232b; }
+.tool-button, .compile-button {
+  border-color: #30343e;
+  background-color: #171920;
+}
+.tool-button:hover:not(:disabled) { background: #22252e; }
+.tool-button:active:not(:disabled) { background: #292d38; }
+.compile-button { border-color: #3f58a5; background: var(--blue); }
+.compile-button:hover { border-color: #5571cc; background: var(--blue-hover); }
+.compile-button:active { background: #293d7c; }
+.ai-open-button { border-color: #51425f; background: #201b27; }
+.ai-open-button:hover { border-color: #78628d; background: #2a2334; }
+.activity-bar { border-right-color: #20232b; background: #13151a; }
+.activity-button.active, .activity-button[aria-pressed="true"] { color: #dce3ff; }
+.file-explorer, .right-sidebar { background: var(--side); }
+.project-card, .ai-settings { border-color: #242731; background: #111319; }
+.project-tree-row:hover, .event-node:hover, .event-node:focus-visible,
+.catalog-entry:hover { background: #20232c; }
+.project-tree-row.selected, .catalog-entry:active,
+.variable-suggestion:hover, .variable-suggestion.selected {
+  background: #1b2a4b;
+}
+.tree-filter:hover, .tree-filter.active { background: #20232c; }
+.add-script-button { border-color: #293c54; background: #151c25; }
+.add-script-button:hover { background: #1b2634; }
+.add-object-grid button, .special-object-list button { background: #191b22; }
+.add-object-grid button:hover, .special-object-list button:hover {
+  border-color: #46536e;
+  background: #222733;
+}
+.project-search-wrap input, .watermark-input, .property-input, .json-input,
+.block-section input, .ai-settings input, .ai-workflow textarea,
+.json-modal-content {
+  border-color: #30333e;
+  background: #0c0e13;
+}
+.tabbar { border-color: #242731; background: var(--tab); }
+.active-tab { border-color: #242731; background: var(--bg); }
+.snippet:hover { background: #22252e; }
+.snippet:active { background: #292d38; }
+.metadata-indicator:hover, .suggestion-parameter.active { background: #20232c; }
+.tok-string .tok-variable-reference { background: #102b38; color: #55c5ff; }
+.variable-suggestions, .diagnostics, .toast, .json-modal-card, .ai-modal-card {
+  border-color: #30333e;
+  background: #171920;
+}
+.output-panel { border-color: #252832; background: #0d0f14; }
+.output-content { border-color: #252832; }
+.right-section-heading, .inspector-heading { color: #c4c7d2; }
+.statusbar { background: var(--blue); }
+.json-modal-backdrop, .ai-modal-backdrop { background: rgba(0, 0, 0, .76); }
+.json-modal-header, .json-modal-actions, .ai-modal-header { border-color: #2b2e38; }
+.modal-close:hover { background: #252832; }

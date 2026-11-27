@@ -1,6 +1,6 @@
 import unittest
 
-from catweb_text_codec import ALPHABET, decode_text, encode_text
+from catweb.text_codec import ALPHABET, decode_text, encode_text
 
 
 class CatwebTextCodecTests(unittest.TestCase):

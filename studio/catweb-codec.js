@@ -10,9 +10,10 @@
     + 'abcdefghijklmnopqrstuvwxyz'
     + '}{|~`%□';
   const VARIABLE_LABELS = new Set(['variable', 'variable?']);
-  const IDENTIFIER_PATTERN = /^[A-Za-z_]\w*$/;
+  const IDENTIFIER_PATTERN = /^[A-Za-z_][\w-]*$/;
   const NUMERIC_IDENTIFIER_PATTERN = /^(?:[0-9]{2})+$/;
   const ENCODED_STRING_PATTERN = /^(?:\{[0-9]+\})*$/;
+  const SCOPED_VARIABLE_REFERENCE = /^\{[lo]![A-Za-z_][\w-]*\}$/;
   const clone = (value) => JSON.parse(JSON.stringify(value));
 
   function create(table) {
@@ -20,6 +21,7 @@
       throw new Error('ENCODE.json must contain a numeric-index character map.');
     }
     const stringToCode = new Map();
+    const encodeWarnings = [];
     Object.entries(table).forEach(([code, character]) => {
       if (!/^[0-9]+$/.test(code) || typeof character !== 'string' || character.length !== 1) {
         throw new Error('ENCODE.json must map numeric indices to single characters.');
@@ -55,7 +57,10 @@
       for (let index = 0; index < value.length; index += 1) {
         const code = stringToCode.get(value[index]);
         if (code === undefined) {
-          throw new Error(`${path}: ENCODE.json does not support ${JSON.stringify(value[index])} at index ${index}.`);
+          encodeWarnings.push(
+            `${path}: ENCODE.json does not support ${JSON.stringify(value[index])} at index ${index}; the complete string was preserved literally.`
+          );
+          return value;
         }
         output += `{${code}}`;
       }
@@ -69,18 +74,47 @@
       return tokens.map((code) => table[code]).join('');
     }
 
+    function transformTypedValue(field, path, decode) {
+      const value = field.value;
+      if (typeof value === 'string') {
+        if (field.l === 'comment') return;
+        if (VARIABLE_LABELS.has(field.l)) {
+          if (!SCOPED_VARIABLE_REFERENCE.test(value)) {
+            field.value = decode ? decodeIdentifier(value) : encodeIdentifier(value, path);
+          }
+        } else if (field.t === 'string' || field.t === 'any') {
+          field.value = decode ? decodeString(value) : encodeString(value, path);
+        }
+      } else if (Array.isArray(value) || value && typeof value === 'object') {
+        field.value = transformNestedValue(value, path, decode);
+      }
+    }
+
+    function transformNestedValue(value, path, decode) {
+      if (typeof value === 'string') return decode ? decodeString(value) : encodeString(value, path);
+      if (Array.isArray(value)) {
+        return value.map((item, index) => transformNestedValue(item, `${path}[${index}]`, decode));
+      }
+      if (value && typeof value === 'object') {
+        if (Object.prototype.hasOwnProperty.call(value, 'value')
+            && (Object.prototype.hasOwnProperty.call(value, 't') || Object.prototype.hasOwnProperty.call(value, 'l'))) {
+          transformTypedValue(value, `${path}.value`, decode);
+        } else {
+          Object.entries(value).forEach(([key, item]) => {
+            value[key] = transformNestedValue(item, `${path}.${key}`, decode);
+          });
+        }
+      }
+      return value;
+    }
+
     function transformBlock(node, scope, catalog, path, decode) {
       const template = catalog.matchExisting(scope, node);
       if (template) {
         const fields = (node.text || []).filter((part) => part && typeof part === 'object' && !Array.isArray(part));
         fields.forEach((field, index) => {
-          if (typeof field.value !== 'string') return;
           const fieldPath = `${path}.text[field ${index}]`;
-          if (VARIABLE_LABELS.has(field.l)) {
-            field.value = decode ? decodeIdentifier(field.value) : encodeIdentifier(field.value, fieldPath);
-          } else if (field.t === 'string' || field.t === 'any') {
-            field.value = decode ? decodeString(field.value) : encodeString(field.value, fieldPath);
-          }
+          transformTypedValue(field, fieldPath, decode);
         });
         if (decode) {
           node.text = node.text.map((part, index) => typeof part === 'string'
@@ -114,8 +148,12 @@
     }
 
     return {
-      encodeProject: (project, catalog) => transformProject(project, catalog, false),
+      encodeProject: (project, catalog) => {
+        encodeWarnings.length = 0;
+        return transformProject(project, catalog, false);
+      },
       decodeProject: (project, catalog) => transformProject(project, catalog, true),
+      getWarnings: () => [...encodeWarnings],
     };
   }
 

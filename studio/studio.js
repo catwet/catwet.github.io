@@ -6,7 +6,7 @@
   let documentData = [root];
   let selectedId = root.globalid;
   let toastTimer;
-  const catalogPromise = CatwebCSL.loadCatalog('../script/');
+  const catalogPromise = CatwebCSL.loadCatalog('../data/catalog/');
 
   const iconFor = (type) => ({ Folder: '▱', Frame: '▧', TextLabel: 'T', TextButton: '▰',
     'TextButton?link': '↗', 'TextButton?transfer': '↗', 'TextButton?avataritem': '↗',

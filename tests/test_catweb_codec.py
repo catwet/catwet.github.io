@@ -1,8 +1,9 @@
 import copy
 import unittest
+import warnings
 
-from catweb_codec import CatwebCodecError, decode_project, encode_project
-from catweb_script import BlockCatalog, compile_script, decompile_script
+from catweb.codec import CatwebCodecError, CatwebCodecWarning, decode_project, encode_project
+from catweb.script import BlockCatalog, compile_script, decompile_script
 
 
 class CatwebProjectCodecTests(unittest.TestCase):
@@ -49,10 +50,25 @@ class CatwebProjectCodecTests(unittest.TestCase):
         )
         self.assertEqual(decode_project(encoded, self.catalog), project)
 
-    def test_unsupported_characters_fail_instead_of_silently_changing(self):
+    def test_unsupported_string_characters_are_preserved_with_a_warning(self):
         project = compile_script('on load:\n    console.log("ñ")', catalog=self.catalog)
-        with self.assertRaisesRegex(CatwebCodecError, "ENCODE.json does not support"):
-            encode_project(project, self.catalog)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always", CatwebCodecWarning)
+            encoded = encode_project(project, self.catalog)
+
+        value = encoded[0]["children"][0]["content"][0]["actions"][0]["text"][1]["value"]
+        self.assertEqual(value, "ñ")
+        self.assertTrue(any("preserved literally" in str(warning.message) for warning in caught))
+        self.assertEqual(decode_project(encoded, self.catalog), project)
+
+    def test_comment_text_is_preserved_without_string_value_encoding(self):
+        project = compile_script('on load:\n# ●●● Conn ● 1.1.3 ●●●', catalog=self.catalog)
+
+        encoded = encode_project(project, self.catalog)
+
+        comment = encoded[0]["children"][0]["content"][0]["actions"][0]["text"][0]
+        self.assertEqual(comment["value"], "●●● Conn ● 1.1.3 ●●●")
+        self.assertEqual(decode_project(encoded, self.catalog), project)
 
     def test_control_labels_are_preserved_and_previous_blank_labels_restore(self):
         source = (
@@ -80,6 +96,34 @@ class CatwebProjectCodecTests(unittest.TestCase):
         restored = decompile_script(encoded[0]["children"][0]["content"], self.catalog)
         self.assertIn('visits = "1"', restored)
         self.assertIn('console.log("Welcome")', restored)
+
+    def test_nested_function_values_encode_and_scoped_names_survive(self):
+        source = (
+            'on load:\n'
+            'functions.run("sumar", "valor", "otro") = "{l!result}"\n'
+            'variables.set("{l!let}", "{l!value}")\n'
+            'text.split("hola", "") = resultado\n'
+            'variables.set("local-long", "96")'
+        )
+        plain = compile_script(source, catalog=self.catalog)
+        encoded = encode_project(plain, self.catalog)
+        actions = encoded[0]["children"][0]["content"][0]["actions"]
+        run_tuple = next(field for field in actions[0]["text"] if isinstance(field, dict) and field.get("t") == "tuple")
+        self.assertTrue(all(value.startswith("{") and value.endswith("}") for value in run_tuple["value"]))
+        scoped_variable = next(field for field in actions[1]["text"] if isinstance(field, dict) and field.get("l") == "variable")
+        self.assertEqual(scoped_variable["value"], "{l!let}")
+        run_output = next(field for field in actions[0]["text"] if isinstance(field, dict) and field.get("l") == "variable?")
+        self.assertEqual(run_output["value"], "{l!result}")
+
+        decoded = decode_project(encoded, self.catalog)
+        self.assertEqual(decoded, plain)
+        local_hyphen = next(field for field in actions[3]["text"] if isinstance(field, dict) and field.get("l") == "variable")
+        decoded_hyphen = next(
+            field for field in decoded[0]["children"][0]["content"][0]["actions"][3]["text"]
+            if isinstance(field, dict) and field.get("l") == "variable"
+        )
+        self.assertNotEqual(local_hyphen["value"], "local-long")
+        self.assertEqual(decoded_hyphen["value"], "local-long")
 
 
 if __name__ == "__main__":

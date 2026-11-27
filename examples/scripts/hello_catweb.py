@@ -1,8 +1,12 @@
 """Build a tiny Catweb page with the raw Python helpers."""
 
+import sys
 from pathlib import Path
 
-from catweb_raw import folder, frame, save, text_button, text_label
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+
+from catweb.raw import folder, frame, save, text_button, text_label
 
 
 page = folder(
@@ -30,6 +34,6 @@ page = folder(
 )
 
 if __name__ == "__main__":
-    destination = Path(__file__).with_name("hello_catweb.json")
+    destination = ROOT / "examples" / "projects" / "hello_catweb.json"
     save(page, destination)
     print(f"Entregable creado: {destination}")

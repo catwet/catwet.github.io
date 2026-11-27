@@ -1,8 +1,9 @@
 # Guide for Requesting Catweb Projects from an AI Model
 
 This file provides project context for a model that will create a Catweb
-website. Also attach `README.md`, `info.md`, and relevant examples from
-`files.json`, `styling.json`, and `script/`. The game is the final authority:
+website. Also attach `../README.md`, `info.md`, and relevant examples from
+`../examples/projects/files.json`, `../examples/projects/styling.json`, and
+`../data/catalog/`. The game is the final authority:
 these references do not prove import or execution.
 
 ## Recommended Workflow
@@ -11,7 +12,7 @@ these references do not prove import or execution.
 2. For logic, request `.cat` source using the syntax in
    [`CATWEB_SCRIPT_LANGUAGE.md`](CATWEB_SCRIPT_LANGUAGE.md), not expanded JSON
    blocks.
-3. Compile the `.cat` file in the main Studio (`index.html`) or with
+3. Compile the `.cat` file in the main Studio (`../index.html`) or with
    `python catweb_script.py` to produce a `files.json`-style output based on
    catalog blocks.
 4. To adjust visual objects, open the JSON in the secondary editor
@@ -27,7 +28,7 @@ Copy this block and fill in the details in brackets:
 > outcome]. Use the text-based language defined in
 > `CATWEB_SCRIPT_LANGUAGE.md`. Return a `.cat` file with the necessary events
 > and actions. Use events such as `on load:` and semantic named calls such as
-> `console.log("Hello")` and `visits = 1`, backed by `script/`. The legacy
+> `console.log("Hello")` and `visits = 1`, backed by `../data/catalog/`. The legacy
 > syntax `top category/id [...]` and `block category/id [...]` remains available
 > for compatibility. Do not invent statements, events, or fields; preserve
 > catalog types and ordering. Write event actions without indentation; indent
@@ -42,8 +43,10 @@ Copy this block and fill in the details in brackets:
 > `When website loaded...` event label; preserve action/control labels. Do not
 > mix the tables or encode Catweb block IDs, object properties, or unknown raw
 > blocks.
-> Unsupported characters must be reported, not dropped or replaced. Numeric
-> serialization does not replace Roblox text filtering for user-visible text.
+> Unsupported string characters must be reported and preserved literally as
+> a complete value, not dropped, partially encoded, or replaced. Unsupported
+> identifiers must still fail explicitly. Numeric serialization does not
+> replace Roblox text filtering for user-visible text.
 
 If the request also includes a visual interface, ask for JSON backed by
 `files.json` and `styling.json`. The Visual Editor can import a complete project
@@ -78,8 +81,8 @@ For AI-generated scripts that process or transmit user text:
   code actually maps every supported character and passes round-trip tests.
   The current catalog does not document a general character-to-number or
   Unicode-codepoint operation; list that as a limitation when relevant.
-- For Python tooling, use [`catweb_codec.py`](catweb_codec.py) for the
-  field-aware transformation and [`catweb_encoder_v2py.py`](catweb_encoder_v2py.py)
+-   For Python tooling, use [`catweb/codec.py`](../catweb/codec.py) for the
+  field-aware transformation and [`catweb/encoder_v2py.py`](../catweb/encoder_v2py.py)
   for numeric variable identifiers. String payloads use `ENCODE.json`, not the
   identifier table.
 
@@ -88,7 +91,7 @@ For AI-generated scripts that process or transmit user text:
 - Optional properties depend on the object type; there is not yet a
   comprehensive schema derived from the game.
 - CSL can emit templates from every category listed in
-  `script/catalog-index.json` using `top` and `block`; the available catalog
+  `../data/catalog/catalog-index.json` using `top` and `block`; the available catalog
   does not prove that these are all capabilities in the game.
 - In events and blocks, `text`, `actions`, `id`, `globalid`, and
   `variable_overrides` have specific shapes. Copy a block from the relevant

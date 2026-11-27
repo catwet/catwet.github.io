@@ -167,4 +167,4 @@ tables.set("items", "entry", "value")
 # both compile to the same original block fields
 ```
 
-The compiler and decompiler use the block IDs and structure in `script/*.json`; this migration changes names and named-call argument order only. Generic `top`/`block` syntax is unchanged. See [API_V2.md](./API_V2.md) for all signatures, catalog field types, and examples.
+The compiler and decompiler use the block IDs and structure in `../data/catalog/*.json`; this migration changes names and named-call argument order only. Generic `top`/`block` syntax is unchanged. See [API_V2.md](./API_V2.md) for all signatures, catalog field types, and examples.

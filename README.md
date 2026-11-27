@@ -19,26 +19,25 @@ in Catweb.**
 | Path | Description |
 | --- | --- |
 | [`index.html`](index.html) | Main entry point: Script Lab, project import, and CSL compilation. |
-| [`files.json`](files.json) | Example tree of website objects: folder, UI, controls, and a script. |
-| [`styling.json`](styling.json) | UI object with nested style components. |
-| [`script/`](script/) | Event and block examples organized by category. |
-| [`info.md`](info.md) | Original notes on variables, objects, events, properties, and known limitations. |
-| [`examples/`](examples/) | Python/CSL source files and sample JSON outputs. |
-| [`catweb_script.py`](catweb_script.py) | Python CSL compiler with generic blocks backed by the available catalog. |
-| [`catweb_encoder_v2py.py`](catweb_encoder_v2py.py) | Fixed-width numeric encoder for Catweb variable identifiers. |
-| [`catweb_codec.py`](catweb_codec.py) | Field-aware project serialization using separate identifier and string codecs. |
+| [`AGENTS.md`](AGENTS.md) | Quick contributor and agent guide: where to read, change, and add files. |
+| [`catweb/`](catweb/) | Maintained Python package: compiler, codecs, and raw project helpers. |
+| [`data/catalog/`](data/catalog/) | Shared Catweb block templates and catalog index. |
+| [`data/`](data/) | Shared API reference and string encoding map used by Python and browser code. |
+| [`docs/`](docs/) | Language, API, project-format, and AI-provider documentation. |
+| [`examples/projects/`](examples/projects/) | Importable JSON examples of website trees and styles. |
+| [`examples/scripts/`](examples/scripts/) | CSL source and Python example generator. |
+| [`examples/reference/`](examples/reference/) | Legacy reference data used while preserving compatibility. |
+| [`tests/`](tests/) | Python tests for the compiler, codec, and text codec. |
+| [`catweb_script.py`](catweb_script.py) | Backward-compatible Python CLI wrapper; implementation is in `catweb/script.py`. |
 | [`studio/catweb-codec.js`](studio/catweb-codec.js) | Browser-side codec matching Python project import/export behavior. |
-| [`API_REFERENCE.json`](API_REFERENCE.json) | Shared API v2 names, signatures, aliases, and block argument mappings. |
-| [`API_V2.md`](API_V2.md) | Complete API v2 function, event, parameter, and example reference. |
-| [`API_MIGRATION.md`](API_MIGRATION.md) | Legacy-name and parameter-order migration table. |
-| [`CATWEB_SCRIPT_LANGUAGE.md`](CATWEB_SCRIPT_LANGUAGE.md) | Supported syntax, mappings, and rules for extending the language. |
 | [`studio/catweb-csl.js`](studio/catweb-csl.js) | CSL compiler and decompiler shared by the web editors. |
-| [`examples/welcome.cat`](examples/welcome.cat) | Catweb language source example. |
 | [`studio/index.html`](studio/index.html) | Secondary visual editor for adding objects and editing project properties. |
 | [`studio/script.html`](studio/script.html) | Compatibility route that redirects to the main entry point. |
-| [`AI_PROJECT_GUIDE.md`](AI_PROJECT_GUIDE.md) | Contract and base prompt for generating websites with AI models. |
-| [`AI_PROVIDER_GUIDE.md`](AI_PROVIDER_GUIDE.md) | Configure an AI provider for local CSL generation and compilation. |
 | [`studio/ai-provider.js`](studio/ai-provider.js) | Browser adapter for OpenAI-compatible Chat Completions endpoints. |
+
+For changes, start with [`AGENTS.md`](AGENTS.md), then read the architecture
+map in [`docs/REPOSITORY_MAP.md`](docs/REPOSITORY_MAP.md). Keep `index.html`
+and `studio/` in place for GitHub Pages; shared runtime data lives in `data/`.
 
 Script category names are: `audio`, `color`, `console`,
 `cookies`, `events`, `functions`, `hierarchy`, `input`, `logic`, `looks`,
@@ -47,7 +46,7 @@ Script category names are: `audio`, `color`, `console`,
 
 ## Initial Project Generation with Python
 
-[`catweb_raw.py`](catweb_raw.py) is an initial dependency-free Python API to
+[`catweb/raw.py`](catweb/raw.py) is the dependency-free Python API to
 create the JSON tree directly. Its helpers preserve values as provided; use
 strings for properties represented as strings in the references. `validate()`
 checks the basic tree structure and identifiers, but cannot confirm acceptance
@@ -57,12 +56,14 @@ indented version for inspection.
 From the project root, run:
 
 ```console
-python examples/hello_catweb.py
+python examples/scripts/hello_catweb.py
 ```
 
-This creates [`examples/hello_catweb.json`](examples/hello_catweb.json), an
-output in the array format used by `files.json`. The Python example remains
-editable source; the generated JSON is the file to import and test in Catweb.
+This creates
+[`examples/projects/hello_catweb.json`](examples/projects/hello_catweb.json),
+an output in the array format used by `examples/projects/files.json`. The
+Python example remains editable source; the generated JSON is the file to
+import and test in Catweb.
 For scripting, `script(*content)` accepts raw catalog JSON blocks and preserves
 their content and order; blocks should still be copied from verified references.
 
@@ -71,8 +72,9 @@ their content and order; blocks should still be copied from verified references.
 The project compiler and browser editor keep readable CSL internally and encode
 Catweb argument fields only when producing JSON. Variable fields (`l: variable`
 or `variable?`) use the fixed-width identifier codec in
-[`catweb_encoder_v2py.py`](catweb_encoder_v2py.py). Other string arguments use
-the character map in [`ENCODE.json`](ENCODE.json), serialized as tokens such as
+[`catweb/encoder_v2py.py`](catweb/encoder_v2py.py). Other string arguments use
+the character map in [`data/ENCODE.json`](data/ENCODE.json), serialized as
+tokens such as
 `{7}{14}{11}{0}`. The confirmed nonessential `When website loaded...` label is
 blanked on export; action and control-block labels remain intact. Matching
 numeric identifiers and token-only string values are decoded automatically;
@@ -81,11 +83,12 @@ unrelated object properties, block IDs, and unknown blocks remain unchanged.
 The two codecs are intentionally separate. The identifier codec emits two
 ASCII digits per character and retains the legacy alphabet's duplicate `%`;
 `ENCODE.json` uses its own numeric indices. Unsupported characters cause an
-explicit encoding error instead of being silently replaced. Automatic import
-decoding can reinterpret a pre-existing numeric variable name or literal string
-that exactly matches one of these encoded patterns.
+explicit warning and the complete string is kept literal instead of being
+partially encoded or replaced. Unsupported identifiers still fail explicitly.
+Automatic import decoding can reinterpret a pre-existing numeric variable name
+or literal string that exactly matches one of these encoded patterns.
 
-The legacy text-codec import remains available as a compatibility module:
+The legacy text-codec import remains available through a root compatibility module:
 
 ```python
 from catweb_text_codec import decode_text, encode_text
@@ -99,8 +102,8 @@ readable argument values in its output.
 
 ## Text-Based Script Language
 
-[`catweb_script.py`](catweb_script.py) compiles CSL using templates copied from
-all categories listed in `script/catalog-index.json`. Common statements have
+[`catweb/script.py`](catweb/script.py) compiles CSL using templates copied from
+all categories listed in `data/catalog/catalog-index.json`. Common statements have
 short aliases:
 
 ```text
@@ -115,19 +118,20 @@ console.warn("Button pressed")
 Compile it from the repository root:
 
 ```console
-python catweb_script.py examples/welcome.cat
+python -m catweb.script examples/scripts/welcome.cat
 ```
 
 Known blocks use semantic named calls and parentheses. The legacy syntax
 `top category/id [arguments]` and `block category/id [arguments]` is still
 supported; `raw` preserves JSON blocks without a recognized CSL form. See
-[`API_V2.md`](API_V2.md) for the complete canonical function and event API, and
-[`API_MIGRATION.md`](API_MIGRATION.md) for legacy names and argument-order
-compatibility. [`CATWEB_SCRIPT_LANGUAGE.md`](CATWEB_SCRIPT_LANGUAGE.md)
+[`docs/API_V2.md`](docs/API_V2.md) for the complete canonical function and event API, and
+[`docs/API_MIGRATION.md`](docs/API_MIGRATION.md) for legacy names and argument-order
+compatibility. [`docs/CATWEB_SCRIPT_LANGUAGE.md`](docs/CATWEB_SCRIPT_LANGUAGE.md)
 describes scopes, end markers, metadata, and generic catalog syntax.
 
-The command creates `examples/welcome.json`, a `files.json`-style array with a
-folder, `script` object, top-level blocks, and ordered actions. JSON is compact
+The command creates `examples/scripts/welcome.json`, a
+`examples/projects/files.json`-style array with a folder, `script` object,
+top-level blocks, and ordered actions. JSON is compact
 by default to reduce its size; use `--pretty` to inspect an indented version.
 Having a block in the catalog lets the compiler build its JSON, but does not
 confirm permissions or acceptance/execution by Catweb.
@@ -155,19 +159,19 @@ downloads remain disabled. The editable project name/brand is exported as the
 folder `alias`.
 
 The project is static and requires no build step or web dependencies.
-For GitHub Pages, publish the project root and keep `index.html`, `studio/`, and
-`script/` together. Resource and catalog paths are relative, so they also work
-under a Pages repository path. Opening the app by double-clicking may prevent
-the browser from loading catalogs due to security restrictions.
+For GitHub Pages, publish the project root and keep `index.html`, `studio/`,
+and `data/` together. Resource and catalog paths are relative, so they also
+work under a Pages repository path. Opening the app by double-clicking may
+prevent the browser from loading catalogs due to security restrictions.
 
 ## Generation with AI Models
 
 The **AI Builder** in the main Studio can connect directly to a user-configured,
 OpenAI-compatible Chat Completions endpoint. It generates CSL, compiles it in
 the browser using the local Catweb catalog, previews JSON, and can add the
-compiled result as a new script. See [`AI_PROVIDER_GUIDE.md`](AI_PROVIDER_GUIDE.md)
+compiled result as a new script. See [`docs/AI_PROVIDER_GUIDE.md`](docs/AI_PROVIDER_GUIDE.md)
 for provider setup and privacy details. For external AI workflows, use
-[`AI_PROJECT_GUIDE.md`](AI_PROJECT_GUIDE.md) as base instructions and do not
+[`docs/AI_PROJECT_GUIDE.md`](docs/AI_PROJECT_GUIDE.md) as base instructions and do not
 invent unsupported Catweb behavior. Generated scripts still need testing in
 Catweb.
 
@@ -180,11 +184,11 @@ incompatibilities with the game.
 
 The examples contain three groups of data:
 
-1. **Object tree** (`files.json`): objects with `class`, `globalid`, and usually
+1. **Object tree** (`examples/projects/files.json`): objects with `class`, `globalid`, and usually
    `children`. The children represent the hierarchy.
-2. **Style tree** (`styling.json`): an object with style components in
+2. **Style tree** (`examples/projects/styling.json`): an object with style components in
    `children`; those components can also have children.
-3. **Script content** (`script/*.json`): a `class: "script"` object with a
+3. **Script content** (`data/catalog/*.json`): a `class: "script"` object with a
    `content` list of blocks and events; blocks include actions.
 
 The JSON does not use a conventional typed schema for every value. For example,
@@ -208,7 +212,7 @@ structures contain strings with Catweb-specific syntax; they are not JSON arrays
   `globalid`. The examples do not fully specify its namespace or rules; do not
   interchange these fields.
 
-## Website Objects: `files.json`
+## Website Objects: `examples/projects/files.json`
 
 The root example is a folder:
 
@@ -254,12 +258,12 @@ Fields seen in the object example:
 | `background_color`, `font_color`, `placeholder_color` | Colors represented as hexadecimal strings. |
 | `background_transparency`, `font_size`, `align_x`, `align_y`, `rich`, `auto_color`, `multiline`, `editable` | Properties represented as strings in the example. |
 
-The full list of collected conceptual properties is in [`info.md`](info.md).
+The full list of collected conceptual properties is in [`docs/info.md`](docs/info.md).
 Serialized JSON names may use `snake_case` (for example `background_color`),
 so do not replace them with readable English labels without evidence that the
 game accepts them.
 
-## Style Components: `styling.json`
+## Style Components: `examples/projects/styling.json`
 
 The example shows a `Frame` with `children` of type `UIStroke`, `UICorner`,
 `UIShadow`, `UIListLayout`, `UIGridLayout`, `UIAspectRatioConstraint`,
@@ -275,9 +279,9 @@ to encode a list of color stops:
 resembles JSON, its outer type is a JSON string; do not convert it to an array
 without confirming what the game expects.
 
-## Scripts and Blocks: `script/*.json`
+## Scripts and Blocks: `data/catalog/*.json`
 
-The files in `script/` are **block catalog samples**, organized by topic. They
+The files in `data/catalog/` are **block catalog samples**, organized by topic. They
 are not executable source code modules. The general observed structure is:
 
 ```json
@@ -352,7 +356,7 @@ reference JSON.
 
 ## Variables and Events
 
-The notes in [`info.md`](info.md) describe variable interpolation in strings
+The notes in [`docs/info.md`](docs/info.md) describe variable interpolation in strings
 using braces, for example `{variable}`. They also document these scope
 prefixes:
 
@@ -380,7 +384,7 @@ describes filtering of user-provided or displayed text, not JSON structure
 validation. This repository has no evidence that JSON whitespace, block
 syntax, or coordinates alone cause censorship.
 AI-generated scripts should follow the numeric-first guidance in
-[`AI_PROJECT_GUIDE.md`](AI_PROJECT_GUIDE.md): retain the original input as the
+[`docs/AI_PROJECT_GUIDE.md`](docs/AI_PROJECT_GUIDE.md): retain the original input as the
 only unrestricted long text, use compact numeric-pattern identifiers and
 reversible tokens for derived payloads, and preserve catalog-required strings.
 The current catalog has no documented general character-to-number conversion,
@@ -391,8 +395,9 @@ implementing and testing one in Catweb.
 
 A model or tool implementing the project's goal should:
 
-1. Read `info.md` and the relevant examples in `files.json`, `styling.json`,
-   and `script/` first.
+1. Read `docs/info.md` and relevant examples in
+   `examples/projects/files.json`, `examples/projects/styling.json`, and
+   `data/catalog/` first.
 2. Build the object tree using the exact observed types for `class`, `children`,
    `globalid`, and serialized properties.
 3. Represent scripts with catalog blocks, preserving list structure, field
@@ -406,6 +411,6 @@ A model or tool implementing the project's goal should:
 
 The main Studio opens from `index.html`; the secondary Visual Editor is at
 `studio/index.html`. The Python API has no external dependencies; run
-`python examples/hello_catweb.py` from the root to regenerate its example.
+`python examples/scripts/hello_catweb.py` from the root to regenerate its example.
 Syntactically valid output does not guarantee that the game accepts or executes
 the content; each deliverable must be tested in Catweb.

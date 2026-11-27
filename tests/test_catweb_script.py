@@ -6,8 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from catweb_raw import folder, save, text_label
-from catweb_script import BlockCatalog, CompileError, compile_script, decompile_script
+from catweb.raw import folder, save, text_label
+from catweb.script import BlockCatalog, CompileError, compile_script, decompile_script
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -95,6 +95,54 @@ class CatwebScriptTests(unittest.TestCase):
         result = compile_script(decompiled)[0]["children"][0]["content"]
         self.assertEqual(content, result)
 
+    def test_loop_terminators_match_the_active_scope_category(self):
+        source = 'on load:\nfor loops.repeat(2):\n    console.log("x")'
+        content = compile_script(source)[0]["children"][0]["content"]
+
+        decompiled = decompile_script(content)
+
+        self.assertIn('for loops.repeat(2):', decompiled)
+        self.assertNotIn('raw {"id":"25"', decompiled)
+        self.assertEqual(content, compile_script(decompiled)[0]["children"][0]["content"])
+
+    def test_comment_blocks_decompile_as_comments_and_recompile(self):
+        source = 'on load:\n# ●●● Conn ● 1.1.3 ●●●'
+        content = compile_script(source)[0]["children"][0]["content"]
+
+        decompiled = decompile_script(content)
+
+        self.assertIn('# ●●● Conn ● 1.1.3 ●●●', decompiled)
+        self.assertNotIn('undefined(', decompiled)
+        self.assertEqual(content[0]["actions"][0]["text"][0]["value"], "●●● Conn ● 1.1.3 ●●●")
+        self.assertEqual(
+            compile_script(decompiled)[0]["children"][0]["content"][0]["actions"][0]["text"][0]["value"],
+            "●●● Conn ● 1.1.3 ●●●",
+        )
+
+    def test_legacy_run_block_87_imports_as_current_function_run(self):
+        legacy_run = {
+            "id": "87",
+            "text": [
+                "Run function",
+                {"value": "conn.data", "t": "string", "l": "function"},
+                {"value": [], "t": "tuple"},
+                "→",
+                {"value": "", "t": "string", "l": "variable?"},
+            ],
+            "globalid": "legacy-run",
+        }
+        content = compile_script("on load:")[0]["children"][0]["content"]
+        content[0]["actions"] = [legacy_run]
+
+        decompiled = decompile_script(content)
+
+        self.assertIn('functions.run("conn.data") = ""', decompiled)
+        rebuilt = compile_script(decompiled)[0]["children"][0]["content"][0]["actions"][0]
+        self.assertEqual(rebuilt["id"], "132")
+        self.assertEqual(rebuilt["text"][1]["value"], "conn.data")
+        self.assertEqual(rebuilt["text"][2]["value"], [])
+        self.assertEqual(rebuilt["text"][4]["value"], "")
+
     def test_api_v2_uses_canonical_order_and_legacy_aliases_keep_catalog_order(self):
         canonical = compile_script(
             'on button_press("button01"):\n'
@@ -123,7 +171,7 @@ class CatwebScriptTests(unittest.TestCase):
         self.assertIn('on button_press("button01"):', decompile_script(legacy))
 
     def test_api_reference_covers_all_named_catalog_entries_and_aliases(self):
-        reference = json.loads((ROOT / "API_REFERENCE.json").read_text(encoding="utf-8"))
+        reference = json.loads((ROOT / "data" / "API_REFERENCE.json").read_text(encoding="utf-8"))
         catalog = BlockCatalog()
         functions = [entry for module in reference["modules"] for entry in module["functions"]]
 
@@ -139,7 +187,7 @@ class CatwebScriptTests(unittest.TestCase):
         }
         inventory_names = set(re.findall(
             r"^FUNCTION: (.+)$",
-            (ROOT / "CATWEB_FUNCTIONS.txt").read_text(encoding="utf-8"),
+            (ROOT / "docs" / "CATWEB_FUNCTIONS.txt").read_text(encoding="utf-8"),
             re.MULTILINE,
         ))
         self.assertEqual(old_names, inventory_names)
@@ -166,6 +214,91 @@ class CatwebScriptTests(unittest.TestCase):
         self.assertEqual([action["id"] for action in content[0]["actions"]], ["11", "0"])
         self.assertIn('visitas = "1"', decompile_script(content))
 
+    def test_output_blocks_use_suffix_targets_and_round_trip(self):
+        source = (
+            "on load:\n"
+            'text.split("hola", "") = partes\n'
+            'functions.run("procesar", "uno", "dos") = salida\n'
+            'functions.run_protected("seguro", "uno") = exito, resultado'
+        )
+        content = compile_script(source)[0]["children"][0]["content"]
+        actions = content[0]["actions"]
+
+        self.assertEqual([action["id"] for action in actions], ["57", "132", "134"])
+        fields = [
+            [field.get("value") for field in action["text"] if isinstance(field, dict)]
+            for action in actions
+        ]
+        self.assertEqual(fields, [
+            ["hola", "", "partes"],
+            ["procesar", ["uno", "dos"], "salida"],
+            ["seguro", ["uno"], "exito", "resultado"],
+        ])
+
+        decompiled = decompile_script(content)
+        self.assertIn('text.split("hola", "") = partes', decompiled)
+        self.assertIn('functions.run("procesar", "uno", "dos") = salida', decompiled)
+        self.assertIn('functions.run_protected("seguro", "uno") = exito, resultado', decompiled)
+        round_trip = compile_script(decompiled)[0]["children"][0]["content"]
+        self.assertEqual(
+            [[field.get("value") for field in action["text"] if isinstance(field, dict)]
+             for action in round_trip[0]["actions"]],
+            fields,
+        )
+
+    def test_old_output_argument_form_remains_importable(self):
+        content = compile_script(
+            'on load:\nfunctions.run("procesar", ["uno", "dos"], "salida")'
+        )[0]["children"][0]["content"]
+        decompiled = decompile_script(content)
+        self.assertIn('functions.run("procesar", "uno", "dos") = salida', decompiled)
+
+    def test_scoped_variable_reference_is_valid_for_numeric_loop_count(self):
+        source = (
+            'on load:\n'
+            '    text.length("{char}") = "{l!long}"\n'
+            '    tables.create("{l!result}")\n'
+            '    for tables.each("{l!all}"):\n'
+            '        variables.set("{l!let}", "{l!value}")\n'
+            '        variables.set("{l!i}", "1")\n'
+            '        variables.set("{l!res}", "96")\n'
+            '        for loops.repeat("{l!long}"):\n'
+            '            tables.get("{indexChar}", "{l!i}") = "{l!a}"'
+        )
+        content = compile_script(source)[0]["children"][0]["content"]
+
+        def find_block(blocks, block_id):
+            for block in blocks:
+                if block["id"] == block_id:
+                    return block
+                nested = find_block(block.get("actions", []), block_id)
+                if nested:
+                    return nested
+            return None
+
+        repeat = find_block(content, "22")
+        count = next(field for field in repeat["text"] if isinstance(field, dict) and field.get("t") == "number")
+        self.assertEqual(count["value"], "{l!long}")
+        self.assertIn('for loops.repeat("{l!long}"):', decompile_script(content))
+        with self.assertRaisesRegex(CompileError, "is not a number"):
+            compile_script('on load:\nfor loops.repeat("many"):\n    console.log("x")')
+
+    def test_output_assignment_rejects_wrong_targets_and_void_calls(self):
+        for source, message in (
+            ('on load:\ntext.split("hola", "") = left, right', "needs 1 output target"),
+            ('on load:\nconsole.log("hola") = resultado', "has no output parameter"),
+        ):
+            with self.subTest(source=source):
+                with self.assertRaisesRegex(CompileError, message):
+                    compile_script(source)
+
+    def test_equals_inside_call_string_is_not_an_output_assignment(self):
+        content = compile_script(
+            'on load:\nconsole.log("This text contains ) = but is not a target")'
+        )[0]["children"][0]["content"]
+        self.assertEqual(content[0]["actions"][0]["text"][1]["value"],
+                         "This text contains ) = but is not a target")
+
     def test_unqualified_assignment_defaults_to_global(self):
         content = compile_script(
             'on load:\n'
@@ -190,6 +323,39 @@ class CatwebScriptTests(unittest.TestCase):
     def test_function_header_uses_python_definition_syntax(self):
         content = compile_script('def bienvenida():\n    console.log("Hola")')[0]["children"][0]["content"]
         self.assertIn("def bienvenida():", decompile_script(content))
+        function = content[0]
+        self.assertEqual(function["variable_overrides"], [])
+
+    def test_function_parameters_are_visible_and_round_trip_without_phantom_defaults(self):
+        catalog = BlockCatalog()
+        content = compile_script(
+            'def enc(arg, mode):\n    functions.return("{l!arg}")',
+            catalog=catalog,
+        )[0]["children"][0]["content"]
+        function = content[0]
+        self.assertEqual(function["variable_overrides"], [{"value": "arg"}, {"value": "mode"}])
+
+        decompiled = decompile_script(content, catalog=catalog)
+        self.assertIn("def enc(arg, mode):", decompiled)
+        self.assertNotIn("variable_overrides", decompiled)
+        round_trip = compile_script(decompiled, catalog=catalog)[0]["children"][0]["content"]
+        self.assertEqual(round_trip[0]["variable_overrides"], function["variable_overrides"])
+
+        function["variable_overrides"] = catalog.get("top", "functions/6", 1).node["variable_overrides"]
+        imported = decompile_script(content, catalog=catalog)
+        self.assertIn("def enc():", imported)
+        self.assertNotIn("argumento que puedo añadir", imported)
+        self.assertNotIn("variable_overrides", imported)
+        self.assertEqual(
+            compile_script(imported, catalog=catalog)[0]["children"][0]["content"][0]["variable_overrides"],
+            [],
+        )
+
+    def test_qualified_function_declaration_round_trips_without_default_arguments(self):
+        source = 'top functions/6 ["conn.data"]\n    variables.set("ready", "1")'
+        content = compile_script(source)[0]["children"][0]["content"]
+        self.assertEqual(content[0]["variable_overrides"], [])
+        self.assertIn("def conn.data():", decompile_script(content))
 
     def test_event_actions_are_unindented_and_only_scopes_indent(self):
         source = (

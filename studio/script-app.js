@@ -34,11 +34,11 @@
   let aiCompiledPreview = null;
   const appScriptUrl = document.currentScript && document.currentScript.src;
   const catalogBase = appScriptUrl
-    ? new URL('../script/', appScriptUrl).toString()
-    : new URL('./script/', document.baseURI).toString();
+    ? new URL('../data/catalog/', appScriptUrl).toString()
+    : new URL('./data/catalog/', document.baseURI).toString();
   const codecUrl = appScriptUrl
-    ? new URL('../ENCODE.json', appScriptUrl).toString()
-    : new URL('./ENCODE.json', document.baseURI).toString();
+    ? new URL('../data/ENCODE.json', appScriptUrl).toString()
+    : new URL('./data/ENCODE.json', document.baseURI).toString();
   const catalogPromise = CatwebCSL.loadCatalog(catalogBase);
   const codecPromise = CatwebCodec.load(codecUrl);
   let activeCatalog = null;
@@ -192,6 +192,12 @@
     return found;
   }
 
+  function scriptDisplayName(scriptNode) {
+    if (scriptNode.alias || scriptNode.name) return scriptNode.alias || scriptNode.name;
+    const index = scriptsInProject().findIndex((script) => script.globalid === scriptNode.globalid);
+    return index < 0 ? 'script' : `Script ${index + 1}`;
+  }
+
   function validateProject(project) {
     if (!Array.isArray(project) || project.length !== 1 || !project[0] || project[0].class !== 'Folder') {
       throw new Error('The project must contain a root Folder.');
@@ -246,7 +252,7 @@
       if (trimmed.startsWith('#')) continue;
       const indent = original.match(/^[ \t]*/)[0].replace(/\t/g, '    ').length;
       const isTop = !indent && (/^on\s+[A-Za-z_]\w*\s*(?:\(.*\))?\s*:/.test(trimmed)
-        || /^def\s+[A-Za-z_]\w*\s*(?:\(\s*\))?\s*:/.test(trimmed)
+        || /^def\s+[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*(?:\([^()]*\))?\s*:/.test(trimmed)
         || /^top\s+\S+/.test(trimmed) || /^topraw\s+\{/.test(trimmed));
       if (isTop) {
         if (topCount && !previousLineBlank) errors.push({ line, message: 'Leave a blank line before the next top-level block.' });
@@ -268,7 +274,7 @@
   }
 
   function highlightStringToken(token) {
-    const referencePattern = /\{(?:(?:l|o)![A-Za-z_]\w*|[A-Za-z_]\w*)\}/g;
+    const referencePattern = /\{(?:(?:l|o)![A-Za-z_][\w-]*|[A-Za-z_][\w-]*)\}/g;
     let output = '<span class="tok-string">';
     let lastIndex = 0;
     let match;
@@ -383,6 +389,33 @@
     return { quote, comment };
   }
 
+  function orderedCatalogParameters(item) {
+    return (item.parameters || []).map((parameter, index) => ({
+      parameter,
+      position: Number(parameter.position) || index + 1
+    })).sort((left, right) => left.position - right.position);
+  }
+
+  function inputCatalogParameters(item) {
+    return orderedCatalogParameters(item)
+      .filter(({ parameter }) => parameter.direction !== 'output');
+  }
+
+  function outputCatalogParameters(item) {
+    return orderedCatalogParameters(item)
+      .filter(({ parameter }) => parameter.direction === 'output');
+  }
+
+  function sourceCallArguments(item, args) {
+    const inputs = inputCatalogParameters(item);
+    const values = inputs.map(({ position }) => args[position - 1]);
+    if (inputs.length && inputs[inputs.length - 1].parameter.type === 'tuple') {
+      const tuple = values[values.length - 1];
+      if (Array.isArray(tuple)) values.splice(-1, 1, ...tuple);
+    }
+    return values;
+  }
+
   function callArgumentContext() {
     if (!activeCatalog || source.disabled) return null;
     const caret = source.selectionStart;
@@ -417,6 +450,8 @@
     const item = activeCatalog.byCall.get(`block/${frame.callName}`)
       || activeCatalog.byCall.get(`top/${frame.callName}`);
     if (!item || !Array.isArray(item.parameters) || !item.parameters.length) return null;
+    const inputs = inputCatalogParameters(item);
+    if (!inputs.length) return null;
     return { item, parameterIndex: frame.commas, callStart: frame.index };
   }
 
@@ -481,19 +516,22 @@
 
   function parameterDetailMarkup(context) {
     const { item, parameterIndex, completion } = context;
-    const parameters = item.parameters || [];
+    const parameters = inputCatalogParameters(item).map(({ parameter }) => parameter);
+    const outputs = outputCatalogParameters(item).map(({ parameter }) => parameter);
     const blockLabel = (item.node.text || []).filter((part) => typeof part === 'string').join('').trim()
       || 'unnamed block';
     const argumentLabel = completion
-      ? `${parameters.length} catalog argument${parameters.length === 1 ? '' : 's'}`
+      ? `${parameters.length} input argument${parameters.length === 1 ? '' : 's'}`
       : `Argument ${parameterIndex + 1} of ${parameters.length}`;
     const rows = parameters.map((parameter, index) => {
-      const direction = parameter.direction === 'output' ? 'output' : 'input';
       const label = parameter.catalogLabel || 'unnamed field';
       const type = parameter.type || 'unspecified type';
-      return `<div class="suggestion-parameter${index === parameterIndex ? ' active' : ''}"><strong>${index + 1}. ${escapeHtml(parameter.name || `value_${index + 1}`)}</strong><span>Catweb field: ${escapeHtml(label)} · ${escapeHtml(type)} · ${escapeHtml(direction)}</span></div>`;
+      return `<div class="suggestion-parameter${index === parameterIndex ? ' active' : ''}"><strong>${index + 1}. ${escapeHtml(parameter.name || `value_${index + 1}`)}</strong><span>Catweb field: ${escapeHtml(label)} · ${escapeHtml(type)} · input</span></div>`;
     }).join('');
-    return `<section class="suggestion-detail"><div class="suggestion-detail-heading"><code>${escapeHtml(item.callName)}</code><span>${escapeHtml(blockLabel)} · ${escapeHtml(argumentLabel)}</span></div><div class="suggestion-parameters">${rows}</div><div class="suggestion-detail-note">Parameter names, field labels, types, and direction come from the Catweb API/catalog metadata.</div></section>`;
+    const outputNote = outputs.length
+      ? `<div class="suggestion-detail-output">Output after =: ${outputs.map((parameter) => escapeHtml(parameter.name || 'result')).join(', ')}</div>`
+      : '';
+    return `<section class="suggestion-detail"><div class="suggestion-detail-heading"><code>${escapeHtml(item.callName)}</code><span>${escapeHtml(blockLabel)} · ${escapeHtml(argumentLabel)}</span></div><div class="suggestion-parameters">${rows}</div>${outputNote}<div class="suggestion-detail-note">Parameter names, field labels, types, and direction come from the Catweb API/catalog metadata.</div></section>`;
   }
 
   function renderVariableSuggestions() {
@@ -502,7 +540,7 @@
         const label = option.kind === 'variable' ? `{${option.name}}` : option.item.callName;
         const detail = option.kind === 'variable'
           ? 'Catweb variable'
-          : `${option.item.category} · ${option.item.parameters.length} arguments`;
+          : `${option.item.category} · ${inputCatalogParameters(option.item).length} inputs${outputCatalogParameters(option.item).length ? ' · output after =' : ''}`;
         return `<button id="editor-suggestion-${index}" class="variable-suggestion${index === selectedVariableSuggestion ? ' selected' : ''}" type="button" role="option" aria-selected="${index === selectedVariableSuggestion}" data-suggestion-index="${index}"><code>${escapeHtml(label)}</code><small>${escapeHtml(detail)}</small></button>`;
       }).join('')
       : '<div class="variable-suggestion-empty">No matching variable yet. Assign one first, for example <code>visits = 0</code>.</div>';
@@ -643,7 +681,7 @@
   function renderStructure() {
     const headers = source.value.split('\n')
       .map((line, index) => ({ text: splitInlineComment(line).code, line: index + 1 }))
-      .filter(({ text }) => /^(?:on\s+[A-Za-z_]\w*\s*(?:\(.*\))?\s*:|def\s+[A-Za-z_]\w*\s*(?:\(\s*\))?\s*:|top\s+\S+|topraw\s+\{)/i.test(text));
+      .filter(({ text }) => /^(?:on\s+[A-Za-z_]\w*\s*(?:\(.*\))?\s*:|def\s+[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*(?:\([^()]*\))?\s*:|top\s+\S+|topraw\s+\{)/i.test(text));
     $('#eventTree').innerHTML = headers.map(({ text, line }, index) => {
       const label = /^on\s+/i.test(text) ? text.slice(0, text.lastIndexOf(':')).trim()
         : /^def\s+/i.test(text) ? text.slice(0, text.lastIndexOf(':')).trim()
@@ -658,17 +696,44 @@
       `<div class="diagnostic"><span class="mark">●</span><span>Line ${error.line}: ${escapeHtml(error.message)}</span><button data-line="${error.line}">Go</button></div>`
     ).join('');
     container.classList.toggle('has-items', errors.length > 0);
-    container.querySelectorAll('[data-line]').forEach((button) => button.addEventListener('click', () => {
-      const line = Number(button.dataset.line);
-      const offset = source.value.split('\n').slice(0, line - 1).join('\n').length + (line > 1 ? 1 : 0);
-      source.focus();
-      source.setSelectionRange(offset, offset);
-    }));
+    container.querySelectorAll('[data-line]').forEach((button) =>
+      button.addEventListener('click', () => focusSourceLine(Number(button.dataset.line))));
     $('.statusbar').classList.toggle('has-error', errors.length > 0);
     $('#sourceStatus').innerHTML = errors.length
       ? `<i></i> ${errors.length} ${errors.length === 1 ? 'warning' : 'warnings'} to fix`
       : '<i></i> Syntax recognized';
     return errors;
+  }
+
+  function focusSourceLine(line) {
+    const offset = source.value.split('\n').slice(0, line - 1).join('\n').length + (line > 1 ? 1 : 0);
+    source.focus();
+    source.setSelectionRange(offset, offset);
+  }
+
+  function openCompileDiagnostics(errors) {
+    const ordered = errors.map((error, index) => ({ ...error, index }))
+      .sort((left, right) => left.line - right.line || left.index - right.index);
+    $('#compileDiagnosticSummary').textContent =
+      `${ordered.length} ${ordered.length === 1 ? 'issue' : 'issues'} found, listed in source order.`;
+    const list = $('#compileDiagnosticList');
+    list.innerHTML = ordered.map((error) =>
+      `<article class="compile-diagnostic"><div><strong>Line ${error.line}</strong><p>${escapeHtml(error.message)}</p></div><button class="tool-button" type="button" data-diagnostic-line="${error.line}">Go to line</button></article>`
+    ).join('');
+    list.querySelectorAll('[data-diagnostic-line]').forEach((button) =>
+      button.addEventListener('click', () => {
+        closeCompileDiagnostics();
+        focusSourceLine(Number(button.dataset.diagnosticLine));
+      }));
+    $('#compileDiagnosticsModal').classList.add('open');
+    $('#compileDiagnosticsModal').setAttribute('aria-hidden', 'false');
+    $('#closeCompileDiagnostics').focus();
+  }
+
+  function closeCompileDiagnostics() {
+    $('#compileDiagnosticsModal').classList.remove('open');
+    $('#compileDiagnosticsModal').setAttribute('aria-hidden', 'true');
+    $('#compile').focus();
   }
 
   function renderProjectTree() {
@@ -693,7 +758,7 @@
     $('#treeScriptCount').textContent = String(scripts.length);
 
     const scriptNumbers = new Map(scripts.map((node, index) => [node.globalid, index + 1]));
-    const labelOf = (node) => node.text || node.alias
+    const labelOf = (node) => node.alias || node.name || node.text
       || (node.class === 'script' ? `Script ${scriptNumbers.get(node.globalid)}` : node.class);
     const matchesOwnFilter = (node) => node.globalid === rootId
       || projectTreeFilter === 'all'
@@ -739,7 +804,7 @@
 
   function renderObjectProperties(node) {
     const fields = Object.entries(node).filter(([key]) => key !== 'children' && key !== 'content'
-      && !(node.class === 'Folder' && key === 'alias'));
+      && key !== 'alias');
     const controls = fields.map(([key, value], index) => {
       const type = value === null ? 'null' : Array.isArray(value) || typeof value === 'object' ? 'json' : typeof value;
       const readOnly = key === 'class' || key === 'globalid';
@@ -750,8 +815,9 @@
           : `<input id="object-property-${index}" class="property-input" data-property="${escapeHtml(key)}" data-type="${type}" value="${escapeHtml(value)}"${readOnly ? ' readonly aria-readonly="true"' : ''}>`;
       return `<div class="property-field"><label for="object-property-${index}">${escapeHtml(labelFor(key))}<small>${escapeHtml(key)}</small></label>${control}</div>`;
     }).join('');
+    const nameField = node.class === 'Folder' ? '' : `<div class="property-field"><label for="objectAlias">Object name<small>alias</small></label><input id="objectAlias" class="property-input" data-property="alias" data-type="string" value="${escapeHtml(node.alias || '')}" maxlength="80"></div>`;
     const deleteButton = node.class === 'Folder' ? '' : '<button id="deleteProjectObject" class="tool-button delete-project-object" type="button">Remove from project</button>';
-    return `<div class="inspector-heading">CATWEB PROPERTIES <span>${escapeHtml(node.class)}</span></div><div class="property-grid">${controls}</div><details class="advanced-properties"><summary>Advanced JSON</summary><textarea id="objectPropertiesRaw" class="json-input" spellcheck="false"></textarea></details><button id="applyObjectProperties" class="tool-button apply-properties" type="button">Apply properties</button>${deleteButton}`;
+    return `<div class="inspector-heading">CATWEB PROPERTIES <span>${escapeHtml(node.class)}</span></div><div class="property-grid">${nameField}${controls}</div><details class="advanced-properties"><summary>Advanced JSON</summary><textarea id="objectPropertiesRaw" class="json-input" spellcheck="false"></textarea></details><button id="applyObjectProperties" class="tool-button apply-properties" type="button">Apply properties</button>${deleteButton}`;
   }
 
   function renderInspector() {
@@ -759,8 +825,10 @@
     const inspector = $('#objectInspector');
     if (!selected) return;
     if (selected.class === 'script') {
-      const actions = (selected.content || []).reduce((count, block) => count + (block.actions || []).length, 0);
-      inspector.innerHTML = `<div class="inspector-heading">SCRIPT DETAILS <span>Catweb</span></div><p class="inspector-placeholder">${selected.content.length} top-level blocks · ${actions} actions. Edit in the script workspace. Existing block IDs and layout positions are preserved as metadata.</p><button id="deleteProjectObject" class="tool-button delete-project-object" type="button">Remove script</button>`;
+      const blocks = selected.content || [];
+      const actions = blocks.reduce((count, block) => count + (block.actions || []).length, 0);
+      const name = scriptDisplayName(selected);
+      inspector.innerHTML = `<div class="inspector-heading">SCRIPT DETAILS <span>Catweb</span></div><div class="property-field script-name-field"><label for="scriptAlias">Script name</label><input id="scriptAlias" class="property-input" value="${escapeHtml(name)}" maxlength="80"></div><button id="applyObjectProperties" class="tool-button apply-properties" type="button">Rename script</button><p class="inspector-placeholder">${blocks.length} top-level blocks · ${actions} actions. Existing block IDs and layout positions are preserved as metadata.</p><button id="deleteProjectObject" class="tool-button delete-project-object" type="button">Remove script</button>`;
       return;
     }
     inspector.innerHTML = renderObjectProperties(selected);
@@ -809,6 +877,11 @@
       const kind = item.node.text.filter((part) => typeof part === 'string').join('').trim().toLowerCase().startsWith('if') ? 'if' : 'for';
       return `${kind} ${item.callName}${callArgs}:`;
     }
+    const outputs = outputCatalogParameters(item);
+    if (outputs.length) {
+      const inputs = sourceCallArguments(item, args).map(formatLiteral).join(', ');
+      return `${item.callName}(${inputs}) = ${outputs.map(() => '...').join(', ')}`;
+    }
     return `${item.callName}${callArgs}`;
   }
 
@@ -841,7 +914,7 @@
     }
     sourceDirty = true;
     const status = $('#outputStatus');
-    if (status) status.textContent = 'Uncompiled code · export to compile';
+    if (status) status.textContent = 'Uncompiled code · compile to include in export';
   }
 
   function updateEditor(markDirty = false) {
@@ -861,7 +934,7 @@
     source.value = 'Loading the block catalog…';
     activeMetadata = new Map();
     previousSourceValue = source.value;
-    $('#scriptTitle').textContent = scriptNode.alias || scriptNode.name || 'script';
+    $('#scriptTitle').textContent = scriptDisplayName(scriptNode);
     $('#breadcrumbScript').textContent = $('#scriptTitle').textContent;
     $('#windowTitle').textContent = `Script Lab — ${$('#scriptTitle').textContent}`;
     catalogPromise.then((catalog) => {
@@ -978,7 +1051,7 @@
     }
     const errors = renderDiagnostics(inspectSource());
     if (errors.length) {
-      showToast('Fix the warnings before compiling.');
+      openCompileDiagnostics(errors);
       return false;
     }
     try {
@@ -1009,56 +1082,7 @@
         ? [{ line: Number(match[1]), message: error.message.replace(/^Line \d+:\s*/, '') }]
         : [{ line: 1, message: error.message }];
       renderDiagnostics(compileErrors);
-      showToast(error.message);
-      return false;
-    }
-  }
-
-  async function compilePendingScripts() {
-    const pendingIds = [...new Set([
-      ...dirtyUserScripts,
-      ...(sourceDirty && activeScriptId ? [activeScriptId] : [])
-    ])];
-    if (!pendingIds.length) return true;
-    try {
-      const catalog = await catalogPromise;
-      for (const id of pendingIds) {
-        const target = nodeById(id);
-        if (!target || target.class !== 'script') {
-          drafts.delete(id);
-          metadataDrafts.delete(id);
-          dirtyUserScripts.delete(id);
-          continue;
-        }
-        const text = id === activeScriptId ? source.value : drafts.get(id) || '';
-        const metadata = id === activeScriptId ? activeMetadata : metadataDrafts.get(id) || new Map();
-        if (!text.trim()) {
-          target.content = [];
-        } else {
-          const errors = inspectSource(text);
-          if (errors.length) {
-            showToast(`Cannot export script ${scriptsInProject().indexOf(target) + 1}: ${errors[0].message}`);
-            return false;
-          }
-          const result = CatwebCSL.compileScript(text, {
-            catalog,
-            folderAlias: $('#folderAlias').value.trim() || 'CatWet Script Lab',
-            metadataByLine: metadata
-          });
-          target.content = result[0].children[0].content;
-        }
-        drafts.delete(id);
-        metadataDrafts.delete(id);
-        dirtyUserScripts.delete(id);
-      }
-      sourceDirty = false;
-      renderProject();
-      updateEditor(false);
-      refreshProjectJson('Project compiled · compact');
-      showToast(`${pendingIds.length} changed ${pendingIds.length === 1 ? 'script' : 'scripts'} compiled.`);
-      return true;
-    } catch (error) {
-      showToast(`Could not compile project scripts: ${error.message}`);
+      openCompileDiagnostics(compileErrors);
       return false;
     }
   }
@@ -1079,7 +1103,7 @@
   }
 
   async function buildAIContext(catalog) {
-    const documentationFiles = ['CATWEB_SCRIPT_LANGUAGE.md', 'AI_PROJECT_GUIDE.md'];
+    const documentationFiles = ['docs/CATWEB_SCRIPT_LANGUAGE.md', 'docs/AI_PROJECT_GUIDE.md'];
     const documentation = await Promise.all(documentationFiles.map(async (path) => {
       const response = await fetch(new URL(path, document.baseURI), { credentials: 'same-origin' });
       if (!response.ok) throw new Error(`Could not load ${path} for the AI context (HTTP ${response.status}).`);
@@ -1194,7 +1218,11 @@
       $('#aiJsonPreview').value = JSON.stringify(codec.encodeProject(project, catalog));
       $('#aiJsonDetails').open = true;
       $('#addAIScript').disabled = false;
-      setAIStatus('Compile succeeded · JSON preview is local and ready to add.', 'success');
+      const codecWarnings = codec.getWarnings();
+      const warningNotice = codecWarnings.length
+        ? ` ${codecWarnings.length} string field(s) were preserved literally because ENCODE.json does not map every character.`
+        : '';
+      setAIStatus(`Compile succeeded · JSON preview is local and ready to add.${warningNotice}`, 'success');
     } catch (error) {
       aiCompiledPreview = null;
       $('#aiJsonPreview').value = '';
@@ -1231,6 +1259,7 @@
       const scriptNode = {
         class: 'script',
         globalid: uid(),
+        alias: `Script ${scriptsInProject().length + 1}`,
         content: clone(previewScript.content)
       };
       documentData[0].children ||= [];
@@ -1245,9 +1274,9 @@
       previousSourceValue = source.value;
       activeMetadata = extracted.metadata;
       source.disabled = false;
-      $('#scriptTitle').textContent = 'script';
-      $('#breadcrumbScript').textContent = 'script';
-      $('#windowTitle').textContent = `Script Lab — ${documentData[0].alias || projectLabelFallback}`;
+      $('#scriptTitle').textContent = scriptDisplayName(scriptNode);
+      $('#breadcrumbScript').textContent = $('#scriptTitle').textContent;
+      $('#windowTitle').textContent = `Script Lab — ${$('#scriptTitle').textContent}`;
       const saveSourceButton = $('#saveSource');
       if (saveSourceButton) saveSourceButton.disabled = false;
       renderProject();
@@ -1291,13 +1320,25 @@
     selectedNodeId = edited.globalid;
     if (activeScriptId === oldId && edited.class === 'script') activeScriptId = edited.globalid;
     renderProject();
+    if (edited.class === 'script' && activeScriptId === edited.globalid) {
+      const name = edited.alias || edited.name || 'script';
+      $('#scriptTitle').textContent = name;
+      $('#breadcrumbScript').textContent = name;
+      $('#windowTitle').textContent = `Script Lab — ${name}`;
+    }
     refreshProjectJson('Properties updated · compact');
     showToast('Properties applied.');
   }
 
   function applyObjectProperties() {
     const current = nodeById(selectedNodeId);
-    if (!current || current.class === 'script') return;
+    if (!current) return;
+    if (current.class === 'script') {
+      const alias = $('#scriptAlias').value.trim();
+      if (!alias) throw new Error('Script name cannot be empty.');
+      replaceSelectedObject({ ...clone(current), alias });
+      return;
+    }
     let edited;
     const details = $('#objectPropertiesRaw').closest('details');
     if (details.open) {
@@ -1330,7 +1371,7 @@
       drafts.set(activeScriptId, source.value);
       metadataDrafts.set(activeScriptId, new Map(activeMetadata));
     }
-    const scriptNode = { class: 'script', globalid: uid(), content: [] };
+    const scriptNode = { class: 'script', globalid: uid(), alias: `Script ${scriptsInProject().length + 1}`, content: [] };
     documentData[0].children ||= [];
     documentData[0].children.push(scriptNode);
     selectedNodeId = scriptNode.globalid;
@@ -1341,9 +1382,9 @@
     source.value = '';
     activeMetadata = new Map();
     previousSourceValue = source.value;
-    $('#scriptTitle').textContent = 'script';
-    $('#breadcrumbScript').textContent = 'script';
-    $('#windowTitle').textContent = 'Script Lab — script';
+    $('#scriptTitle').textContent = scriptDisplayName(scriptNode);
+    $('#breadcrumbScript').textContent = $('#scriptTitle').textContent;
+    $('#windowTitle').textContent = `Script Lab — ${$('#scriptTitle').textContent}`;
     const saveSourceButton = $('#saveSource');
     if (saveSourceButton) saveSourceButton.disabled = false;
     renderProject();
@@ -1361,7 +1402,8 @@
     const target = selected && ['Folder', 'Frame', 'ScrollingFrame'].includes(selected.class)
       ? selected
       : selected && parentOf(selectedNodeId) || documentData[0];
-    const node = { class: type, globalid: uid(), children: [] };
+    const siblingNumber = (target.children || []).filter((child) => child.class === type).length + 1;
+    const node = { class: type, globalid: uid(), alias: `${labelFor(type)} ${siblingNumber}`, children: [] };
     if (type === 'Frame') Object.assign(node, { size: '{1, 0},{0.25, 0}', background_color: '#f1f4f0' });
     if (type === 'TextLabel') Object.assign(node, { text: 'New text', size: '{1, 0},{0.1, 0}', font_size: 'scaled', rich: 'false' });
     if (type.startsWith('TextButton')) Object.assign(node, { text: 'New button', size: '{0.4, 0},{0.12, 0}', background_color: '#4e9bff', font_size: 'scaled', auto_color: 'true' });
@@ -1478,8 +1520,11 @@
       updateEditor(true);
     }));
   $('#compile').addEventListener('click', compile);
-  const openJsonModal = (json) => {
+  const openJsonModal = (json, notice = '') => {
     $('#jsonModalContent').value = json;
+    const exportNotice = $('#jsonExportNotice');
+    exportNotice.textContent = notice;
+    exportNotice.hidden = !notice;
     $('#jsonCopyStatus').textContent = 'Ready to copy';
     $('#jsonModal').classList.add('open');
     $('#jsonModal').setAttribute('aria-hidden', 'false');
@@ -1491,14 +1536,22 @@
     $('#exportProject').focus();
   };
   $('#exportProject').addEventListener('click', async () => {
-    if (dirtyUserScripts.size || sourceDirty) {
-      const saved = await compilePendingScripts();
-      if (!saved) return;
-    }
+    const hasPendingChanges = dirtyUserScripts.size > 0 || sourceDirty;
     try {
       const [catalog, codec] = await Promise.all([catalogPromise, codecPromise]);
       lastJson = JSON.stringify(codec.encodeProject(documentData, catalog));
-      openJsonModal(lastJson);
+      const notices = [];
+      if (hasPendingChanges) {
+        notices.push('Uncompiled editor changes are not included. Compile each changed script before exporting to include them.');
+      }
+      const codecWarnings = codec.getWarnings();
+      if (codecWarnings.length) {
+        notices.push(
+          `${codecWarnings.length} string field(s) include characters not mapped by ENCODE.json and were preserved literally. ${codecWarnings[0]}`
+        );
+      }
+      const notice = notices.join(' ');
+      openJsonModal(lastJson, notice);
     } catch (error) {
       showToast(`Could not encode project: ${error.message}`);
     }
@@ -1518,6 +1571,8 @@
   $('#addAIScript').addEventListener('click', addAICodeAsScript);
   $('#closeJsonModal').addEventListener('click', closeJsonModal);
   $('[data-close-modal]').addEventListener('click', closeJsonModal);
+  $('#closeCompileDiagnostics').addEventListener('click', closeCompileDiagnostics);
+  $('#compileDiagnosticsModal [data-close-diagnostics]').addEventListener('click', closeCompileDiagnostics);
   $('#copyJson').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText($('#jsonModalContent').value);
@@ -1531,6 +1586,7 @@
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && $('#jsonModal').classList.contains('open')) closeJsonModal();
+    if (event.key === 'Escape' && $('#compileDiagnosticsModal').classList.contains('open')) closeCompileDiagnostics();
     if (event.key === 'Escape' && $('#aiModal').classList.contains('open')) closeAIModal();
   });
   $('#openProject').addEventListener('click', () => $('#fileInput').click());
